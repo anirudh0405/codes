@@ -3,7 +3,7 @@
  * Sliders + numeric inputs + profile presets + randomize
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
 import { PATIENT_PROFILES } from '../../store/profiles';
@@ -19,12 +19,12 @@ const PARAM_CONFIGS: {
   step: number;
   decimals?: number;
 }[] = [
-  { key: 'heartRate', label: 'Heart Rate', unit: 'bpm', min: 30, max: 200, step: 1 },
+  { key: 'heartRate', label: 'Heart Rate', unit: 'bpm', min: 30, max: 220, step: 1 },
   { key: 'systolic', label: 'BP Systolic', unit: 'mmHg', min: 70, max: 220, step: 1 },
   { key: 'diastolic', label: 'BP Diastolic', unit: 'mmHg', min: 40, max: 140, step: 1 },
   { key: 'hrv', label: 'HRV (RMSSD)', unit: 'ms', min: 5, max: 150, step: 1 },
   { key: 'stressScore', label: 'Stress Score', unit: '0–100', min: 0, max: 100, step: 1 },
-  { key: 'stSegment', label: 'ST Segment', unit: 'mV', min: -0.3, max: 0.5, step: 0.01, decimals: 2 },
+  { key: 'stSegment', label: 'ST Segment', unit: 'mV', min: -0.5, max: 0.5, step: 0.01, decimals: 2 },
   { key: 'qtInterval', label: 'QT Interval', unit: 'ms', min: 280, max: 600, step: 5 },
 ];
 
@@ -35,18 +35,43 @@ interface SliderRowProps {
 }
 
 function SliderRow({ cfg, value, onChange }: SliderRowProps) {
-  const pct = ((value - cfg.min) / (cfg.max - cfg.min)) * 100;
-  const displayVal = cfg.decimals !== undefined ? value.toFixed(cfg.decimals) : String(value);
+  const pct = Math.max(0, Math.min(100, ((value - cfg.min) / (cfg.max - cfg.min)) * 100));
+
+  const [localVal, setLocalVal] = useState<string>(cfg.decimals !== undefined ? value.toFixed(cfg.decimals) : String(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setLocalVal(cfg.decimals !== undefined ? value.toFixed(cfg.decimals) : String(value));
+    }
+  }, [value, isFocused, cfg.decimals]);
 
   const handleSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseFloat(e.target.value);
-    onChange(v);
+    if (!isNaN(v)) {
+      onChange(v);
+      setLocalVal(cfg.decimals !== undefined ? v.toFixed(cfg.decimals) : String(v));
+    }
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = parseFloat(e.target.value);
-    if (!isNaN(raw)) {
-      onChange(Math.max(cfg.min, Math.min(cfg.max, raw)));
+    const text = e.target.value;
+    setLocalVal(text);
+    const raw = parseFloat(text);
+    if (!isNaN(raw) && raw >= cfg.min && raw <= cfg.max) {
+      onChange(raw);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    const raw = parseFloat(localVal);
+    if (isNaN(raw)) {
+      setLocalVal(cfg.decimals !== undefined ? value.toFixed(cfg.decimals) : String(value));
+    } else {
+      const clamped = Math.max(cfg.min, Math.min(cfg.max, raw));
+      onChange(clamped);
+      setLocalVal(cfg.decimals !== undefined ? clamped.toFixed(cfg.decimals) : String(clamped));
     }
   };
 
@@ -75,8 +100,10 @@ function SliderRow({ cfg, value, onChange }: SliderRowProps) {
           min={cfg.min}
           max={cfg.max}
           step={cfg.step}
-          value={displayVal}
+          value={localVal}
+          onFocus={() => setIsFocused(true)}
           onChange={handleInput}
+          onBlur={handleBlur}
         />
       </div>
     </div>

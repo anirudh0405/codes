@@ -252,12 +252,12 @@ function RiskTrend() {
 // ─── Parameter Sliders ────────────────────────────────────────────────────────
 
 const PARAM_SLIDERS: { key: keyof MockParams; label: string; unit: string; min: number; max: number; step: number; dec?: number }[] = [
-  { key: 'heartRate',   label: 'HEART RATE',   unit: 'bpm',  min: 30,   max: 200, step: 1 },
+  { key: 'heartRate',   label: 'HEART RATE',   unit: 'bpm',  min: 30,   max: 220, step: 1 },
   { key: 'systolic',    label: 'BP SYSTOLIC',  unit: 'mmHg', min: 70,   max: 220, step: 1 },
   { key: 'diastolic',   label: 'BP DIASTOLIC', unit: 'mmHg', min: 40,   max: 140, step: 1 },
   { key: 'hrv',         label: 'HRV RMSSD',    unit: 'ms',   min: 5,    max: 150, step: 1 },
   { key: 'stressScore', label: 'STRESS',       unit: '0–100',min: 0,    max: 100, step: 1 },
-  { key: 'stSegment',   label: 'ST SEGMENT',   unit: 'mV',   min: -0.3, max: 0.5, step: 0.01, dec: 2 },
+  { key: 'stSegment',   label: 'ST SEGMENT',   unit: 'mV',   min: -0.5, max: 0.5, step: 0.01, dec: 2 },
   { key: 'qtInterval',  label: 'QT INTERVAL',  unit: 'ms',   min: 280,  max: 600, step: 5 },
 ];
 
@@ -265,11 +265,40 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
   const { params, setParams } = useSimStore(useShallow(s => ({ params: s.params, setParams: s.setParams })));
   const value = params[cfg.key] as number;
   const pct = Math.max(0, Math.min(100, ((value - cfg.min) / (cfg.max - cfg.min)) * 100));
-  const display = cfg.dec ? value.toFixed(cfg.dec) : String(value);
+
+  const [localVal, setLocalVal] = useState<string>(cfg.dec !== undefined ? value.toFixed(cfg.dec) : String(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setLocalVal(cfg.dec !== undefined ? value.toFixed(cfg.dec) : String(value));
+    }
+  }, [value, isFocused, cfg.dec]);
 
   const onChange = useCallback((v: number) => {
     setParams({ [cfg.key]: Math.max(cfg.min, Math.min(cfg.max, v)) });
   }, [setParams, cfg]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    setLocalVal(text);
+    const v = parseFloat(text);
+    if (!isNaN(v) && v >= cfg.min && v <= cfg.max) {
+      setParams({ [cfg.key]: v });
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    const v = parseFloat(localVal);
+    if (isNaN(v)) {
+      setLocalVal(cfg.dec !== undefined ? value.toFixed(cfg.dec) : String(value));
+    } else {
+      const clamped = Math.max(cfg.min, Math.min(cfg.max, v));
+      setParams({ [cfg.key]: clamped });
+      setLocalVal(cfg.dec !== undefined ? clamped.toFixed(cfg.dec) : String(clamped));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-1">
@@ -279,9 +308,11 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
           <input
             id={`input-${cfg.key}`}
             type="number" min={cfg.min} max={cfg.max} step={cfg.step}
-            value={display}
-            onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(v); }}
-            className="w-10 bg-[var(--surface-0)] border border-[var(--border)] rounded px-1 text-right text-[10px] font-bold text-white outline-none"
+            value={localVal}
+            onFocus={() => setIsFocused(true)}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            className="w-12 bg-[var(--surface-0)] border border-[var(--border)] rounded px-1 text-right text-[10px] font-bold text-white outline-none"
           />
           <span className="text-[9px] text-[var(--text-tertiary)]">{cfg.unit}</span>
         </div>
@@ -290,7 +321,13 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
         <input
           id={`slider-${cfg.key}`}
           type="range" min={cfg.min} max={cfg.max} step={cfg.step} value={value}
-          onChange={e => onChange(parseFloat(e.target.value))}
+          onChange={e => {
+            const v = parseFloat(e.target.value);
+            if (!isNaN(v)) {
+              onChange(v);
+              setLocalVal(cfg.dec !== undefined ? v.toFixed(cfg.dec) : String(v));
+            }
+          }}
           className="absolute inset-0 w-full opacity-0 cursor-pointer h-4 -top-1.5"
         />
         <div
