@@ -1,43 +1,39 @@
-/* ── Google Fonts (Orbitron, JetBrains Mono, Inter) ───────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&display=swap');
+/* ── Google Fonts — Inter only ───────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
-/* ── Pro Dark Medical Monitor Design System ────────────────────────────── */
+/* ── CAD Risk Simulator — Black Minimalist Design System ──────────────────── */
 :root {
-  /* Dark Void Surfaces */
-  --bg:          #090b10;
-  --surface-0:     #0c0f15;
-  --surface-1:     #111622;
-  --surface-2:     #161d2c;
-  --surface-alt:   #182030;
+  /* Page & surface backgrounds */
+  --bg:           #0A0A0B;
+  --surface:      #141416;
+  --surface-alt:  #1B1B1E;
 
-  /* Borders & Hairlines */
-  --border:        #1f293d;
-  --border-subtle: rgba(255,255,255,0.06);
-  --border-dim:    rgba(255,255,255,0.10);
+  /* Borders & dividers */
+  --border:       #26272A;
 
-  /* Clinical Green Trace */
-  --trace:         #00d97e;
-  --trace-glow:    rgba(0,217,126,0.30);
-  --trace-dim:     rgba(0,217,126,0.12);
+  /* Accent — single primary color */
+  --accent:       #4A9DFF;
 
-  /* Alert Colors */
-  --amber:         #f59e0b;
-  --amber-dim:     rgba(245,158,11,0.12);
+  /* Risk / confidence state colors */
+  --alert-amber:  #D8A13B;
+  --alert-red:    #D9534F;
 
-  --red:           #ef4444;
-  --red-dim:       rgba(239,68,68,0.12);
+  /* Text scale */
+  --text-primary:   #EDEDEF;
+  --text-secondary: #8A8B90;
+  --text-tertiary:  #55565B;
 
-  /* Text Colors */
-  --text-primary:   #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-tertiary:  #4b5563;
+  /* Typography */
+  --font-body: 'Inter', system-ui, sans-serif;
 
-  /* Font Families */
-  --font-display:  'Orbitron', sans-serif;
-  --font-body:     'Inter', system-ui, sans-serif;
-  --font-mono:     'JetBrains Mono', monospace;
+  /* Spacing tokens — use ONLY these throughout layout */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
 }
 
 *, *::before, *::after {
@@ -59,6 +55,7 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* Tabular numerics — use on all readout spans */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
@@ -68,32 +65,33 @@ html, body, #root {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-/* Live Pulse Animation Dot */
-@keyframes live-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 var(--trace-glow); }
-  50%       { opacity: 0.5; transform: scale(0.85); box-shadow: 0 0 0 4px transparent; }
+/* ── Status dot — simple opacity pulse, no glow ──────────────────────────── */
+@keyframes status-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
 }
 
 .live-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--trace);
-  animation: live-pulse 2s ease-in-out infinite;
-  box-shadow: 0 0 8px var(--trace-glow);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: status-blink 2s ease-in-out infinite;
   flex-shrink: 0;
 }
 
-/* Card primitives */
+/* ── Card primitives ─────────────────────────────────────────────────────── */
 .panel-card {
-  background: var(--surface-1);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   position: relative;
   overflow: hidden;
-  transition: all 0.2s ease;
 }
 
+/* Derived / estimated data cards — slightly lighter than primary panels */
 .panel-card-alt {
   background: var(--surface-alt);
   border: 1px solid var(--border);
@@ -102,23 +100,30 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* Eyebrow Label */
+/* ── Eyebrow label — uppercase only for small metadata labels ────────────── */
 .eyebrow-label {
   font-family: var(--font-body);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-secondary);
 }
 
-/* Font utility classes */
-.font-display { font-family: var(--font-display); }
-.font-mono-val { font-family: var(--font-mono); }
-
-/* Range Slider */
-input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; }
-input[type=number] { -moz-appearance: textfield; }
+/* ── Range Slider reset ──────────────────────────────────────────────────── */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
 input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button { display: none; }
+input[type=number]::-webkit-outer-spin-button {
+  display: none;
+}

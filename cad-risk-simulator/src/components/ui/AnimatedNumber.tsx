@@ -131,7 +131,7 @@ function AnimatedScore({ value, duration = 0.2, className }: { value: number, du
     const colors = {
         negative: "#37ff1a",
         positive: "#ff1a4b",
-        neutral: "#fff"
+        neutral: "var(--text-primary)"
     }
 
     const transforVal = 80
