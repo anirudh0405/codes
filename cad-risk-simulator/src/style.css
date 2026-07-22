@@ -1,12 +1,44 @@
-/* ============================================================
-   CAD Risk Simulator — Clinical Monitor Design System
-   ============================================================
-   Aesthetic: Bedside cardiac monitor translated to web.
-   No gradients, no glow, no neon. Disciplined spacing.
-   Pure signal, no noise.
-   ============================================================ */
+/* ── Google Fonts (Orbitron, JetBrains Mono, Inter) ───────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ── Pro Dark Medical Monitor Design System ────────────────────────────── */
+:root {
+  /* Dark Void Surfaces */
+  --bg:          #090b10;
+  --surface-0:     #0c0f15;
+  --surface-1:     #111622;
+  --surface-2:     #161d2c;
+  --surface-alt:   #182030;
+
+  /* Borders & Hairlines */
+  --border:        #1f293d;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-dim:    rgba(255,255,255,0.10);
+
+  /* Clinical Green Trace */
+  --trace:         #00d97e;
+  --trace-glow:    rgba(0,217,126,0.30);
+  --trace-dim:     rgba(0,217,126,0.12);
+
+  /* Alert Colors */
+  --amber:         #f59e0b;
+  --amber-dim:     rgba(245,158,11,0.12);
+
+  --red:           #ef4444;
+  --red-dim:       rgba(239,68,68,0.12);
+
+  /* Text Colors */
+  --text-primary:   #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-tertiary:  #4b5563;
+
+  /* Font Families */
+  --font-display:  'Orbitron', sans-serif;
+  --font-body:     'Inter', system-ui, sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+}
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -14,904 +46,79 @@
   padding: 0;
 }
 
-:root {
-  /* ── Design Tokens ──────────────────────────────────── */
-  --void:        #0A0B0D;
-  --panel:       #131519;
-  --hairline:    #23262C;
-  --trace:       #34D399;
-  --alert-amber: #E3A83B;
-  --alert-red:   #E5534B;
-  --text-primary:#E7E8EA;
-  --text-muted:  #6E737C;
-
-  /* ── Derived tokens (no extra colors beyond spec) ───── */
-  --panel-border: 1px solid var(--hairline);
-  --radius:       5px;
-
-  /* ── Typography ─────────────────────────────────────── */
-  --font-mono:  'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
-  --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
-
-  /* ── Layout dimensions ───────────────────────────────── */
-  --topbar-h:   44px;
-  --sidebar-w:  192px;
-  --right-w:    260px;
-  --bottom-h:   96px;
-  --gap:        8px;
-}
-
 html, body, #root {
-  height: 100%;
-  font-family: var(--font-sans);
-  background: var(--void);
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  background: var(--bg);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
 
-/* ── SCROLLBAR ──────────────────────────────────────────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-/* ─────────────────────────────────────────────────────────
-   APP LAYOUT — CSS Grid
-   ───────────────────────────────────────────────────────── */
-
-.app-layout {
-  display: grid;
-  grid-template-rows: var(--topbar-h) 1fr var(--bottom-h);
-  grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
-  grid-template-areas:
-    "topbar  topbar  topbar"
-    "sidebar center  right"
-    "bottom  bottom  bottom";
-  height: 100vh;
-  gap: 0;
+/* Live Pulse Animation Dot */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 var(--trace-glow); }
+  50%       { opacity: 0.5; transform: scale(0.85); box-shadow: 0 0 0 4px transparent; }
 }
 
-/* ─────────────────────────────────────────────────────────
-   TOP BAR
-   ───────────────────────────────────────────────────────── */
-
-.topbar {
-  grid-area: topbar;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: var(--panel);
-  border-bottom: var(--panel-border);
-  gap: 12px;
-  z-index: 10;
-}
-
-.topbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.topbar-logo {
-  width: 20px;
-  height: 20px;
-  color: var(--trace);
-  opacity: 0.9;
-}
-
-.topbar-title {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-}
-
-.topbar-sep {
-  width: 1px;
-  height: 20px;
-  background: var(--hairline);
-  flex-shrink: 0;
-}
-
-/* Profile selector — horizontal pill row */
-.profile-strip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.profile-strip::-webkit-scrollbar { display: none; }
-
-.profile-chip {
-  flex-shrink: 0;
-  padding: 3px 10px;
-  border: var(--panel-border);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-  white-space: nowrap;
-}
-
-.profile-chip:hover {
-  border-color: var(--text-muted);
-  color: var(--text-primary);
-}
-
-.profile-chip.active {
-  border-color: var(--trace);
-  color: var(--trace);
-  background: rgba(52, 211, 153, 0.06);
-}
-
-.profile-chip.active.moderate {
-  border-color: var(--alert-amber);
-  color: var(--alert-amber);
-  background: rgba(227, 168, 59, 0.06);
-}
-
-.profile-chip.active.high {
-  border-color: var(--alert-red);
-  color: var(--alert-red);
-  background: rgba(229, 83, 75, 0.06);
-}
-
-/* Randomize button */
-.btn-randomize {
-  flex-shrink: 0;
-  padding: 4px 10px;
-  border: var(--panel-border);
-  border-radius: 3px;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-  letter-spacing: 0.02em;
-}
-
-.btn-randomize:hover {
-  border-color: var(--text-muted);
-  color: var(--text-primary);
-}
-
-/* Right status cluster */
-.topbar-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.status-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.status-dot-sm {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
   background: var(--trace);
+  animation: live-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--trace-glow);
   flex-shrink: 0;
-  animation: dot-pulse 2.4s ease-in-out infinite;
 }
 
-@keyframes dot-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+/* Card primitives */
+.panel-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.live-clock {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+.panel-card-alt {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Risk summary in topbar */
-.topbar-risk {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  font-variant-numeric: tabular-nums;
-  color: var(--trace);
-  transition: color 0.4s;
-}
-.topbar-risk.moderate { color: var(--alert-amber); }
-.topbar-risk.high { color: var(--alert-red); }
-
-/* ─────────────────────────────────────────────────────────
-   LEFT SIDEBAR — Sensor status + param controls
-   ───────────────────────────────────────────────────────── */
-
-.sidebar {
-  grid-area: sidebar;
-  display: flex;
-  flex-direction: column;
-  background: var(--panel);
-  border-right: var(--panel-border);
-  overflow-y: auto;
-}
-
-/* ── Sensor list ── */
-
-.sensor-list {
-  border-bottom: var(--panel-border);
-}
-
-.sidebar-section-label {
-  font-family: var(--font-sans);
+/* Eyebrow Label */
+.eyebrow-label {
+  font-family: var(--font-body);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 10px 12px 6px;
-}
-
-.sensor-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
-  border-top: var(--panel-border);
-}
-
-.sensor-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background 0.3s;
-}
-
-.sensor-dot.simulated,
-.sensor-dot.connected {
-  background: var(--trace);
-}
-
-.sensor-dot.error {
-  background: var(--alert-red);
-  animation: dot-pulse 0.6s infinite;
-}
-
-.sensor-dot.disconnected {
-  background: var(--text-muted);
-}
-
-.sensor-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.sensor-name-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.sensor-mode-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin-top: 1px;
-}
-
-/* ── Parameter controls ── */
-
-.param-controls {
-  flex: 1;
-  padding: 0 0 8px;
-  overflow-y: auto;
-}
-
-.param-item {
-  padding: 8px 12px 6px;
-  border-top: var(--panel-border);
-}
-
-.param-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 5px;
-}
-
-.param-label {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.param-readout {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.param-input-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.param-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 2px;
-  background: var(--hairline);
-  border-radius: 1px;
-  outline: none;
-  cursor: pointer;
-  position: relative;
-}
-
-/* Filled track portion tinted green */
-.param-slider::-webkit-slider-runnable-track {
-  height: 2px;
-  border-radius: 1px;
-}
-
-.param-slider:focus { outline: none; }
-
-.param-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--trace);
-  border: 2px solid var(--panel);
-  cursor: pointer;
-  transition: transform 0.1s;
-  box-shadow: 0 0 0 1px var(--trace);
-}
-
-.param-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-.param-number {
-  width: 54px;
-  background: var(--void);
-  border: var(--panel-border);
-  border-radius: 3px;
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 3px 5px;
-  text-align: right;
-  outline: none;
-  font-variant-numeric: tabular-nums;
-}
-
-.param-number:focus {
-  border-color: var(--trace);
-}
-
-/* Chrome number input arrows */
-.param-number::-webkit-outer-spin-button,
-.param-number::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-}
-
-/* ─────────────────────────────────────────────────────────
-   CENTER COLUMN
-   ───────────────────────────────────────────────────────── */
-
-.center-column {
-  grid-area: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
-  padding: var(--gap);
-  overflow: hidden;
-  min-width: 0;
-}
-
-/* ── Waveform panels ── */
-
-.waveform-panel {
-  flex: 1;
-  background: var(--panel);
-  border: var(--panel-border);
-  border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.waveform-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 10px;
-  border-bottom: var(--panel-border);
-  flex-shrink: 0;
-}
-
-.waveform-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.waveform-indicator {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--trace);
-  animation: dot-pulse 1.8s ease-in-out infinite;
-}
-
-.waveform-meta {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.waveform-canvas-container {
-  flex: 1;
-  position: relative;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Grid paper effect — faint hairline graph paper, 20px minor / 40px major */
-.waveform-canvas-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--hairline) 1px, transparent 1px),
-    linear-gradient(90deg, var(--hairline) 1px, transparent 1px),
-    linear-gradient(rgba(35,38,44,0.4) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(35,38,44,0.4) 1px, transparent 1px);
-  background-size:
-    40px 40px,
-    40px 40px,
-    20px 20px,
-    20px 20px;
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.waveform-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-/* ── Three compact readout cards ── */
-
-.vitals-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--gap);
-  flex-shrink: 0;
-}
-
-.readout-card {
-  background: var(--panel);
-  border: var(--panel-border);
-  border-radius: var(--radius);
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.readout-label {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.readout-value {
-  font-family: var(--font-mono);
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
-
-.readout-unit {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-left: 3px;
-  font-weight: 400;
-}
-
-.readout-status {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  color: var(--text-muted);
-  margin-top: 1px;
-}
-
-.readout-status.warn  { color: var(--alert-amber); }
-.readout-status.alert { color: var(--alert-red); }
-.readout-status.ok    { color: var(--trace); }
-
-/* ─────────────────────────────────────────────────────────
-   RIGHT COLUMN — Risk gauge + contributions
-   ───────────────────────────────────────────────────────── */
-
-.right-column {
-  grid-area: right;
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
-  padding: var(--gap);
-  background: var(--void);
-  border-left: var(--panel-border);
-  overflow-y: auto;
-}
-
-/* ── Arc gauge panel ── */
-
-.gauge-panel {
-  background: var(--panel);
-  border: var(--panel-border);
-  border-radius: var(--radius);
-  padding: 12px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.gauge-panel-label {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  align-self: flex-start;
-}
-
-.gauge-svg-container {
-  width: 100%;
-  max-width: 200px;
-  position: relative;
-}
-
-.gauge-svg {
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-.gauge-track {
-  fill: none;
-  stroke: var(--hairline);
-  stroke-width: 6;
-  stroke-linecap: round;
-}
-
-.gauge-fill {
-  fill: none;
-  stroke-width: 6;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s;
-}
-
-.gauge-score {
-  font-family: var(--font-mono);
-  font-size: 36px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-anchor: middle;
-  dominant-baseline: central;
-  transition: fill 0.4s;
-}
-
-.gauge-denom {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  fill: var(--text-muted);
-  text-anchor: middle;
-  dominant-baseline: central;
-}
-
-.gauge-band {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-anchor: middle;
-  dominant-baseline: central;
-  transition: fill 0.4s;
-}
-
-.gauge-tick-low {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  fill: var(--text-muted);
-  dominant-baseline: middle;
-}
-
-/* ── Contribution breakdown ── */
-
-.contribution-panel {
-  background: var(--panel);
-  border: var(--panel-border);
-  border-radius: var(--radius);
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  flex: 1;
-}
-
-.contribution-panel-label {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
-.contrib-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
-  border-top: var(--panel-border);
-}
-
-.contrib-row:first-of-type {
-  border-top: none;
-}
-
-.contrib-name {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  width: 60px;
-  flex-shrink: 0;
-}
-
-.contrib-track {
-  flex: 1;
-  height: 2px;
-  background: var(--hairline);
-  border-radius: 1px;
-  overflow: hidden;
-}
-
-.contrib-fill {
-  height: 100%;
-  border-radius: 1px;
-  background: var(--trace);
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.contrib-fill.moderate { background: var(--alert-amber); }
-.contrib-fill.high { background: var(--alert-red); }
-
-.contrib-val {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  width: 20px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-/* ─────────────────────────────────────────────────────────
-   BOTTOM STRIP — Risk trend sparkline
-   ───────────────────────────────────────────────────────── */
-
-.bottom-strip {
-  grid-area: bottom;
-  background: var(--panel);
-  border-top: var(--panel-border);
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  overflow: hidden;
-}
-
-.bottom-label-col {
-  padding: 8px 14px;
-  border-right: var(--panel-border);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  flex-shrink: 0;
-  width: var(--sidebar-w);
-}
-
-.bottom-label-title {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.bottom-label-score {
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--trace);
-  transition: color 0.4s;
-  line-height: 1;
-}
-
-.bottom-label-score.moderate { color: var(--alert-amber); }
-.bottom-label-score.high { color: var(--alert-red); }
-
-.bottom-label-band {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--trace);
-  transition: color 0.4s;
-}
-
-.bottom-label-band.moderate { color: var(--alert-amber); }
-.bottom-label-band.high { color: var(--alert-red); }
-
-.bottom-chart {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-}
-
-/* Reference lines for risk thresholds in trend chart */
-.recharts-cartesian-grid line {
-  stroke: var(--hairline) !important;
-}
-
-.recharts-reference-line line {
-  stroke-dasharray: 4 4 !important;
-}
-
-/* ─────────────────────────────────────────────────────────
-   TOOLTIP
-   ───────────────────────────────────────────────────────── */
-
-.clinical-tooltip {
-  background: var(--panel);
-  border: var(--panel-border);
-  border-radius: 3px;
-  padding: 5px 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ─────────────────────────────────────────────────────────
-   DIVIDER
-   ───────────────────────────────────────────────────────── */
-
-.hdivider {
-  height: 1px;
-  background: var(--hairline);
-  flex-shrink: 0;
-}
-
-/* ─────────────────────────────────────────────────────────
-   RESPONSIVE — single column stacked
-   ───────────────────────────────────────────────────────── */
-
-@media (max-width: 900px) {
-  html, body, #root { overflow: auto; }
-
-  .app-layout {
-    grid-template-rows: var(--topbar-h) auto auto auto auto;
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "topbar"
-      "center"
-      "right"
-      "sidebar"
-      "bottom";
-    height: auto;
-  }
-
-  .right-column {
-    border-left: none;
-    border-top: var(--panel-border);
-    padding: var(--gap);
-  }
-
-  .sidebar {
-    border-right: none;
-    border-top: var(--panel-border);
-  }
-
-  .bottom-strip {
-    height: auto;
-    flex-direction: column;
-  }
-
-  .bottom-label-col {
-    width: 100%;
-    border-right: none;
-    border-bottom: var(--panel-border);
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .waveform-panel {
-    min-height: 140px;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────
-   REDUCED MOTION — disable sweep animation
-   ───────────────────────────────────────────────────────── */
-
-@media (prefers-reduced-motion: reduce) {
-  .status-dot-sm,
-  .waveform-indicator,
-  .sensor-dot.simulated,
-  .sensor-dot.connected {
-    animation: none;
-  }
-}
+  color: var(--text-secondary);
+}
+
+/* Font utility classes */
+.font-display { font-family: var(--font-display); }
+.font-mono-val { font-family: var(--font-mono); }
+
+/* Range Slider */
+input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { display: none; }

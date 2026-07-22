@@ -30,6 +30,37 @@ export interface PPGFeatures {
   hrv: number;                 // RMSSD ms
   pulseTransitTime: number;    // ms
   pulseWaveAmplitude: number;  // 0–1
+
+  // ── Waveform Morphology Features ─────────────────────────────────────────
+  // Computed from the raw PPG waveform array via peak/valley detection.
+  // Used downstream by the lipid estimation module (src/features/lipidEstimation.ts).
+  // These reflect arterial wall mechanical properties observable in optical signals.
+
+  /** Ratio of diastolic peak amplitude to systolic peak amplitude.
+   *  Higher values indicate greater wave reflection, associated with arterial stiffness.
+   *  Reference: Millasseau et al. (2003), Clinical Science. */
+  reflectionIndex: number;     // 0–1
+
+  /** Height / time-between-peaks proxy for pulse wave velocity / stiffness.
+   *  Based on Millasseau et al. (2002): SI = height(m) / ΔT(s)
+   *  where ΔT = time between systolic and diastolic peaks.
+   *  Uses DEFAULT_HEIGHT_METERS (175 cm) when no patient height is available. */
+  stiffnessIndex: number;      // m/s (healthy ~5–8, stiff arteries ~10+)
+
+  /** Augmentation index: (diastolicAmp - notchAmp) / systolicAmp.
+   *  Represents the contribution of the reflected wave to aortic pressure.
+   *  Negative in healthy young arteries; higher/positive in stiff arteries. */
+  augmentationIndex: number;   // dimensionless, typically -0.5 to +0.5
+
+  /** Time from waveform foot (cycle start, index 0) to systolic peak,
+   *  expressed as a fraction of the total beat cycle.
+   *  Shorter rise time = faster upstroke = stiffer, less compliant arteries. */
+  riseTime: number;            // 0–1 (fraction of beat cycle)
+
+  /** Position of the dicrotic notch as a fraction of the beat cycle.
+   *  Earlier notch position (smaller value) is associated with higher
+   *  peripheral vascular resistance. */
+  dicroticNotchPosition: number; // 0–1 (fraction of beat cycle)
 }
 
 export interface BPFeatures {
@@ -63,6 +94,112 @@ function classifyBP(systolic: number, diastolic: number): BPFeatures['bpCategory
   return 'normal';
 }
 
+// ─── PPG Waveform Morphology Helpers ──────────────────────────────────────────
+
+/**
+ * Default subject height used for Stiffness Index when no patient height is
+ * configured. Millasseau et al. (2002) formulation: SI = height(m) / ΔT(s).
+ */
+const DEFAULT_HEIGHT_METERS = 1.75;
+
+/** Index of maximum value in wave[start..end) */
+function findPeakIndex(wave: number[], start: number, end: number): number {
+  let maxIdx = start;
+  for (let i = start + 1; i < end; i++) {
+    if (wave[i] > wave[maxIdx]) maxIdx = i;
+  }
+  return maxIdx;
+}
+
+/** Index of minimum value in wave[start..end) */
+function findValleyIndex(wave: number[], start: number, end: number): number {
+  let minIdx = start;
+  for (let i = start + 1; i < end; i++) {
+    if (wave[i] < wave[minIdx]) minIdx = i;
+  }
+  return minIdx;
+}
+
+/**
+ * Extract PPG waveform morphology features from the raw waveform array.
+ *
+ * The PPG generator (src/hal/generators/ppgGenerator.ts) places:
+ *   Systolic peak  at t ≈ 0.20 of cycle
+ *   Dicrotic notch at t ≈ 0.45 of cycle
+ *   Diastolic peak at t ≈ 0.55 of cycle
+ *
+ * We detect each landmark from the actual sample values so the extraction
+ * remains valid even when noise shifts sample locations slightly.
+ */
+function extractMorphologyFromWaveform(
+  waveform: number[],
+  heartRate: number,
+): Pick<PPGFeatures, 'reflectionIndex' | 'stiffnessIndex' | 'augmentationIndex' | 'riseTime' | 'dicroticNotchPosition'> {
+  const n = waveform.length;
+
+  // Degenerate: insufficient data — return physiologically plausible defaults
+  if (n < 10) {
+    return {
+      reflectionIndex: 0.30,
+      stiffnessIndex: 8.0,
+      augmentationIndex: -0.10,
+      riseTime: 0.20,
+      dicroticNotchPosition: 0.45,
+    };
+  }
+
+  // Estimate samples per beat at 100 Hz; clamp to available waveform length
+  const samplesPerBeat = Math.round(6000 / Math.max(heartRate, 30));
+  const cycleLen = Math.min(samplesPerBeat, n);
+
+  // ── 1. Systolic peak — dominant peak in first 40% of cycle ───────────────
+  const systolicSearchEnd = Math.max(2, Math.round(cycleLen * 0.40));
+  const systolicIdx = findPeakIndex(waveform, 0, systolicSearchEnd);
+  const systolicAmp = waveform[systolicIdx];
+
+  // ── 2. Dicrotic notch — valley between 35–65% of cycle ───────────────────
+  const notchSearchStart = Math.round(cycleLen * 0.35);
+  const notchSearchEnd   = Math.round(cycleLen * 0.65);
+  const notchIdx = findValleyIndex(
+    waveform,
+    Math.max(notchSearchStart, systolicIdx + 1),
+    Math.min(notchSearchEnd, n),
+  );
+  const notchAmp = waveform[notchIdx];
+
+  // ── 3. Diastolic peak — peak between notch and 80% of cycle ──────────────
+  const diastolicSearchEnd = Math.min(Math.round(cycleLen * 0.80), n);
+  const diastolicIdx = findPeakIndex(waveform, notchIdx + 1, diastolicSearchEnd);
+  const diastolicAmp = waveform[diastolicIdx];
+
+  // ── Compute features ──────────────────────────────────────────────────────
+
+  // reflectionIndex: diastolic / systolic amplitude (0–1)
+  const reflectionIndex = systolicAmp > 0
+    ? Math.max(0, Math.min(1, diastolicAmp / systolicAmp))
+    : 0.30;
+
+  // stiffnessIndex: subject height / time between systolic and diastolic peaks
+  const sampleRateHz = 100;
+  const deltaT = (diastolicIdx - systolicIdx) / sampleRateHz; // seconds
+  const stiffnessIndex = deltaT > 0.01
+    ? parseFloat((DEFAULT_HEIGHT_METERS / deltaT).toFixed(2))
+    : 8.0;
+
+  // augmentationIndex: (diastolicAmp - notchAmp) / systolicAmp
+  const augmentationIndex = systolicAmp > 0
+    ? parseFloat(((diastolicAmp - notchAmp) / systolicAmp).toFixed(3))
+    : -0.10;
+
+  // riseTime: fraction of cycle from index 0 to systolic peak
+  const riseTime = parseFloat((systolicIdx / cycleLen).toFixed(3));
+
+  // dicroticNotchPosition: fraction of cycle at which the notch falls
+  const dicroticNotchPosition = parseFloat((notchIdx / cycleLen).toFixed(3));
+
+  return { reflectionIndex, stiffnessIndex, augmentationIndex, riseTime, dicroticNotchPosition };
+}
+
 // ─── ECG Feature Extraction ───────────────────────────────────────────────────
 
 export function extractECGFeatures(reading: SensorReading): ECGFeatures {
@@ -84,12 +221,22 @@ export function extractECGFeatures(reading: SensorReading): ECGFeatures {
 // ─── PPG Feature Extraction ───────────────────────────────────────────────────
 
 export function extractPPGFeatures(reading: SensorReading): PPGFeatures {
-  const d = reading.data as Record<string, number>;
+  const d = reading.data as Record<string, number | number[]>;
+  const heartRate = (d.heartRate as number) ?? 72;
+
+  // The raw waveform array is used for morphology feature extraction.
+  // It is produced by src/hal/generators/ppgGenerator.ts and passed through
+  // MockSensorSources.ts → SensorManager → FeatureExtraction unchanged.
+  const waveform: number[] = Array.isArray(d.waveform) ? (d.waveform as number[]) : [];
+
+  const morphology = extractMorphologyFromWaveform(waveform, heartRate);
+
   return {
-    heartRate: d.heartRate ?? 72,
-    hrv: d.hrv ?? 50,
-    pulseTransitTime: d.pulseTransitTime ?? 250,
-    pulseWaveAmplitude: d.pulseWaveAmplitude ?? 0.7,
+    heartRate,
+    hrv: (d.hrv as number) ?? 50,
+    pulseTransitTime: (d.pulseTransitTime as number) ?? 250,
+    pulseWaveAmplitude: (d.pulseWaveAmplitude as number) ?? 0.7,
+    ...morphology,
   };
 }
 

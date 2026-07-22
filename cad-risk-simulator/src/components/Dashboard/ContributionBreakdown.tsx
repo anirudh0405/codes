@@ -8,12 +8,14 @@ import { useSimStore } from '../../store/simStore';
 import { WEIGHTS } from '../../riskEngine';
 
 const PARAMS: { key: string; label: string }[] = [
-  { key: 'bloodPressure', label: 'BP'     },
-  { key: 'heartRate',     label: 'HR'     },
-  { key: 'hrv',           label: 'HRV'    },
-  { key: 'stress',        label: 'STRESS' },
-  { key: 'qtInterval',    label: 'QTC'    },
-  { key: 'stSegment',     label: 'ST-SEG' },
+  { key: 'bloodPressure',    label: 'BP'     },
+  { key: 'heartRate',        label: 'HR'     },
+  { key: 'hrv',              label: 'HRV'    },
+  { key: 'stress',           label: 'STRESS' },
+  { key: 'qtInterval',       label: 'QTC'    },
+  { key: 'stSegment',        label: 'ST-SEG' },
+  { key: 'totalCholesterol', label: 'CHOL'   },
+  { key: 'triglycerides',    label: 'TRIG'   },
 ];
 
 function barVariant(rawVal: number): string {
@@ -34,10 +36,14 @@ export function ContributionBreakdown() {
         const wt       = Math.round((WEIGHTS[key as keyof typeof WEIGHTS] ?? 0) * 100);
         const variant  = barVariant(raw);
 
+        // Show a muted "(est.)" suffix on lipid rows to distinguish from measured signals
+        const isLipid = key === 'totalCholesterol' || key === 'triglycerides';
+        const displayLabel = isLipid ? `${label}*` : label;
+
         return (
           <div key={key} className="contrib-row" id={`contrib-${key}`}>
-            <div className="contrib-name" title={`Weight: ${wt}%`}>
-              {label}
+            <div className="contrib-name" title={isLipid ? `Weight: ${wt}% — PPG-estimated` : `Weight: ${wt}%`}>
+              {displayLabel}
             </div>
             <div className="contrib-track">
               <div
@@ -49,6 +55,17 @@ export function ContributionBreakdown() {
           </div>
         );
       })}
+      {/* Legend for estimated values */}
+      <div style={{
+        fontSize: '8px',
+        color: 'var(--text-muted)',
+        marginTop: '6px',
+        paddingTop: '4px',
+        borderTop: '1px solid var(--hairline)',
+        letterSpacing: '0.05em',
+      }}>
+        * PPG-estimated, not measured
+      </div>
     </div>
   );
 }
