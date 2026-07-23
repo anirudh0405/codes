@@ -127,3 +127,43 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   display: none;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet & Phone (≤ 768px)
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Allow vertical scroll on the full page for stacked layout */
+  html, body, #root {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Preset-button scrollable row — hide scrollbar but allow touch swipe */
+  .mobile-preset-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-preset-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Touch-friendly slider hit area */
+  input[type=range] {
+    min-height: 44px;
+    cursor: pointer;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Small phone (≤ 430px)
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 430px) {
+  /* Slightly tighter section spacing on very small screens */
+  .mobile-section-gap {
+    gap: var(--space-sm);
+  }
+}

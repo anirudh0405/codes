@@ -29,6 +29,149 @@ function getRiskColor(band: string): string {
   return 'var(--accent)';
 }
 
+// ─── Tooltip Descriptions ────────────────────────────────────────────────────
+
+const TOOLTIPS: Record<string, string> = {
+  heartRate: 'Number of heartbeats per minute, derived from the ECG or PPG waveform.',
+  systolic: 'Pressure in the arteries when the heart contracts and pumps blood \u2014 the higher of the two BP numbers.',
+  diastolic: 'Pressure in the arteries when the heart rests between beats \u2014 the lower of the two BP numbers.',
+  hrv: 'Variation in time between heartbeats. Higher HRV generally reflects better cardiovascular and autonomic health.',
+  stress: 'Estimated physiological stress level, derived from HRV and skin-response proxies. Higher values indicate greater stress.',
+  stSegment: 'Portion of the ECG waveform between heartbeats. Deviation from baseline can indicate reduced blood flow to the heart muscle.',
+  qtInterval: 'Time the heart\u2019s electrical system takes to activate and reset each beat. Abnormally long or short values can indicate rhythm risk.',
+  motion: 'Simulated accelerometer signal. Detects whether a cardiac reading coincides with movement, helping distinguish real events from motion artifacts.',
+  totalCholesterol: 'Estimated from PPG waveform shape (pulse wave morphology) \u2014 not a direct lab measurement. Confidence drops if motion affects signal quality.',
+  triglycerides: 'Estimated from PPG waveform shape, similar to the cholesterol estimate \u2014 an experimental, non-clinical approximation.',
+  cadRiskScore: 'A 0\u2013100 composite score combining all sensor contributions below, weighted by how strongly each parameter is associated with coronary risk in this model.',
+  contribution: 'How many points this parameter added to the total CAD Risk Score this cycle.',
+  confidence: 'How reliable this reading is right now \u2014 lower when the signal may be affected by motion or noise.',
+  bloodPressure: 'Systolic and diastolic arterial pressure. Sustained elevation is a major modifiable risk factor for coronary artery disease.',
+};
+
+// ─── InfoTooltip Component ───────────────────────────────────────────────────
+
+function InfoTooltip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, positionAbove: true });
+  const ref = useRef<HTMLDivElement>(null);
+  const isTouchRef = useRef(false);
+
+  const updatePosition = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const positionAbove = rect.top > 110;
+    let left = rect.left + rect.width / 2;
+    const viewportWidth = window.innerWidth;
+    if (left < 130) left = 130;
+    if (left > viewportWidth - 130) left = viewportWidth - 130;
+
+    const top = positionAbove ? rect.top - 6 : rect.bottom + 6;
+    setCoords({ top, left, positionAbove });
+  }, []);
+
+  // Close on outside click/tap or scroll
+  useEffect(() => {
+    if (!open) return;
+    const handleClose = (e: Event) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleScroll = () => {
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClose);
+    document.addEventListener('touchstart', handleClose);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClose);
+      document.removeEventListener('touchstart', handleClose);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [open]);
+
+  const handleMouseEnter = () => {
+    if (isTouchRef.current) return;
+    updatePosition();
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (isTouchRef.current) return;
+    setOpen(false);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updatePosition();
+    setOpen(prev => !prev);
+  };
+
+  const handleTouchStart = () => {
+    isTouchRef.current = true;
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="relative inline-flex items-center z-10"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      style={{ marginLeft: 'var(--space-xs)' }}
+    >
+      <button
+        type="button"
+        onClick={handleClick}
+        className="inline-flex items-center justify-center shrink-0 outline-none"
+        style={{
+          width: '14px',
+          height: '14px',
+          color: 'var(--text-secondary)',
+          cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+        }}
+        aria-label="Info"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+          <path d="M8 7v4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="8" cy="5" r="0.7" fill="currentColor" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="fixed z-[9999]"
+          style={{
+            top: `${coords.top}px`,
+            left: `${coords.left}px`,
+            transform: coords.positionAbove ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+            width: 'max-content',
+            maxWidth: '240px',
+            padding: 'var(--space-sm) var(--space-md)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            color: 'var(--text-secondary)',
+            fontSize: '12px',
+            lineHeight: '1.45',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.6)',
+            pointerEvents: 'none',
+            whiteSpace: 'normal',
+            textTransform: 'none',
+            letterSpacing: 'normal',
+            fontWeight: 400,
+          }}
+        >
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Live Clock Component ───────────────────────────────────────────────────
 
 function LiveClock() {
@@ -199,6 +342,8 @@ const CONTRIB_PARAMS: { key: string; label: string; isLipid?: boolean }[] = [
   { key: 'triglycerides',    label: 'Trig*',  isLipid: true },
 ];
 
+const CONTRIB_TOOLTIP = TOOLTIPS.contribution;
+
 function ContribPanel() {
   const riskResult = useSimStore(s => s.riskResult);
 
@@ -211,7 +356,7 @@ function ContribPanel() {
         return (
           <div key={key} id={`contrib-${key}`}>
             <div className="flex items-center justify-between text-[11px]" style={{ marginBottom: 'var(--space-xs)' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
+              <span className="flex items-center" style={{ color: 'var(--text-secondary)' }}>{label}<InfoTooltip text={CONTRIB_TOOLTIP} /></span>
               <span className="tabular-nums font-medium" style={{ color: 'var(--text-primary)' }}>
                 <AnimatedNumber value={raw} className="text-[11px] font-medium" />
               </span>
@@ -265,14 +410,14 @@ function RiskTrend() {
 
 // ─── Parameter Sliders ────────────────────────────────────────────────────────
 
-const PARAM_SLIDERS: { key: keyof MockParams; label: string; unit: string; min: number; max: number; step: number; dec?: number }[] = [
-  { key: 'heartRate',   label: 'Heart Rate',   unit: 'bpm',   min: 30,   max: 220, step: 1 },
-  { key: 'systolic',    label: 'BP Systolic',  unit: 'mmHg',  min: 70,   max: 220, step: 1 },
-  { key: 'diastolic',   label: 'BP Diastolic', unit: 'mmHg',  min: 40,   max: 140, step: 1 },
-  { key: 'hrv',         label: 'HRV RMSSD',    unit: 'ms',    min: 5,    max: 150, step: 1 },
-  { key: 'stressScore', label: 'Stress',       unit: '0–100', min: 0,    max: 100, step: 1 },
-  { key: 'stSegment',   label: 'ST Segment',   unit: 'mV',    min: -0.5, max: 0.5, step: 0.01, dec: 2 },
-  { key: 'qtInterval',  label: 'QT Interval',  unit: 'ms',    min: 280,  max: 600, step: 5 },
+const PARAM_SLIDERS: { key: keyof MockParams; label: string; unit: string; min: number; max: number; step: number; dec?: number; tipKey: string }[] = [
+  { key: 'heartRate',   label: 'Heart Rate',   unit: 'bpm',   min: 30,   max: 220, step: 1, tipKey: 'heartRate' },
+  { key: 'systolic',    label: 'BP Systolic',  unit: 'mmHg',  min: 70,   max: 220, step: 1, tipKey: 'systolic' },
+  { key: 'diastolic',   label: 'BP Diastolic', unit: 'mmHg',  min: 40,   max: 140, step: 1, tipKey: 'diastolic' },
+  { key: 'hrv',         label: 'HRV RMSSD',    unit: 'ms',    min: 5,    max: 150, step: 1, tipKey: 'hrv' },
+  { key: 'stressScore', label: 'Stress',       unit: '0\u2013100', min: 0,    max: 100, step: 1, tipKey: 'stress' },
+  { key: 'stSegment',   label: 'ST Segment',   unit: 'mV',    min: -0.5, max: 0.5, step: 0.01, dec: 2, tipKey: 'stSegment' },
+  { key: 'qtInterval',  label: 'QT Interval',  unit: 'ms',    min: 280,  max: 600, step: 5, tipKey: 'qtInterval' },
 ];
 
 function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
@@ -317,21 +462,23 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
   return (
     <div className="flex flex-col" style={{ gap: 'var(--space-xs)' }}>
       <div className="flex items-center justify-between">
-        <span className="eyebrow-label">{cfg.label}</span>
+        <span className="eyebrow-label flex items-center">{cfg.label}<InfoTooltip text={TOOLTIPS[cfg.tipKey] ?? ''} /></span>
         <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
           <input
             id={`input-${cfg.key}`}
             type="number" min={cfg.min} max={cfg.max} step={cfg.step}
+            inputMode="decimal"
             value={localVal}
             onFocus={() => setIsFocused(true)}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            className="w-12 rounded text-right text-[11px] font-medium tabular-nums outline-none"
+            className="w-14 md:w-12 rounded text-right text-[13px] md:text-[11px] font-medium tabular-nums outline-none"
             style={{
               background: 'var(--bg)',
               border: '1px solid var(--border)',
               color: 'var(--text-primary)',
-              padding: '2px var(--space-xs)',
+              padding: 'var(--space-sm) var(--space-xs)',
+              minHeight: '44px',
             }}
           />
           <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{cfg.unit}</span>
@@ -349,7 +496,8 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
               setLocalVal(cfg.dec !== undefined ? v.toFixed(cfg.dec) : String(v));
             }
           }}
-          className="absolute inset-0 w-full opacity-0 cursor-pointer h-4 -top-1.5"
+          className="absolute inset-0 w-full opacity-0 cursor-pointer"
+          style={{ height: '44px', top: '-20px' }}
         />
         <div
           className="h-full rounded-full"
@@ -374,79 +522,128 @@ function TopBar() {
 
   return (
     <header
-      className="flex items-center justify-between shrink-0 z-10"
+      className="flex flex-col shrink-0 z-10"
       style={{
         background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
-        height: '48px',
-        padding: '0 var(--space-lg)',
         borderRadius: '8px 8px 0 0',
       }}
     >
-      {/* Brand */}
-      <div className="flex items-center shrink-0" style={{ gap: 'var(--space-sm)' }}>
-        <div className="live-dot" />
-        <span
-          className="text-[13px] font-semibold tracking-[0.04em] uppercase"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          CAD Monitor
-        </span>
-      </div>
-
-      {/* Patient Profile Selectors */}
-      <div className="flex-1 flex justify-center items-center" style={{ padding: '0 var(--space-lg)' }}>
-        <div className="flex items-center overflow-x-auto" style={{ gap: 'var(--space-sm)', padding: 'var(--space-xs) 0', scrollbarWidth: 'none' as any }}>
-          {PATIENT_PROFILES.map(p => {
-            const active = activeProfile?.id === p.id;
-            return (
-              <AnimatedButton
-                key={p.id} id={`profile-${p.id}`}
-                onClick={() => applyProfile(p.id)}
-                className={cn(
-                  'px-3 py-1 text-[11px] font-medium h-7 rounded transition-colors',
-                  active
-                    ? 'border-[var(--accent)] font-semibold'
-                    : 'border-[var(--border)] hover:border-[var(--text-tertiary)]'
-                )}
-                style={active
-                  ? { background: 'rgba(74,157,255,0.08)', borderColor: 'var(--accent)', color: 'var(--accent)' }
-                  : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
-                }
-              >
-                {p.name}
-              </AnimatedButton>
-            );
-          })}
-          {/* Primary CTA — accent fill */}
-          <AnimatedButton
-            id="btn-randomize"
-            onClick={randomize}
-            className="px-3.5 py-1 text-[11px] font-semibold h-7 rounded border-0"
-            style={{ background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
-          >
-            Randomize
-          </AnimatedButton>
-        </div>
-      </div>
-
-      {/* Right — risk score + sim status + clock */}
-      <div className="flex items-center shrink-0" style={{ gap: 'var(--space-md)' }}>
-        <div className="flex items-center text-[12px] font-semibold tabular-nums" style={{ gap: 'var(--space-xs)' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Risk</span>
-          <span style={{ color: scoreColor }}>{score}</span>
-        </div>
-        <div className="w-px h-4" style={{ background: 'var(--border)' }} />
-        <div className="flex items-center" style={{ gap: 'var(--space-xs)' }}>
+      {/* Row 1: Brand + Status (always visible) */}
+      <div
+        className="flex items-center justify-between shrink-0"
+        style={{
+          height: '48px',
+          padding: '0 var(--space-lg)',
+        }}
+      >
+        {/* Brand */}
+        <div className="flex items-center shrink-0" style={{ gap: 'var(--space-sm)' }}>
           <div className="live-dot" />
           <span
-            className="text-[10px] uppercase tracking-[0.04em]"
-            style={{ color: 'var(--text-secondary)' }}
+            className="text-[13px] font-semibold tracking-[0.04em] uppercase"
+            style={{ color: 'var(--text-primary)' }}
           >
-            Live
+            CAD Monitor
           </span>
         </div>
-        <LiveClock />
+
+        {/* Patient Profile Selectors — desktop only (hidden on mobile, shown in Row 2) */}
+        <div className="flex-1 justify-center items-center hidden md:flex" style={{ padding: '0 var(--space-lg)' }}>
+          <div className="flex items-center overflow-x-auto" style={{ gap: 'var(--space-sm)', padding: 'var(--space-xs) 0', scrollbarWidth: 'none' as any }}>
+            {PATIENT_PROFILES.map(p => {
+              const active = activeProfile?.id === p.id;
+              return (
+                <AnimatedButton
+                  key={p.id} id={`profile-${p.id}`}
+                  onClick={() => applyProfile(p.id)}
+                  className={cn(
+                    'px-3 py-1 text-[11px] font-medium h-7 rounded transition-colors',
+                    active
+                      ? 'border-[var(--accent)] font-semibold'
+                      : 'border-[var(--border)] hover:border-[var(--text-tertiary)]'
+                  )}
+                  style={active
+                    ? { background: 'rgba(74,157,255,0.08)', borderColor: 'var(--accent)', color: 'var(--accent)' }
+                    : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
+                  }
+                >
+                  {p.name}
+                </AnimatedButton>
+              );
+            })}
+            <AnimatedButton
+              id="btn-randomize"
+              onClick={randomize}
+              className="px-3.5 py-1 text-[11px] font-semibold h-7 rounded border-0"
+              style={{ background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
+            >
+              Randomize
+            </AnimatedButton>
+          </div>
+        </div>
+
+        {/* Right — risk score + sim status + clock */}
+        <div className="flex items-center shrink-0" style={{ gap: 'var(--space-md)' }}>
+          <div className="flex items-center text-[12px] font-semibold tabular-nums" style={{ gap: 'var(--space-xs)' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Risk</span>
+            <span style={{ color: scoreColor }}>{score}</span>
+          </div>
+          <div className="w-px h-4" style={{ background: 'var(--border)' }} />
+          <div className="flex items-center" style={{ gap: 'var(--space-xs)' }}>
+            <div className="live-dot" />
+            <span
+              className="text-[10px] uppercase tracking-[0.04em]"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Live
+            </span>
+          </div>
+          <LiveClock />
+        </div>
+      </div>
+
+      {/* Row 2: Preset buttons — mobile only (scrollable horizontal row) */}
+      <div
+        className="flex md:hidden mobile-preset-scroll"
+        style={{
+          padding: 'var(--space-xs) var(--space-md) var(--space-sm)',
+          gap: 'var(--space-sm)',
+          borderTop: '1px solid var(--border)',
+        }}
+      >
+        {PATIENT_PROFILES.map(p => {
+          const active = activeProfile?.id === p.id;
+          return (
+            <AnimatedButton
+              key={`m-${p.id}`} id={`m-profile-${p.id}`}
+              onClick={() => applyProfile(p.id)}
+              className={cn(
+                'px-3 py-2 text-[11px] font-medium rounded transition-colors whitespace-nowrap shrink-0',
+                active
+                  ? 'border-[var(--accent)] font-semibold'
+                  : 'border-[var(--border)] hover:border-[var(--text-tertiary)]'
+              )}
+              style={{
+                minHeight: '44px',
+                ...(active
+                  ? { background: 'rgba(74,157,255,0.08)', borderColor: 'var(--accent)', color: 'var(--accent)' }
+                  : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
+                ),
+              }}
+            >
+              {p.name}
+            </AnimatedButton>
+          );
+        })}
+        <AnimatedButton
+          id="m-btn-randomize"
+          onClick={randomize}
+          className="px-3.5 py-2 text-[11px] font-semibold rounded border-0 whitespace-nowrap shrink-0"
+          style={{ minHeight: '44px', background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
+        >
+          Randomize
+        </AnimatedButton>
       </div>
     </header>
   );
@@ -466,12 +663,12 @@ export default function App() {
   const lipidConf    = riskResult?.lipidConfidence ?? 1.0;
   const lipidLowConf = lipidConf < 0.70;
 
-  const sensorList: { type: SensorType; label: string; sub: string; isDegraded?: boolean }[] = [
+  const sensorList: { type: SensorType; label: string; sub: string; isDegraded?: boolean; tipKey?: string }[] = [
     { type: 'ecg',    label: 'ECG',          sub: 'Simulated' },
     { type: 'ppg',    label: 'PPG',          sub: 'Simulated', isDegraded: lipidLowConf },
     { type: 'bp',     label: 'Blood Pressure', sub: 'Simulated' },
     { type: 'stress', label: 'Stress / EDA', sub: 'Simulated' },
-    { type: 'ppg',    label: 'Motion',       sub: 'Simulated' },
+    { type: 'ppg',    label: 'Motion',       sub: 'Simulated', tipKey: 'motion' },
   ];
 
   // BP status label
@@ -501,100 +698,289 @@ export default function App() {
 
   return (
     <div
-      className="h-screen w-screen flex flex-col overflow-hidden select-none"
-      style={{ background: 'var(--bg)', color: 'var(--text-primary)', padding: 'var(--space-lg)' }}
+      className="w-screen flex flex-col select-none h-auto min-h-screen md:h-screen md:overflow-hidden"
+      style={{ background: 'var(--bg)', color: 'var(--text-primary)', padding: 'var(--space-md)' }}
     >
+      <style>{`
+        @media (min-width: 769px) {
+          .dashboard-grid {
+            display: grid;
+            grid-template-columns: 224px 1fr 256px;
+            grid-template-rows: 1fr auto auto;
+            min-height: 0;
+            flex: 1;
+          }
+          .dashboard-grid > * {
+            min-height: 0;
+          }
+          /* Desktop: restore outer padding */
+          .dashboard-root {
+            padding: var(--space-lg) !important;
+          }
+          /* Desktop: column wrappers become visible flex columns */
+          .right-col-wrapper {
+            display: flex !important;
+            flex-direction: column;
+            grid-column: 3;
+            grid-row: 1 / -1;
+            overflow-y: auto;
+            border-radius: 8px;
+          }
+          /* Remove inner borders on desktop since wrapper provides them */
+          .right-col-wrapper > .right-col-section {
+            border: none !important;
+            border-radius: 0 !important;
+          }
+          .left-col-wrapper {
+            display: flex !important;
+            flex-direction: column;
+            grid-column: 1;
+            grid-row: 1 / -1;
+            overflow-y: auto;
+            border-radius: 8px;
+          }
+          .left-col-wrapper > .left-col-section {
+            border: none !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}</style>
+
       <TopBar />
 
-      <div className="flex flex-1 min-h-0 overflow-hidden" style={{ gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
+      {/* ── Dashboard Grid: 3-col desktop, 1-col stacked mobile ──────── */}
+      <div
+        className="dashboard-grid flex flex-col overflow-y-auto md:overflow-hidden mobile-section-gap"
+        style={{ gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}
+      >
 
-        {/* ── Left Column: Sensor Status + Sim Controls ───────────────── */}
-        <aside
-          className="w-56 flex flex-col shrink-0 overflow-y-auto rounded-lg"
+        {/* ═══════════════════════════════════════════════════════════════
+            RIGHT COLUMN wrapper — on desktop: normal column container
+            On mobile: display:contents so children order independently
+           ═══════════════════════════════════════════════════════════════ */}
+        <div
+          className="contents right-col-wrapper"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
-          {/* Sensor Status */}
-          <div style={{ padding: 'var(--space-md)' }}>
-            <div className="eyebrow-label" style={{ marginBottom: 'var(--space-sm)' }}>Sensors</div>
-            <div className="flex flex-col" style={{ gap: 'var(--space-sm)' }}>
-              {sensorList.map((s, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between rounded-md"
-                  style={{
-                    background: 'var(--surface-alt)',
-                    border: '1px solid var(--border)',
-                    padding: 'var(--space-sm) var(--space-md)',
-                  }}
-                >
-                  <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
-                    <div
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ background: s.isDegraded ? 'var(--alert-amber)' : 'var(--accent)' }}
-                    />
-                    <span className="text-[12px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                      {s.label}
-                    </span>
+
+          {/* SECTION: CAD Risk Gauge (mobile order-1 — headline number) */}
+          <div
+            className="order-1 rounded-lg right-col-section"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            <div
+              className="panel-card flex flex-col items-center"
+              style={{ background: 'var(--surface-alt)', margin: 'var(--space-md)', padding: 'var(--space-md)' }}
+            >
+              <span className="eyebrow-label self-start flex items-center" style={{ marginBottom: 'var(--space-sm)' }}>CAD Risk Score<InfoTooltip text={TOOLTIPS.cadRiskScore} /></span>
+              <ArcGauge score={score} band={band} />
+              <span className="text-[10px] flex items-center" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-sm)' }}>
+                Confidence: {Math.round(lipidConf * 100)}%<InfoTooltip text={TOOLTIPS.confidence} />
+              </span>
+            </div>
+          </div>
+
+          {/* SECTION: Contributions (mobile order-7 — near bottom) */}
+          <div
+            className="order-7 rounded-lg right-col-section md:flex-1"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            <div style={{ padding: 'var(--space-md) var(--space-md) var(--space-sm)' }}>
+              <span className="eyebrow-label">Contributions</span>
+            </div>
+            <div className="panel-card overflow-y-auto" style={{ margin: '0 var(--space-md) var(--space-md)' }}>
+              <ContribPanel />
+              <div className="text-[10px]" style={{ color: 'var(--text-tertiary)', padding: '0 var(--space-md) var(--space-sm)' }}>
+                * PPG morphology estimate — not lab-measured
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION: Right Column Vital Scalars (mobile order-8 — after contributions) */}
+          {snapshot && (
+            <div
+              className="order-8 rounded-lg right-col-section"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+            >
+              <div className="flex flex-col shrink-0" style={{ padding: 'var(--space-md)', gap: 'var(--space-sm)' }}>
+                <div id="right-hr" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <div>
+                    <div className="eyebrow-label flex items-center">Heart Rate<InfoTooltip text={TOOLTIPS.heartRate} /></div>
+                    <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
+                      <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                        {snapshot.heartRate}
+                      </span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>BPM</span>
+                    </div>
                   </div>
-                  <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{s.sub}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.04em]" style={{ color: 'var(--accent)' }}>NSR</span>
                 </div>
-              ))}
+
+                <div id="right-qtc" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <div>
+                    <div className="eyebrow-label flex items-center">QTc Bazett<InfoTooltip text={TOOLTIPS.qtInterval} /></div>
+                    <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
+                      <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                        {snapshot.qtcBazett}
+                      </span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>ms</span>
+                    </div>
+                  </div>
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-[0.04em]"
+                    style={{ color: snapshot.qtcBazett > 450 ? 'var(--alert-amber)' : 'var(--accent)' }}
+                  >
+                    {snapshot.qtcBazett > 450 ? 'Prolonged' : 'Normal'}
+                  </span>
+                </div>
+
+                <div id="right-st" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <div>
+                    <div className="eyebrow-label flex items-center">ST Segment<InfoTooltip text={TOOLTIPS.stSegment} /></div>
+                    <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
+                      <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                        {snapshot.stSegment.toFixed(2)}
+                      </span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>mV</span>
+                    </div>
+                  </div>
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-[0.04em]"
+                    style={{ color: Math.abs(snapshot.stSegment) > 0.1 ? 'var(--alert-amber)' : 'var(--accent)' }}
+                  >
+                    {Math.abs(snapshot.stSegment) > 0.1 ? 'Deviated' : 'Isoelectric'}
+                  </span>
+                </div>
+
+                <div id="right-ptt" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <span className="eyebrow-label">Pulse Transit</span>
+                  <span className="text-[12px] font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                    {snapshot.pulseTransitTime} ms
+                  </span>
+                </div>
+
+                <div id="right-spo2" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <span className="eyebrow-label">SpO₂ (Optical)</span>
+                  <span className="text-[12px] font-semibold tabular-nums" style={{ color: 'var(--accent)' }}>98%</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 2 (mobile order-2): ECG Waveform
+            Desktop: center column
+           ═══════════════════════════════════════════════════════════════ */}
+        <div
+          className="order-2 md:order-none md:col-start-2 md:row-start-1 flex flex-col min-w-0"
+          style={{ gap: 'var(--space-md)' }}
+        >
+          {/* ECG */}
+          <div className="panel-card flex flex-col min-h-[120px] md:min-h-0 md:flex-1" style={{ padding: 'var(--space-md) var(--space-md) var(--space-md) var(--space-lg)' }}>
+            <div className="flex items-center justify-between flex-wrap" style={{ marginBottom: 'var(--space-sm)', gap: 'var(--space-xs)' }}>
+              <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
+                <div className="live-dot" />
+                <span className="eyebrow-label" style={{ color: 'var(--text-primary)' }}>ECG — Lead II</span>
+              </div>
+              <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>25 mm/s · 10 mm/mV</span>
+            </div>
+            <div className="flex-1 relative min-h-[80px] md:min-h-0" style={{ padding: 'var(--space-sm) 0' }}>
+              <WaveformChart bufferKey="ecgBuffer" color="#4A9DFF" yMin={-0.5} yMax={1.5} />
             </div>
           </div>
 
-          <div className="h-px" style={{ background: 'var(--border)', margin: '0 var(--space-md)' }} />
-
-          {/* Simulation Parameters */}
-          <div className="flex-1" style={{ padding: 'var(--space-md)' }}>
-            <div className="eyebrow-label" style={{ marginBottom: 'var(--space-md)' }}>Parameters</div>
-            <div className="flex flex-col" style={{ gap: 'var(--space-md)' }}>
-              {PARAM_SLIDERS.map(cfg => <ParamSlider key={cfg.key} cfg={cfg} />)}
+          {/* PPG */}
+          <div className="panel-card flex flex-col min-h-[120px] md:min-h-0 md:flex-1" style={{ padding: 'var(--space-md) var(--space-md) var(--space-md) var(--space-lg)' }}>
+            <div className="flex items-center justify-between flex-wrap" style={{ marginBottom: 'var(--space-sm)', gap: 'var(--space-xs)' }}>
+              <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
+                <div
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ background: 'var(--accent)' }}
+                />
+                <span className="eyebrow-label" style={{ color: 'var(--text-primary)' }}>PPG — Optical</span>
+              </div>
+              <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>100 Hz</span>
+            </div>
+            <div className="flex-1 relative min-h-[80px] md:min-h-0" style={{ padding: 'var(--space-sm) 0' }}>
+              <WaveformChart bufferKey="ppgBuffer" color="#4A9DFF" yMin={0} yMax={1.2} />
             </div>
           </div>
-        </aside>
+        </div>
 
-        {/* ── Center Column: Waveforms, Vitals, Lipids ─────────────────── */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto" style={{ gap: 'var(--space-md)' }}>
-
-          {/* Stacked Waveform Panels */}
-          <div className="flex-[1.4] flex flex-col min-h-[200px]" style={{ gap: 'var(--space-md)' }}>
-            {/* ECG */}
-            <div className="flex-1 panel-card flex flex-col min-h-0" style={{ padding: 'var(--space-md) var(--space-lg)' }}>
-              <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-sm)' }}>
-                <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
-                  <div className="live-dot" />
-                  <span className="eyebrow-label" style={{ color: 'var(--text-primary)' }}>ECG — Lead II</span>
-                </div>
-                <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>25 mm/s · 10 mm/mV</span>
-              </div>
-              <div className="flex-1 relative min-h-0" style={{ padding: 'var(--space-sm) 0' }}>
-                <WaveformChart bufferKey="ecgBuffer" color="#4A9DFF" yMin={-0.5} yMax={1.5} />
-              </div>
-            </div>
-
-            {/* PPG */}
-            <div className="flex-1 panel-card flex flex-col min-h-0" style={{ padding: 'var(--space-md) var(--space-lg)' }}>
-              <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-sm)' }}>
-                <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 3 (mobile order-3): Sensor Status
+            Desktop: left column, top half
+           ═══════════════════════════════════════════════════════════════ */}
+        {/* ═══════════════════════════════════════════════════════════════
+            LEFT COLUMN wrapper — on desktop: normal column container
+            On mobile: display:contents so sensors and params order independently
+           ═══════════════════════════════════════════════════════════════ */}
+        <div
+          className="contents left-col-wrapper"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          {/* SECTION: Sensor Status (mobile order-4) */}
+          <div
+            className="order-4 rounded-lg left-col-section"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            <div style={{ padding: 'var(--space-md)' }}>
+              <div className="eyebrow-label" style={{ marginBottom: 'var(--space-sm)' }}>Sensors</div>
+              <div className="flex flex-col" style={{ gap: 'var(--space-sm)' }}>
+                {sensorList.map((s, idx) => (
                   <div
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ background: 'var(--accent)' }}
-                  />
-                  <span className="eyebrow-label" style={{ color: 'var(--text-primary)' }}>PPG — Optical</span>
-                </div>
-                <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>100 Hz</span>
-              </div>
-              <div className="flex-1 relative min-h-0" style={{ padding: 'var(--space-sm) 0' }}>
-                <WaveformChart bufferKey="ppgBuffer" color="#4A9DFF" yMin={0} yMax={1.2} />
+                    key={idx}
+                    className="flex items-center justify-between rounded-md"
+                    style={{
+                      background: 'var(--surface-alt)',
+                      border: '1px solid var(--border)',
+                      padding: 'var(--space-sm) var(--space-md)',
+                    }}
+                  >
+                    <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
+                      <div
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ background: s.isDegraded ? 'var(--alert-amber)' : 'var(--accent)' }}
+                      />
+                      <span className="text-[12px] font-medium flex items-center" style={{ color: 'var(--text-primary)' }}>
+                        {s.label}
+                        {s.tipKey && <InfoTooltip text={TOOLTIPS[s.tipKey]} />}
+                      </span>
+                    </div>
+                    <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{s.sub}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
+          {/* SECTION: Simulation Parameters (mobile order-5) */}
+          <div
+            className="order-5 rounded-lg left-col-section md:flex-1"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            <div className="flex-1" style={{ padding: 'var(--space-md)' }}>
+              <div className="eyebrow-label" style={{ marginBottom: 'var(--space-md)' }}>Parameters</div>
+              <div className="flex flex-col" style={{ gap: 'var(--space-md)' }}>
+                {PARAM_SLIDERS.map(cfg => <ParamSlider key={cfg.key} cfg={cfg} />)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 4 (mobile order-4): Vitals readout cards
+            Desktop: center column (below waveforms)
+           ═══════════════════════════════════════════════════════════════ */}
+        <div
+          className="order-6 md:col-start-2 md:row-start-2"
+        >
           {/* Primary Vitals Row */}
-          <div className="grid grid-cols-3" style={{ gap: 'var(--space-md)', minHeight: '100px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 'var(--space-md)' }}>
             {/* Blood Pressure */}
             <div id="readout-bp" className="panel-card flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
-              <span className="eyebrow-label">Blood Pressure</span>
+              <span className="eyebrow-label flex items-center">Blood Pressure<InfoTooltip text={TOOLTIPS.bloodPressure} /></span>
               <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', margin: 'var(--space-sm) 0' }}>
                 <span
                   className="text-[18px] font-semibold tabular-nums"
@@ -612,7 +998,7 @@ export default function App() {
 
             {/* Stress Index */}
             <div id="readout-stress" className="panel-card flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
-              <span className="eyebrow-label">Stress Index</span>
+              <span className="eyebrow-label flex items-center">Stress Index<InfoTooltip text={TOOLTIPS.stress} /></span>
               <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', margin: 'var(--space-sm) 0' }}>
                 <AnimatedNumber
                   value={snapshot ? Math.round(snapshot.stressScore) : 0}
@@ -625,7 +1011,7 @@ export default function App() {
 
             {/* HRV */}
             <div id="metric-hrv" className="panel-card flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
-              <span className="eyebrow-label">HRV RMSSD</span>
+              <span className="eyebrow-label flex items-center">HRV RMSSD<InfoTooltip text={TOOLTIPS.hrv} /></span>
               <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', margin: 'var(--space-sm) 0' }}>
                 <AnimatedNumber
                   value={snapshot ? Math.round(snapshot.hrv) : 0}
@@ -636,8 +1022,15 @@ export default function App() {
               <span className="text-[11px] font-medium" style={{ color: hrv.color }}>{hrv.label}</span>
             </div>
           </div>
+        </div>
 
-          {/* Lipid Estimates — surface-alt to distinguish as derived/estimated */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 5 (mobile order-5): Lipid Estimates
+            Desktop: center column (below vitals)
+           ═══════════════════════════════════════════════════════════════ */}
+        <div
+          className="order-6 md:col-start-2 md:row-start-3"
+        >
           <div className="flex flex-col" style={{ gap: 'var(--space-sm)' }}>
             <div className="eyebrow-label">Lipid Estimates — PPG derived</div>
             {/* Motion annotation when confidence is low */}
@@ -646,11 +1039,11 @@ export default function App() {
                 Readings affected by motion — confidence reduced
               </p>
             )}
-            <div className="grid grid-cols-2" style={{ gap: 'var(--space-md)' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 'var(--space-md)' }}>
               {/* Total Cholesterol */}
               <div id="readout-cholesterol" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
                 <div className="flex items-center justify-between">
-                  <span className="eyebrow-label">Total Cholesterol (est.)</span>
+                  <span className="eyebrow-label flex items-center">Total Cholesterol (est.)<InfoTooltip text={TOOLTIPS.totalCholesterol} /></span>
                   <div
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ background: lipidLowConf ? 'var(--alert-amber)' : 'var(--accent)' }}
@@ -674,7 +1067,7 @@ export default function App() {
               {/* Triglycerides */}
               <div id="readout-triglycerides" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
                 <div className="flex items-center justify-between">
-                  <span className="eyebrow-label">Triglycerides (est.)</span>
+                  <span className="eyebrow-label flex items-center">Triglycerides (est.)<InfoTooltip text={TOOLTIPS.triglycerides} /></span>
                   <div
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ background: lipidLowConf ? 'var(--alert-amber)' : 'var(--accent)' }}
@@ -696,102 +1089,8 @@ export default function App() {
               </div>
             </div>
           </div>
-        </main>
+        </div>
 
-        {/* ── Right Column: CAD Risk Gauge + Contributions + Vitals ─────── */}
-        <aside
-          className="w-64 flex flex-col shrink-0 overflow-y-auto rounded-lg"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-        >
-          {/* CAD Risk Gauge */}
-          <div
-            className="panel-card flex flex-col items-center"
-            style={{ background: 'var(--surface-alt)', margin: 'var(--space-md)', padding: 'var(--space-md)' }}
-          >
-            <span className="eyebrow-label self-start" style={{ marginBottom: 'var(--space-sm)' }}>CAD Risk Score</span>
-            <ArcGauge score={score} band={band} />
-            <span className="text-[10px]" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-sm)' }}>
-              Confidence: {Math.round(lipidConf * 100)}%
-            </span>
-          </div>
-
-          {/* Contributions */}
-          <div style={{ padding: '0 var(--space-md)', marginBottom: 'var(--space-sm)' }}>
-            <span className="eyebrow-label">Contributions</span>
-          </div>
-          <div className="panel-card flex-1 overflow-y-auto" style={{ margin: '0 var(--space-md) var(--space-md)' }}>
-            <ContribPanel />
-            <div className="text-[10px]" style={{ color: 'var(--text-tertiary)', padding: '0 var(--space-md) var(--space-sm)' }}>
-              * PPG morphology estimate — not lab-measured
-            </div>
-          </div>
-
-          {/* Right Column Vital Scalars */}
-          {snapshot && (
-            <div className="flex flex-col shrink-0" style={{ padding: '0 var(--space-md) var(--space-md)', gap: 'var(--space-sm)' }}>
-              <div id="right-hr" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                <div>
-                  <div className="eyebrow-label">Heart Rate</div>
-                  <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
-                    <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                      {snapshot.heartRate}
-                    </span>
-                    <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>BPM</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.04em]" style={{ color: 'var(--accent)' }}>NSR</span>
-              </div>
-
-              <div id="right-qtc" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                <div>
-                  <div className="eyebrow-label">QTc Bazett</div>
-                  <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
-                    <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                      {snapshot.qtcBazett}
-                    </span>
-                    <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>ms</span>
-                  </div>
-                </div>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.04em]"
-                  style={{ color: snapshot.qtcBazett > 450 ? 'var(--alert-amber)' : 'var(--accent)' }}
-                >
-                  {snapshot.qtcBazett > 450 ? 'Prolonged' : 'Normal'}
-                </span>
-              </div>
-
-              <div id="right-st" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                <div>
-                  <div className="eyebrow-label">ST Segment</div>
-                  <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
-                    <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                      {snapshot.stSegment.toFixed(2)}
-                    </span>
-                    <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>mV</span>
-                  </div>
-                </div>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.04em]"
-                  style={{ color: Math.abs(snapshot.stSegment) > 0.1 ? 'var(--alert-amber)' : 'var(--accent)' }}
-                >
-                  {Math.abs(snapshot.stSegment) > 0.1 ? 'Deviated' : 'Isoelectric'}
-                </span>
-              </div>
-
-              <div id="right-ptt" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                <span className="eyebrow-label">Pulse Transit</span>
-                <span className="text-[12px] font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                  {snapshot.pulseTransitTime} ms
-                </span>
-              </div>
-
-              <div id="right-spo2" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                <span className="eyebrow-label">SpO₂ (Optical)</span>
-                <span className="text-[12px] font-semibold tabular-nums" style={{ color: 'var(--accent)' }}>98%</span>
-              </div>
-            </div>
-          )}
-        </aside>
       </div>
 
       {/* ── Bottom Strip: Risk Trend Sparkline ──────────────────────────── */}
