@@ -54,6 +54,19 @@ export interface PhysiologicalSnapshot {
   // Consumed (not produced) by the lipid estimation path.
   motionArtifactFlag: boolean;
 
+  /**
+   * Estimated ApoB (mg/dL) from the Lab Report panel (manual entry).
+   * Computed via the Sniderman et al. (2012) Non-HDL regression formula.
+   * Optional — undefined until the user has entered lab values.
+   *
+   * NOT produced by the sensor fusion pipeline — populated by usePipeline.ts
+   * from the Zustand store's labInputs/apoBPanel state, and passed through
+   * so it is available to the Risk Engine for Phase 4 (WHO risk chart integration).
+   *
+   * DO NOT add ApoB scoring logic here in this pass (display only).
+   */
+  apoB?: number;
+
   // Sensor confidence (1.0 = all sensors present, <1.0 = partial data)
   confidence: number;
 

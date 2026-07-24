@@ -16,6 +16,7 @@ import { usePipeline } from './hooks/usePipeline';
 import { WEIGHTS } from './riskEngine';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import { AnimatedNumber, AnimatedScore } from '@/components/ui/AnimatedNumber';
+import { ApoBCard } from '@/components/Dashboard/ApoBCard';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1039,7 +1040,7 @@ export default function App() {
                 Readings affected by motion — confidence reduced
               </p>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 'var(--space-md)' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 'var(--space-md)' }}>
               {/* Total Cholesterol */}
               <div id="readout-cholesterol" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
                 <div className="flex items-center justify-between">
@@ -1086,6 +1087,11 @@ export default function App() {
                 >
                   {lipidLowConf ? 'Low confidence — motion detected' : 'High confidence · PPG est.'}
                 </span>
+              </div>
+
+              {/* ApoB (est.) — full-width below the two PPG estimates */}
+              <div className="md:col-span-2">
+                <ApoBCard />
               </div>
             </div>
           </div>

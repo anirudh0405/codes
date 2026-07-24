@@ -8,6 +8,7 @@ import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
 import { PATIENT_PROFILES } from '../../store/profiles';
 import { MockParams } from '../../hal/MockSensorSources';
+import { LAB_CLAMPS } from '../../features/apoBCalculation';
 
 // Physiological ranges for each parameter
 const PARAM_CONFIGS: {
@@ -110,6 +111,215 @@ function SliderRow({ cfg, value, onChange }: SliderRowProps) {
   );
 }
 
+// ─── Lab Report Section ──────────────────────────────────────────────────────
+
+interface LabFieldConfig {
+  key: 'totalCholesterol' | 'hdl' | 'triglycerides';
+  label: string;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+}
+
+const LAB_FIELD_CONFIGS: LabFieldConfig[] = [
+  {
+    key: 'totalCholesterol',
+    label: 'Total Cholesterol',
+    unit: 'mg/dL',
+    min: LAB_CLAMPS.totalCholesterol.min,
+    max: LAB_CLAMPS.totalCholesterol.max,
+    step: 1,
+  },
+  {
+    key: 'hdl',
+    label: 'HDL Cholesterol',
+    unit: 'mg/dL',
+    min: LAB_CLAMPS.hdl.min,
+    max: LAB_CLAMPS.hdl.max,
+    step: 1,
+  },
+  {
+    key: 'triglycerides',
+    label: 'Triglycerides',
+    unit: 'mg/dL',
+    min: LAB_CLAMPS.triglycerides.min,
+    max: LAB_CLAMPS.triglycerides.max,
+    step: 1,
+  },
+];
+
+function LabSliderRow({
+  cfg,
+  value,
+  onChange,
+  isLocked,
+}: {
+  cfg: LabFieldConfig;
+  value: number;
+  onChange: (val: number, isManual: boolean) => void;
+  isLocked?: boolean;
+}) {
+  const pct = Math.max(0, Math.min(100, ((value - cfg.min) / (cfg.max - cfg.min)) * 100));
+  const [localVal, setLocalVal] = useState<string>(String(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) setLocalVal(String(value));
+  }, [value, isFocused]);
+
+  const handleSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v)) {
+      onChange(v, true);
+      setLocalVal(String(v));
+    }
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    setLocalVal(text);
+    const raw = parseFloat(text);
+    if (!isNaN(raw) && raw >= cfg.min && raw <= cfg.max) {
+      onChange(raw, true);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    const raw = parseFloat(localVal);
+    if (isNaN(raw)) {
+      setLocalVal(String(value));
+    } else {
+      const clamped = Math.max(cfg.min, Math.min(cfg.max, raw));
+      onChange(clamped, true);
+      setLocalVal(String(clamped));
+    }
+  };
+
+  return (
+    <div className="param-row">
+      <div className="param-label-row">
+        <span className="param-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {cfg.label}
+          {isLocked && (
+            <span
+              title="Manually set — auto-sync from PPG is paused"
+              style={{ fontSize: 9, color: 'var(--accent-cyan)', opacity: 0.8 }}
+            >
+              ✎
+            </span>
+          )}
+        </span>
+        <span className="param-unit">{cfg.unit}</span>
+      </div>
+      <div className="param-input-row">
+        <input
+          id={`lab-slider-${cfg.key}`}
+          type="range"
+          className="param-slider"
+          min={cfg.min}
+          max={cfg.max}
+          step={cfg.step}
+          value={value}
+          style={{ '--pct': `${pct}%` } as React.CSSProperties}
+          onChange={handleSlider}
+        />
+        <input
+          id={`lab-input-${cfg.key}`}
+          type="number"
+          className="param-number"
+          min={cfg.min}
+          max={cfg.max}
+          step={cfg.step}
+          value={localVal}
+          onFocus={() => setIsFocused(true)}
+          onChange={handleInput}
+          onBlur={handleBlur}
+        />
+      </div>
+    </div>
+  );
+}
+
+function LabReportSection() {
+  const { labInputs, setLabInputs } = useSimStore(useShallow((s) => ({
+    labInputs: s.labInputs,
+    setLabInputs: s.setLabInputs,
+  })));
+
+  const handleChange = useCallback(
+    (key: LabFieldConfig['key'], val: number, isManual: boolean) => {
+      setLabInputs({ [key]: val }, key === 'triglycerides' ? isManual : false);
+    },
+    [setLabInputs]
+  );
+
+  const resetTrigs = useCallback(() => {
+    // Clear the manual-lock on triglycerides so PPG auto-sync resumes
+    setLabInputs({}, false);
+    useSimStore.setState((s) => ({
+      labInputs: { ...s.labInputs, trigsManuallySet: false },
+    }));
+  }, [setLabInputs]);
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <span className="card-title">Lab Report Values</span>
+        <span
+          style={{
+            fontSize: 9,
+            color: 'var(--text-tertiary)',
+            fontWeight: 400,
+            textTransform: 'none',
+            letterSpacing: 0,
+          }}
+        >
+          manual entry
+        </span>
+      </div>
+      <div
+        className="card-body"
+        style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+      >
+        <p
+          style={{
+            fontSize: 10,
+            color: 'var(--text-tertiary)',
+            margin: 0,
+            lineHeight: 1.4,
+          }}
+        >
+          Enter values from a lab report. Triglycerides pre-fills from the
+          PPG estimate until you edit it.
+        </p>
+
+        {LAB_FIELD_CONFIGS.map((cfg) => (
+          <LabSliderRow
+            key={cfg.key}
+            cfg={cfg}
+            value={labInputs[cfg.key]}
+            onChange={(v, isManual) => handleChange(cfg.key, v, isManual)}
+            isLocked={cfg.key === 'triglycerides' && labInputs.trigsManuallySet}
+          />
+        ))}
+
+        {labInputs.trigsManuallySet && (
+          <button
+            id="btn-reset-trigs"
+            className="action-btn"
+            onClick={resetTrigs}
+            style={{ fontSize: 10, padding: '4px 8px' }}
+          >
+            ↺ Resume PPG auto-sync (Triglycerides)
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ControlPanel() {
   const { params, activeProfile, setParams, applyProfile, randomize } = useSimStore(useShallow((s) => ({
     params: s.params,
@@ -169,6 +379,9 @@ export function ControlPanel() {
           ))}
         </div>
       </div>
+
+      {/* Lab Report Values — manual entry */}
+      <LabReportSection />
     </div>
   );
 }
