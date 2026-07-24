@@ -17,6 +17,7 @@ import { WEIGHTS } from './riskEngine';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import { AnimatedNumber, AnimatedScore } from '@/components/ui/AnimatedNumber';
 import { ApoBCard } from '@/components/Dashboard/ApoBCard';
+import { PatientProfilePanel } from '@/components/Dashboard/PatientProfilePanel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -538,15 +539,32 @@ function TopBar() {
           padding: '0 var(--space-lg)',
         }}
       >
-        {/* Brand */}
-        <div className="flex items-center shrink-0" style={{ gap: 'var(--space-sm)' }}>
-          <div className="live-dot" />
-          <span
-            className="text-[13px] font-semibold tracking-[0.04em] uppercase"
-            style={{ color: 'var(--text-primary)' }}
+        {/* Brand & Compact Sensor Indicator */}
+        <div className="flex items-center shrink-0" style={{ gap: 'var(--space-md)' }}>
+          <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
+            <div className="live-dot" />
+            <span
+              className="text-[13px] font-semibold tracking-[0.04em] uppercase"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              CAD Monitor
+            </span>
+          </div>
+
+          {/* Compact Sensor Status Indicator */}
+          <div
+            className="hidden sm:flex items-center text-[10px] rounded px-2 py-0.5"
+            style={{
+              background: 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              gap: 'var(--space-xs)',
+              color: 'var(--text-secondary)',
+            }}
+            title="Sensors: ECG, PPG, BP, Stress, Motion (All Simulated)"
           >
-            CAD Monitor
-          </span>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
+            <span>Sensors: Simulated (5/5)</span>
+          </div>
         </div>
 
         {/* Patient Profile Selectors — desktop only (hidden on mobile, shown in Row 2) */}
@@ -921,39 +939,12 @@ export default function App() {
           className="contents left-col-wrapper"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
-          {/* SECTION: Sensor Status (mobile order-4) */}
+          {/* SECTION: Patient Profile (mobile order-4 — replaces old Sensors panel) */}
           <div
             className="order-4 rounded-lg left-col-section"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
-            <div style={{ padding: 'var(--space-md)' }}>
-              <div className="eyebrow-label" style={{ marginBottom: 'var(--space-sm)' }}>Sensors</div>
-              <div className="flex flex-col" style={{ gap: 'var(--space-sm)' }}>
-                {sensorList.map((s, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between rounded-md"
-                    style={{
-                      background: 'var(--surface-alt)',
-                      border: '1px solid var(--border)',
-                      padding: 'var(--space-sm) var(--space-md)',
-                    }}
-                  >
-                    <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
-                      <div
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ background: s.isDegraded ? 'var(--alert-amber)' : 'var(--accent)' }}
-                      />
-                      <span className="text-[12px] font-medium flex items-center" style={{ color: 'var(--text-primary)' }}>
-                        {s.label}
-                        {s.tipKey && <InfoTooltip text={TOOLTIPS[s.tipKey]} />}
-                      </span>
-                    </div>
-                    <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{s.sub}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <PatientProfilePanel />
           </div>
 
           {/* SECTION: Simulation Parameters (mobile order-5) */}
