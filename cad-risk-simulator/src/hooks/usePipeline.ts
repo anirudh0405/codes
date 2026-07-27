@@ -8,21 +8,23 @@
  * 1. Gets raw readings from SensorManager
  * 2. Extracts features (pure functions)
  * 3. Fuses features into a snapshot
- * 4. Scores the snapshot through the Risk Engine
- * 5. Writes results to the Zustand store (Dashboard reads from there)
+ * 4. Derives Pulse Transit Time (PTT) and PTT-derived Blood Pressure (Moens-Korteweg)
+ * 5. Applies PTT-derived BP as DEFAULT BP source (or manual override if selected)
+ * 6. Scores the snapshot through the Risk Engine (with INTERHEART & WHO Chart lookup)
+ * 7. Writes results to the Zustand store (Dashboard reads from there)
  */
 
 import { useEffect, useRef } from 'react';
 import { sensorManager } from '../sensorManager';
-import { extractFeatures } from '../features';
+import { extractFeatures, calculatePTT, estimateBPFromPTT, DEFAULT_PTT_CALIBRATION } from '../features';
 import { fuseFeatures } from '../fusion';
 import { scoreFromSnapshot } from '../riskEngine';
 import { useSimStore } from '../store/simStore';
 import { LatestReadings } from '../sensorManager';
 
 export function usePipeline() {
-  // Use individual primitive selectors to avoid creating new object refs
   const updatePipelineData = useSimStore(s => s.updatePipelineData);
+  const setPttDerivedBP = useSimStore(s => s.setPttDerivedBP);
 
   // Use a ref to always have fresh params without re-running the effect
   const paramsRef = useRef(useSimStore.getState().params);
@@ -45,6 +47,10 @@ export function usePipeline() {
       await sensorManager.init();
 
       unsubscribe = sensorManager.subscribe((readings: LatestReadings) => {
+        // Grab raw waveform arrays from readings
+        const ecgWaveform = (readings.ecg?.data.waveform as number[] | undefined) ?? [];
+        const ppgWaveform = (readings.ppg?.data.waveform as number[] | undefined) ?? [];
+
         // Layer 3: Feature Extraction
         const features = extractFeatures({
           ecg: readings.ecg,
@@ -54,26 +60,48 @@ export function usePipeline() {
         });
 
         // Layer 4: Sensor Fusion
-        const snapshot = fuseFeatures(features);
+        const rawSnapshot = fuseFeatures(features);
 
-        // Annotate snapshot with ApoB from the lab inputs (manual entry).
-        // This makes apoB available to the Risk Engine input object for
-        // Phase 4 (WHO risk chart integration) without touching the Fusion Engine.
-        const { apoBPanel } = useSimStore.getState();
-        const annotatedSnapshot = { ...snapshot, apoB: apoBPanel.apoB };
+        // Derive Pulse Transit Time (PTT) from ECG & PPG waveforms
+        const ptt = calculatePTT(ecgWaveform, ppgWaveform);
 
-        // Layer 5: CAD Risk Engine
-        const risk = scoreFromSnapshot(annotatedSnapshot);
+        // Estimate Blood Pressure from PTT (Moens-Korteweg regression) with Motion-Awareness
+        const pttBP = estimateBPFromPTT(
+          ptt,
+          DEFAULT_PTT_CALIBRATION,
+          rawSnapshot.confidence,
+          rawSnapshot.motionArtifactFlag
+        );
 
-        // Grab waveform arrays from raw readings
-        const ecgWaveform = (readings.ecg?.data.waveform as number[] | undefined) ?? [];
-        const ppgWaveform = (readings.ppg?.data.waveform as number[] | undefined) ?? [];
+        // Store current PTT-derived BP in Zustand store for UI access
+        setPttDerivedBP(pttBP);
+
+        const { bpMode, apoBPanel, patientProfile } = useSimStore.getState();
+
+        // Apply PTT-derived BP as DEFAULT data source if bpMode === 'ptt'
+        let systolic = rawSnapshot.systolic;
+        let diastolic = rawSnapshot.diastolic;
+
+        if (bpMode === 'ptt') {
+          systolic = pttBP.systolic;
+          diastolic = pttBP.diastolic;
+        }
+
+        // Create annotated snapshot with active BP source and ApoB
+        const snapshot = {
+          ...rawSnapshot,
+          systolic,
+          diastolic,
+          pulseTransitTime: ptt,
+          apoB: apoBPanel.apoB,
+        };
+
+        // Layer 5: CAD Risk Engine (incorporates INTERHEART weights, PTT BP & WHO Risk Chart)
+        const risk = scoreFromSnapshot(snapshot, patientProfile);
 
         // Write to store (Layer 7 reads from here).
-        // Pass the PPG-derived triglycerides so the store can auto-sync the
-        // Lab Report panel's Triglycerides field when not manually overridden.
         updatePipelineData(
-          annotatedSnapshot,
+          snapshot,
           risk,
           readings.sensorStatus,
           ecgWaveform,

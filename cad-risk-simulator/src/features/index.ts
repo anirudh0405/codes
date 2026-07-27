@@ -14,6 +14,9 @@
 
 import { SensorReading } from '../hal/ISensorSource';
 
+export * from './pulseTransitTime';
+export * from './bpFromPTT';
+
 // ─── Output Feature Types ─────────────────────────────────────────────────────
 
 export interface ECGFeatures {

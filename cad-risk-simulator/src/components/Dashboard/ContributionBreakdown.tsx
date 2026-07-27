@@ -8,10 +8,12 @@ import { useSimStore } from '../../store/simStore';
 import { WEIGHTS } from '../../riskEngine';
 
 const PARAMS: { key: string; label: string }[] = [
+  { key: 'apoB',             label: 'APOB'   },
   { key: 'bloodPressure',    label: 'BP'     },
+  { key: 'smoking',          label: 'SMOKING'},
+  { key: 'stress',           label: 'STRESS' },
   { key: 'heartRate',        label: 'HR'     },
   { key: 'hrv',              label: 'HRV'    },
-  { key: 'stress',           label: 'STRESS' },
   { key: 'qtInterval',       label: 'QTC'    },
   { key: 'stSegment',        label: 'ST-SEG' },
   { key: 'totalCholesterol', label: 'CHOL'   },
@@ -29,7 +31,7 @@ export function ContributionBreakdown() {
 
   return (
     <div className="contribution-panel">
-      <div className="contribution-panel-label">Contributions</div>
+      <div className="contribution-panel-label">Contributions (INTERHEART Weighted)</div>
       {PARAMS.map(({ key, label }) => {
         const raw      = riskResult?.rawContributions[key as keyof typeof riskResult.rawContributions] ?? 0;
         const weighted = riskResult?.contributions[key as keyof typeof riskResult.contributions] ?? 0;

@@ -9,7 +9,7 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSimStore } from './store/simStore';
-import { PATIENT_PROFILES } from './store/profiles';
+import { PRESET_CATEGORIES, SCENARIO_PRESETS, PresetCategory } from './presets';
 import { MockParams } from './hal/MockSensorSources';
 import { SensorType } from './hal/ISensorSource';
 import { usePipeline } from './hooks/usePipeline';
@@ -334,10 +334,12 @@ function ArcGauge({ score, band }: { score: number; band: string }) {
 // ─── Contribution Breakdown ───────────────────────────────────────────────────
 
 const CONTRIB_PARAMS: { key: string; label: string; isLipid?: boolean }[] = [
+  { key: 'apoB',             label: 'ApoB' },
   { key: 'bloodPressure',    label: 'BP' },
+  { key: 'smoking',          label: 'Smoking' },
+  { key: 'stress',           label: 'Stress' },
   { key: 'heartRate',        label: 'HR' },
   { key: 'hrv',              label: 'HRV' },
-  { key: 'stress',           label: 'Stress' },
   { key: 'qtInterval',       label: 'QTc' },
   { key: 'stSegment',        label: 'ST-Seg' },
   { key: 'totalCholesterol', label: 'Chol*', isLipid: true },
@@ -513,14 +515,31 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
 function TopBar() {
-  const { activeProfile, applyProfile, randomize, riskResult } = useSimStore(useShallow(s => ({
-    activeProfile: s.activeProfile, applyProfile: s.applyProfile,
-    randomize: s.randomize, riskResult: s.riskResult,
+  const {
+    activeProfile,
+    applyProfile,
+    randomize,
+    riskResult,
+    selectedCategory,
+    setSelectedCategory,
+  } = useSimStore(useShallow(s => ({
+    activeProfile: s.activeProfile,
+    applyProfile: s.applyProfile,
+    randomize: s.randomize,
+    riskResult: s.riskResult,
+    selectedCategory: s.selectedCategory,
+    setSelectedCategory: s.setSelectedCategory,
   })));
 
   const band = riskResult?.band ?? 'Low';
   const score = riskResult?.score ?? 0;
   const scoreColor = getRiskColor(band);
+
+  const activeCategory = selectedCategory ?? 'healthy';
+
+  const categoryPresets = useMemo(() => {
+    return SCENARIO_PRESETS.filter(p => p.category === activeCategory);
+  }, [activeCategory]);
 
   return (
     <header
@@ -533,10 +552,11 @@ function TopBar() {
     >
       {/* Row 1: Brand + Status (always visible) */}
       <div
-        className="flex items-center justify-between shrink-0"
+        className="flex items-center justify-between shrink-0 flex-wrap"
         style={{
-          height: '48px',
-          padding: '0 var(--space-lg)',
+          minHeight: '48px',
+          padding: 'var(--space-xs) var(--space-lg)',
+          gap: 'var(--space-sm)',
         }}
       >
         {/* Brand & Compact Sensor Indicator */}
@@ -544,16 +564,16 @@ function TopBar() {
           <div className="flex items-center" style={{ gap: 'var(--space-sm)' }}>
             <div className="live-dot" />
             <span
-              className="text-[13px] font-semibold tracking-[0.04em] uppercase"
+              className="text-[13px] font-bold tracking-[0.03em] uppercase"
               style={{ color: 'var(--text-primary)' }}
             >
-              CAD Monitor
+              CAD (Coronary Artery Disease) Monitor
             </span>
           </div>
 
           {/* Compact Sensor Status Indicator */}
           <div
-            className="hidden sm:flex items-center text-[10px] rounded px-2 py-0.5"
+            className="hidden lg:flex items-center text-[10px] rounded px-2 py-0.5"
             style={{
               background: 'var(--surface-alt)',
               border: '1px solid var(--border)',
@@ -567,38 +587,73 @@ function TopBar() {
           </div>
         </div>
 
-        {/* Patient Profile Selectors — desktop only (hidden on mobile, shown in Row 2) */}
-        <div className="flex-1 justify-center items-center hidden md:flex" style={{ padding: '0 var(--space-lg)' }}>
+        {/* Grouped Preset Selectors — desktop (hidden on mobile, shown in Row 2) */}
+        <div className="flex-1 justify-center items-center hidden md:flex" style={{ padding: '0 var(--space-md)' }}>
           <div className="flex items-center overflow-x-auto" style={{ gap: 'var(--space-sm)', padding: 'var(--space-xs) 0', scrollbarWidth: 'none' as any }}>
-            {PATIENT_PROFILES.map(p => {
-              const active = activeProfile?.id === p.id;
-              return (
-                <AnimatedButton
-                  key={p.id} id={`profile-${p.id}`}
-                  onClick={() => applyProfile(p.id)}
-                  className={cn(
-                    'px-3 py-1 text-[11px] font-medium h-7 rounded transition-colors',
-                    active
-                      ? 'border-[var(--accent)] font-semibold'
-                      : 'border-[var(--border)] hover:border-[var(--text-tertiary)]'
-                  )}
-                  style={active
-                    ? { background: 'rgba(74,157,255,0.08)', borderColor: 'var(--accent)', color: 'var(--accent)' }
-                    : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
-                  }
-                >
-                  {p.name}
-                </AnimatedButton>
-              );
-            })}
-            <AnimatedButton
-              id="btn-randomize"
-              onClick={randomize}
-              className="px-3.5 py-1 text-[11px] font-semibold h-7 rounded border-0"
-              style={{ background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
-            >
-              Randomize
-            </AnimatedButton>
+            {/* Top-Level Category Selector */}
+            <div className="flex items-center shrink-0 rounded p-0.5" style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', gap: '2px' }}>
+              {PRESET_CATEGORIES.map(cat => {
+                const isCatActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className="px-2.5 py-1 text-[11px] font-semibold rounded transition-colors outline-none cursor-pointer"
+                    style={{
+                      background: isCatActive ? 'var(--accent)' : 'transparent',
+                      color: isCatActive ? '#0A0A0B' : 'var(--text-secondary)',
+                      border: 'none',
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-px h-4 shrink-0" style={{ background: 'var(--border)' }} />
+
+            {/* Sub-Scenario Buttons within active category */}
+            <div className="flex items-center overflow-x-auto" style={{ gap: 'var(--space-xs)', scrollbarWidth: 'none' as any }}>
+              {categoryPresets.map(p => {
+                const active = activeProfile?.id === p.id;
+                return (
+                  <AnimatedButton
+                    key={p.id} id={`profile-${p.id}`}
+                    onClick={() => applyProfile(p.id)}
+                    className={cn(
+                      'px-2.5 py-1 text-[11px] font-medium h-7 rounded transition-colors whitespace-nowrap',
+                      active ? 'border-[var(--accent)] font-semibold' : 'border-[var(--border)]'
+                    )}
+                    style={active
+                      ? { background: 'rgba(74,157,255,0.12)', borderColor: 'var(--accent)', color: 'var(--accent)' }
+                      : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
+                    }
+                  >
+                    {p.name}
+                  </AnimatedButton>
+                );
+              })}
+            </div>
+
+            <div className="w-px h-4 shrink-0" style={{ background: 'var(--border)' }} />
+
+            {/* Randomize with Category Scope Label */}
+            <div className="flex items-center shrink-0" style={{ gap: 'var(--space-xs)' }}>
+              <AnimatedButton
+                id="btn-randomize"
+                onClick={randomize}
+                className="px-3 py-1 text-[11px] font-semibold h-7 rounded border-0 whitespace-nowrap"
+                style={{ background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
+                title={`Randomize parameters within ${activeCategory === 'cad' ? 'CAD' : 'Healthy'} scope`}
+              >
+                Randomize ({activeCategory === 'cad' ? 'CAD' : 'Healthy'})
+              </AnimatedButton>
+              <span className="text-[9px]" style={{ color: 'var(--text-tertiary)' }}>
+                Scope: {activeCategory === 'cad' ? 'CAD' : 'Healthy'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -622,47 +677,72 @@ function TopBar() {
         </div>
       </div>
 
-      {/* Row 2: Preset buttons — mobile only (scrollable horizontal row) */}
+      {/* Row 2: Grouped preset buttons — mobile only (scrollable horizontal row) */}
       <div
-        className="flex md:hidden mobile-preset-scroll"
+        className="flex md:hidden flex-col"
         style={{
           padding: 'var(--space-xs) var(--space-md) var(--space-sm)',
-          gap: 'var(--space-sm)',
+          gap: 'var(--space-xs)',
           borderTop: '1px solid var(--border)',
         }}
       >
-        {PATIENT_PROFILES.map(p => {
-          const active = activeProfile?.id === p.id;
-          return (
-            <AnimatedButton
-              key={`m-${p.id}`} id={`m-profile-${p.id}`}
-              onClick={() => applyProfile(p.id)}
-              className={cn(
-                'px-3 py-2 text-[11px] font-medium rounded transition-colors whitespace-nowrap shrink-0',
-                active
-                  ? 'border-[var(--accent)] font-semibold'
-                  : 'border-[var(--border)] hover:border-[var(--text-tertiary)]'
-              )}
-              style={{
-                minHeight: '44px',
-                ...(active
-                  ? { background: 'rgba(74,157,255,0.08)', borderColor: 'var(--accent)', color: 'var(--accent)' }
-                  : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
-                ),
-              }}
-            >
-              {p.name}
-            </AnimatedButton>
-          );
-        })}
-        <AnimatedButton
-          id="m-btn-randomize"
-          onClick={randomize}
-          className="px-3.5 py-2 text-[11px] font-semibold rounded border-0 whitespace-nowrap shrink-0"
-          style={{ minHeight: '44px', background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
-        >
-          Randomize
-        </AnimatedButton>
+        {/* Level 1 Category Tabs Mobile */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1">
+          {PRESET_CATEGORIES.map(cat => {
+            const isCatActive = activeCategory === cat.id;
+            return (
+              <button
+                key={`m-cat-${cat.id}`}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className="px-2.5 py-1 text-[10px] font-semibold rounded shrink-0 outline-none"
+                style={{
+                  background: isCatActive ? 'var(--accent)' : 'var(--surface-alt)',
+                  color: isCatActive ? '#0A0A0B' : 'var(--text-secondary)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Level 2 Scenario Buttons Mobile */}
+        <div className="flex mobile-preset-scroll" style={{ gap: 'var(--space-sm)' }}>
+          {categoryPresets.map(p => {
+            const active = activeProfile?.id === p.id;
+            return (
+              <AnimatedButton
+                key={`m-${p.id}`} id={`m-profile-${p.id}`}
+                onClick={() => applyProfile(p.id)}
+                className={cn(
+                  'px-3 py-2 text-[11px] font-medium rounded transition-colors whitespace-nowrap shrink-0',
+                  active
+                    ? 'border-[var(--accent)] font-semibold'
+                    : 'border-[var(--border)] hover:border-[var(--text-tertiary)]'
+                )}
+                style={{
+                  minHeight: '44px',
+                  ...(active
+                    ? { background: 'rgba(74,157,255,0.08)', borderColor: 'var(--accent)', color: 'var(--accent)' }
+                    : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
+                  ),
+                }}
+              >
+                {p.name}
+              </AnimatedButton>
+            );
+          })}
+          <AnimatedButton
+            id="m-btn-randomize"
+            onClick={randomize}
+            className="px-3.5 py-2 text-[11px] font-semibold rounded border-0 whitespace-nowrap shrink-0"
+            style={{ minHeight: '44px', background: 'var(--accent)', color: '#0A0A0B', border: 'none' }}
+          >
+            Randomize ({activeCategory === 'cad' ? 'CAD' : 'Healthy'})
+          </AnimatedButton>
+        </div>
       </div>
     </header>
   );
@@ -673,8 +753,11 @@ function TopBar() {
 export default function App() {
   usePipeline();
 
-  const snapshot   = useSimStore(s => s.snapshot);
-  const riskResult = useSimStore(s => s.riskResult);
+  const snapshot     = useSimStore(s => s.snapshot);
+  const riskResult   = useSimStore(s => s.riskResult);
+  const bpMode       = useSimStore(s => s.bpMode);
+  const setBPMode    = useSimStore(s => s.setBPMode);
+  const pttDerivedBP = useSimStore(s => s.pttDerivedBP);
 
   const band  = riskResult?.band  ?? 'Low';
   const score = riskResult?.score ?? 0;
@@ -796,6 +879,41 @@ export default function App() {
               <span className="text-[10px] flex items-center" style={{ color: 'var(--text-tertiary)', marginTop: 'var(--space-sm)' }}>
                 Confidence: {Math.round(lipidConf * 100)}%<InfoTooltip text={TOOLTIPS.confidence} />
               </span>
+            </div>
+
+            {/* WHO 10-Year CVD Risk Band Card */}
+            <div
+              className="panel-card flex flex-col"
+              style={{ background: 'var(--surface-alt)', margin: '0 var(--space-md) var(--space-sm)', padding: 'var(--space-sm) var(--space-md)' }}
+            >
+              <div className="flex items-center justify-between flex-wrap" style={{ marginBottom: 'var(--space-xs)', gap: '4px' }}>
+                <span className="eyebrow-label">WHO 10-Year CVD Risk Band</span>
+                <span
+                  className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide uppercase"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                >
+                  WHO South Asia non-lab chart
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between" style={{ marginTop: 'var(--space-xs)' }}>
+                <span className="text-[15px] font-bold tabular-nums" style={{ color: riskResult?.whoRiskBand?.color ?? 'var(--accent)' }}>
+                  {riskResult?.whoRiskBand?.band ?? '<10%'}
+                </span>
+                <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  {riskResult?.whoRiskBand?.tier ?? 'Low'}
+                </span>
+              </div>
+              <div className="text-[9px] mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                Age: {riskResult?.whoRiskBand?.ageBand ?? '50–54'} · SBP: {riskResult?.whoRiskBand?.sbpBand ?? '<120'} · BMI: {riskResult?.whoRiskBand?.bmiBand ?? '20–24.9'}
+              </div>
+            </div>
+
+            {/* Research & Educational Non-Diagnostic Disclaimer */}
+            <div
+              className="text-[10px] leading-tight px-3 pb-3 text-center"
+              style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}
+            >
+              Risk scoring combines an internal composite model with the WHO South Asia screening chart for reference; this is a research/educational simulation, not a diagnostic tool.
             </div>
           </div>
 
@@ -972,7 +1090,22 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 'var(--space-md)' }}>
             {/* Blood Pressure */}
             <div id="readout-bp" className="panel-card flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
-              <span className="eyebrow-label flex items-center">Blood Pressure<InfoTooltip text={TOOLTIPS.bloodPressure} /></span>
+              <div className="flex items-center justify-between">
+                <span className="eyebrow-label flex items-center">Blood Pressure<InfoTooltip text={TOOLTIPS.bloodPressure} /></span>
+                <button
+                  type="button"
+                  onClick={() => setBPMode(bpMode === 'ptt' ? 'manual' : 'ptt')}
+                  className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide uppercase transition-colors outline-none cursor-pointer"
+                  style={{
+                    background: bpMode === 'ptt' ? 'rgba(74,157,255,0.12)' : 'var(--surface-alt)',
+                    color: bpMode === 'ptt' ? 'var(--accent)' : 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                  }}
+                  title="Toggle between PTT-derived optical estimation and manual slider override"
+                >
+                  {bpMode === 'ptt' ? 'PTT-derived' : 'Manual override'}
+                </button>
+              </div>
               <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', margin: 'var(--space-sm) 0' }}>
                 <span
                   className="text-[18px] font-semibold tabular-nums"
@@ -985,7 +1118,17 @@ export default function App() {
                 </span>
                 <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>mmHg</span>
               </div>
-              <span className="text-[11px] font-medium" style={{ color: bp.color }}>{bp.label}</span>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-medium" style={{ color: bp.color }}>{bp.label}</span>
+                {bpMode === 'ptt' && (
+                  <span
+                    className="text-[10px]"
+                    style={{ color: pttDerivedBP?.motionArtifactFlag ? 'var(--alert-amber)' : 'var(--text-tertiary)' }}
+                  >
+                    {pttDerivedBP?.motionArtifactFlag ? 'Motion detected' : `PTT ${snapshot?.pulseTransitTime ?? 220} ms`}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Stress Index */}

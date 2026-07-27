@@ -2,46 +2,57 @@
  * CAD Risk Engine — Layer 5
  * ==========================
  * Rule-based scoring engine that maps normalized physiological indices to a
- * 0–100 CAD risk score with per-parameter contribution breakdown.
+ * 0–100 CAD risk score with per-parameter contribution breakdown, updated with
+ * evidence-based INTERHEART study relative risk weighting and WHO 2019 South Asia
+ * non-laboratory risk chart lookup.
  *
- * This is isolated in a single module so that swapping to an ML-based model
- * (Random Forest, XGBoost, neural network — per Phase 3/§15 of the design doc)
- * requires changing ONLY this file. The interface (RiskResult) stays the same.
+ * Scoring weights sum to 1.0. Weights are adjusted based on INTERHEART relative
+ * risk (OR) and Population Attributable Risk (PAR %) data (Yusuf et al., Lancet 2004):
  *
- * Phase 3 swap: Replace the scoreFromSnapshot() implementation below with a
- *               model.predict() call. No other code changes needed.
+ * 1. apoB: 0.22
+ *    INTERHEART: ApoB/ApoA1 ratio is the #1 risk factor for MI (PAR 49.2%, OR 3.25).
+ * 2. bloodPressure: 0.22
+ *    INTERHEART: Hypertension history/elevated SBP is a primary modifiable factor (PAR 17.9%, OR 2.48).
+ * 3. smoking: 0.16
+ *    INTERHEART: Current smoking is the #2 risk factor for MI globally (PAR 35.7%, OR 2.87).
+ * 4. stress: 0.12
+ *    INTERHEART: Psychosocial stress accounts for substantial attributable risk (PAR 28.8%, OR 2.67).
+ * 5. heartRate: 0.08
+ *    Resting tachycardia reflects sympathetic drive & physical inactivity (INTERHEART protective inverse).
+ * 6. hrv: 0.06
+ *    Low HRV reflects autonomic dysregulation (sympathetic tone marker).
+ * 7. qtInterval: 0.05
+ *    Electrophysiological marker for ventricular arrhythmia / ischemic risk.
+ * 8. stSegment: 0.05
+ *    Acute ST-segment deviation indicating focal myocardial ischemia.
+ * 9. totalCholesterol: 0.02
+ *    Secondary PPG-derived lipid estimate (dampened weight due to optical estimation).
+ * 10. triglycerides: 0.02
+ *    Secondary PPG-derived lipid estimate (dampened weight due to optical estimation).
  *
- * Scoring weights (sum to 1.0):
- *   Heart Rate:        0.18
- *   Blood Pressure:    0.28  ← highest weight (strongest CAD predictor)
- *   HRV:               0.18
- *   Stress:            0.14
- *   QT Interval:       0.09
- *   ST Segment:        0.05
- *   Total Cholesterol: 0.05  ← PPG morphology-estimated (see lipidEstimation.ts)
- *   Triglycerides:     0.03  ← PPG morphology-estimated (see lipidEstimation.ts)
- *
- * The lipid contributions are dampened when lipidConfidence is low (motion
- * artifact detected). This implements "dampen, don't discard" — the estimates
- * still contribute to the score but at a reduced magnitude, and a flag is
- * surfaced for the Dashboard to show an uncertainty indicator.
+ * Sum = 0.22 + 0.22 + 0.16 + 0.12 + 0.08 + 0.06 + 0.05 + 0.05 + 0.02 + 0.02 = 1.00
  */
 
 import { PhysiologicalSnapshot } from '../fusion';
+import { getWHORiskBand, WHORiskBandResult } from './whoRiskChart';
+
+export * from './whoRiskChart';
 
 // ─── Output Types ─────────────────────────────────────────────────────────────
 
 export type RiskBand = 'Low' | 'Moderate' | 'High';
 
 export interface RiskContributions {
-  heartRate: number;        // 0–100 sub-score for this parameter
-  bloodPressure: number;
-  hrv: number;
-  stress: number;
-  qtInterval: number;
-  stSegment: number;
-  totalCholesterol: number; // PPG-morphology estimated (see disclaimer in lipidEstimation.ts)
-  triglycerides: number;    // PPG-morphology estimated (see disclaimer in lipidEstimation.ts)
+  bloodPressure: number;    // 0–100 sub-score (SBP + hypertension history)
+  apoB: number;             // 0–100 sub-score (ApoB level - INTERHEART #1 factor)
+  smoking: number;          // 0–100 sub-score (Smoking status - INTERHEART #2 factor)
+  stress: number;           // 0–100 sub-score (Psychosocial stress)
+  heartRate: number;        // 0–100 sub-score
+  hrv: number;              // 0–100 sub-score
+  qtInterval: number;       // 0–100 sub-score
+  stSegment: number;        // 0–100 sub-score
+  totalCholesterol: number; // PPG-morphology estimated
+  triglycerides: number;    // PPG-morphology estimated
 }
 
 export interface RiskResult {
@@ -59,26 +70,58 @@ export interface RiskResult {
 
   /** The lipid confidence value propagated from the Fusion layer (0–1). */
   lipidConfidence: number;
+
+  /** WHO 2019 non-laboratory-based 10-year CVD Risk Band for South Asia. */
+  whoRiskBand: WHORiskBandResult;
 }
 
-// ─── Scoring Weights ─────────────────────────────────────────────────────────
-// Weights sum to 1.0. Lipid weights were added at 0.05 + 0.03 = 0.08, with
-// existing weights proportionally reduced to maintain the sum invariant.
+// ─── Patient Profile Context for Scoring ──────────────────────────────────────
+
+export interface PatientProfileContext {
+  ageRange?: string;
+  sex?: 'male' | 'female';
+  smoking?: 'never' | 'former' | 'current';
+  hypertensionHistory?: boolean;
+  height?: number; // cm
+  weight?: number; // kg
+}
+
+// ─── Scoring Weights (INTERHEART-Justified) ──────────────────────────────────
+// Weights sum to 1.00 exactly.
 
 export const WEIGHTS: Record<keyof RiskContributions, number> = {
-  heartRate:        0.18,
-  bloodPressure:    0.28,
-  hrv:              0.18,
-  stress:           0.14,
-  qtInterval:       0.09,
-  stSegment:        0.05,
-  totalCholesterol: 0.05,  // equal-weight default per spec (step 4)
-  triglycerides:    0.03,  // lower weight as these are estimated, not measured
+  // INTERHEART #1 Factor: ApoB/ApoA1 ratio (PAR 49.2%, OR 3.25)
+  apoB: 0.22,
+
+  // INTERHEART Primary Modifiable Factor: Hypertension history & elevated SBP (PAR 17.9%, OR 2.48)
+  bloodPressure: 0.22,
+
+  // INTERHEART #2 Factor: Current smoking (PAR 35.7%, OR 2.87)
+  smoking: 0.16,
+
+  // INTERHEART Major Risk Factor: Psychosocial stress (PAR 28.8%, OR 2.67)
+  stress: 0.12,
+
+  // Sympathetic tone / resting tachycardia (inverse of physical activity protection)
+  heartRate: 0.08,
+
+  // Autonomic tone / Parasympathetic withdrawal
+  hrv: 0.06,
+
+  // Electrophysiological ischemia / arrhythmia risk marker
+  qtInterval: 0.05,
+
+  // Focal acute myocardial ischemia marker
+  stSegment: 0.05,
+
+  // Secondary PPG-derived lipid estimate (optical estimate)
+  totalCholesterol: 0.02,
+
+  // Secondary PPG-derived lipid estimate (optical estimate)
+  triglycerides: 0.02,
 };
 
 // ─── Lipid Confidence Threshold ────────────────────────────────────────────────
-// Below this threshold the lipid contributions are dampened and the Dashboard
-// uncertainty flag is set.
 
 const LIPID_LOW_CONFIDENCE_THRESHOLD = 0.70;
 
@@ -90,34 +133,51 @@ function classifyBand(score: number): RiskBand {
   return 'Low';
 }
 
-// ─── Lipid Additive Threshold Rules ──────────────────────────────────────────
-// Simple rule-based bonus on top of the normalized index, consistent with the
-// additive point-based pattern used by existing HR/BP/Stress/HRV/QT rules.
+// ─── Sub-Score Rules ──────────────────────────────────────────────────────────
 
-/**
- * Raw cholesterol contribution (0–100) based on clinical thresholds.
- * AHA guidelines: <200 = desirable, 200–239 = borderline, ≥240 = high.
- */
 function rawCholesterolContribution(totalCholesterol: number): number {
   if (totalCholesterol >= 240) return 80;   // high risk
   if (totalCholesterol >= 200) return 45;   // borderline
   return 15;                                // desirable
 }
 
-/**
- * Raw triglyceride contribution (0–100) based on clinical thresholds.
- * NCEP ATP III: <150 = normal, 150–199 = borderline, 200–499 = high, ≥500 = very high.
- */
 function rawTriglycerideContribution(triglycerides: number): number {
   if (triglycerides >= 500) return 100;  // very high
-  if (triglycerides >= 200) return 70;   // high — adds points per spec
+  if (triglycerides >= 200) return 70;   // high
   if (triglycerides >= 150) return 35;   // borderline
   return 10;                             // normal
 }
 
+function rawApoBContribution(apoB: number): number {
+  if (apoB >= 130) return 90;  // high cardiovascular risk
+  if (apoB >= 100) return 60;  // moderate risk
+  if (apoB >= 80) return 30;   // optimal/desirable
+  return 15;
+}
+
+function rawSmokingContribution(smoking?: 'never' | 'former' | 'current'): number {
+  if (smoking === 'current') return 90; // Current smoker: high risk multiplier
+  if (smoking === 'former') return 40;  // Former smoker: intermediate risk
+  return 10;                             // Non-smoker: low baseline
+}
+
+function parseAge(ageRange?: string): number {
+  switch (ageRange) {
+    case '<40': return 35;
+    case '40-49': return 45;
+    case '50-59': return 55;
+    case '60-69': return 65;
+    case '70+': return 72;
+    default: return 55;
+  }
+}
+
 // ─── Main Scoring Function ────────────────────────────────────────────────────
 
-export function scoreFromSnapshot(snapshot: PhysiologicalSnapshot): RiskResult {
+export function scoreFromSnapshot(
+  snapshot: PhysiologicalSnapshot & { apoB?: number },
+  profile?: PatientProfileContext
+): RiskResult {
   const lipidConfidence = snapshot.lipidConfidence ?? 1.0;
   const isLipidLowConfidence = lipidConfidence < LIPID_LOW_CONFIDENCE_THRESHOLD;
 
@@ -125,17 +185,25 @@ export function scoreFromSnapshot(snapshot: PhysiologicalSnapshot): RiskResult {
   const rawChol = rawCholesterolContribution(snapshot.totalCholesterol ?? 180);
   const rawTrig = rawTriglycerideContribution(snapshot.triglycerides ?? 110);
 
-  // Apply confidence dampening to lipid contributions:
-  // "Dampen, don't discard" — when signal quality is low, contributions shrink
-  // proportionally to lipidConfidence, but never disappear entirely.
   const dampedChol = Math.round(rawChol * lipidConfidence);
   const dampedTrig = Math.round(rawTrig * lipidConfidence);
 
+  const rawApoBVal = rawApoBContribution(snapshot.apoB ?? 90);
+  const rawSmokingVal = rawSmokingContribution(profile?.smoking);
+
+  // BP index enhanced with diagnosed hypertension history (+15 if diagnosed)
+  let rawBPVal = snapshot.bpIndex;
+  if (profile?.hypertensionHistory) {
+    rawBPVal = Math.min(100, rawBPVal + 15);
+  }
+
   const rawContributions: RiskContributions = {
-    heartRate:        snapshot.heartRateIndex,
-    bloodPressure:    snapshot.bpIndex,
-    hrv:              snapshot.hrvIndex,
+    apoB:             rawApoBVal,
+    bloodPressure:    rawBPVal,
+    smoking:          rawSmokingVal,
     stress:           snapshot.stressIndex,
+    heartRate:        snapshot.heartRateIndex,
+    hrv:              snapshot.hrvIndex,
     qtInterval:       snapshot.qtIndex,
     stSegment:        snapshot.stIndex,
     totalCholesterol: dampedChol,
@@ -144,10 +212,12 @@ export function scoreFromSnapshot(snapshot: PhysiologicalSnapshot): RiskResult {
 
   // ── Weighted contributions ────────────────────────────────────────────────
   const contributions: RiskContributions = {
-    heartRate:        Math.round(rawContributions.heartRate        * WEIGHTS.heartRate),
+    apoB:             Math.round(rawContributions.apoB             * WEIGHTS.apoB),
     bloodPressure:    Math.round(rawContributions.bloodPressure    * WEIGHTS.bloodPressure),
-    hrv:              Math.round(rawContributions.hrv              * WEIGHTS.hrv),
+    smoking:          Math.round(rawContributions.smoking          * WEIGHTS.smoking),
     stress:           Math.round(rawContributions.stress           * WEIGHTS.stress),
+    heartRate:        Math.round(rawContributions.heartRate        * WEIGHTS.heartRate),
+    hrv:              Math.round(rawContributions.hrv              * WEIGHTS.hrv),
     qtInterval:       Math.round(rawContributions.qtInterval       * WEIGHTS.qtInterval),
     stSegment:        Math.round(rawContributions.stSegment        * WEIGHTS.stSegment),
     totalCholesterol: Math.round(rawContributions.totalCholesterol * WEIGHTS.totalCholesterol),
@@ -159,6 +229,18 @@ export function scoreFromSnapshot(snapshot: PhysiologicalSnapshot): RiskResult {
     Object.values(contributions).reduce((sum, v) => sum + v, 0),
   );
 
+  // ── Calculate WHO South Asia 2019 Non-Lab Risk Band ──────────────────────
+  const age = parseAge(profile?.ageRange);
+  const sex = profile?.sex ?? 'male';
+  const systolicBP = snapshot.systolic ?? 120;
+  const smokingStatus = profile?.smoking ?? 'never';
+
+  const height = profile?.height ?? 170; // cm
+  const weight = profile?.weight ?? 70;  // kg
+  const bmi = weight / Math.pow(height / 100, 2);
+
+  const whoRiskBand = getWHORiskBand(age, sex, systolicBP, smokingStatus, bmi);
+
   return {
     score: Math.round(score),
     band: classifyBand(score),
@@ -168,6 +250,6 @@ export function scoreFromSnapshot(snapshot: PhysiologicalSnapshot): RiskResult {
     timestamp: snapshot.timestamp,
     lipidUncertainFlag: isLipidLowConfidence,
     lipidConfidence,
+    whoRiskBand,
   };
 }
-

@@ -3,21 +3,24 @@
  * =====================
  * Replaces the dedicated Sensors panel in the left column.
  * Displays collapsible sub-sections for patient risk factors:
- *   1. Demographics (Age Range, Biological Sex, Ethnicity)
+ *   1. Demographics (Age Range, Biological Sex, Ethnicity, Height, Weight, BMI)
  *   2. Habits & Lifestyle (Smoking Status, Physical Activity, Alcohol / Diet)
  *   3. Medical History (Diabetes, Family History of CAD, Prior CVD, Statin Therapy)
  *   4. Symptoms (Chest Pain / Angina, Dyspnea, Fatigue, Palpitations)
  *
- * All inputs are strictly structured (dropdowns, toggles, radio buttons).
+ * All inputs are strictly structured (dropdowns, toggles, radio buttons, numeric inputs).
  */
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useSimStore } from '../../store/simStore';
 
 export interface PatientProfileData {
   // Demographics
   ageRange: string;
   sex: 'male' | 'female';
   ethnicity: string;
+  height: number; // cm
+  weight: number; // kg
 
   // Habits & Lifestyle
   smoking: 'never' | 'former' | 'current';
@@ -42,6 +45,8 @@ export const DEFAULT_PATIENT_PROFILE_DATA: PatientProfileData = {
   ageRange: '50-59',
   sex: 'male',
   ethnicity: 'south_asian',
+  height: 170,
+  weight: 70,
 
   smoking: 'never',
   activity: 'moderate',
@@ -155,10 +160,13 @@ function SectionAccordion({
 }
 
 export function PatientProfilePanel() {
-  const [profileData, setProfileData] = useState<PatientProfileData>(DEFAULT_PATIENT_PROFILE_DATA);
+  const patientProfile = useSimStore(s => s.patientProfile);
+  const setPatientProfile = useSimStore(s => s.setPatientProfile);
+
+  const profileData = patientProfile ?? DEFAULT_PATIENT_PROFILE_DATA;
 
   // Collapsible accordion states
-  const [openSections, setOpenSections] = useState({
+  const [openSections, setOpenSections] = React.useState({
     demographics: true,
     habits: true,
     medicalHistory: false,
@@ -170,8 +178,10 @@ export function PatientProfilePanel() {
   };
 
   const update = <K extends keyof PatientProfileData>(field: K, value: PatientProfileData[K]) => {
-    setProfileData((prev) => ({ ...prev, [field]: value }));
+    setPatientProfile({ [field]: value });
   };
+
+  const bmi = profileData.weight / Math.pow(profileData.height / 100, 2);
 
   return (
     <div style={{ padding: 'var(--space-md)' }}>
@@ -261,6 +271,49 @@ export function PatientProfilePanel() {
               <option value="african">African / Black</option>
               <option value="other">Other</option>
             </select>
+          </div>
+
+          {/* Height & Weight Inputs */}
+          <div className="flex items-center justify-between text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+            <span>Height / Weight</span>
+            <div className="flex items-center" style={{ gap: 'var(--space-xs)' }}>
+              <input
+                type="number"
+                min={100}
+                max={250}
+                value={profileData.height}
+                onChange={(e) => update('height', Math.max(100, parseFloat(e.target.value) || 170))}
+                className="w-11 rounded px-1 py-0.5 text-right text-[11px] outline-none"
+                style={{
+                  background: 'var(--surface)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                }}
+              />
+              <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>cm</span>
+              <input
+                type="number"
+                min={30}
+                max={250}
+                value={profileData.weight}
+                onChange={(e) => update('weight', Math.max(30, parseFloat(e.target.value) || 70))}
+                className="w-11 rounded px-1 py-0.5 text-right text-[11px] outline-none"
+                style={{
+                  background: 'var(--surface)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                }}
+              />
+              <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>kg</span>
+            </div>
+          </div>
+
+          {/* Computed BMI Readout */}
+          <div className="flex items-center justify-between text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+            <span>Computed BMI</span>
+            <span className="font-semibold tabular-nums" style={{ color: 'var(--accent)' }}>
+              {bmi.toFixed(1)} kg/m²
+            </span>
           </div>
         </SectionAccordion>
 
