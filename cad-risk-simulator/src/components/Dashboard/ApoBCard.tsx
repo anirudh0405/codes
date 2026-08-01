@@ -32,10 +32,10 @@ export function ApoBCard() {
   // ≥ 100 mg/dL — elevated (primary treatment target threshold)
   const apoBColor =
     apoB >= 100
-      ? 'var(--risk-high)'
+      ? 'var(--alert-red)'
       : apoB >= 80
-      ? 'var(--risk-moderate)'
-      : 'var(--text-primary)';
+      ? 'var(--alert-amber)'
+      : 'var(--text-secondary)';
 
   const apoBLabel =
     apoB >= 100 ? '⚠ Elevated' : apoB >= 80 ? 'Borderline' : 'Near-Optimal';

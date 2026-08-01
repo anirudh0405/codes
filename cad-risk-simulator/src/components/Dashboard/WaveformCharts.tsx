@@ -26,10 +26,10 @@ function WaveformChart({ title, bufferKey, color, dotColor, yDomain, id }: Wavef
     <div className="card">
       <div className="card-header">
         <div className="waveform-label" style={{ padding: 0 }}>
-          <div className="waveform-dot" style={{ background: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
+          <div className="waveform-dot" style={{ background: dotColor }} />
           <span className="card-title">{title}</span>
         </div>
-        <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
           LIVE
         </span>
       </div>
@@ -68,8 +68,8 @@ export function ECGWaveform() {
       id="ecg-waveform"
       title="ECG Waveform"
       bufferKey="ecgBuffer"
-      color="var(--ecg-green)"
-      dotColor="var(--ecg-green)"
+      color="var(--accent)"
+      dotColor="var(--accent)"
       yDomain={[-0.5, 1.5]}
     />
   );
@@ -81,8 +81,8 @@ export function PPGWaveform() {
       id="ppg-waveform"
       title="PPG Waveform"
       bufferKey="ppgBuffer"
-      color="var(--ppg-blue)"
-      dotColor="var(--ppg-blue)"
+      color="var(--accent)"
+      dotColor="var(--accent)"
       yDomain={[0, 1.2]}
     />
   );

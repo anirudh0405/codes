@@ -889,14 +889,14 @@ export default function App() {
               <div className="flex items-center justify-between flex-wrap" style={{ marginBottom: 'var(--space-xs)', gap: '4px' }}>
                 <span className="eyebrow-label">WHO 10-Year CVD Risk Band</span>
                 <span
-                  className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide uppercase"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                  className="text-[9px]"
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
                   WHO South Asia non-lab chart
                 </span>
               </div>
               <div className="flex items-baseline justify-between" style={{ marginTop: 'var(--space-xs)' }}>
-                <span className="text-[15px] font-bold tabular-nums" style={{ color: riskResult?.whoRiskBand?.color ?? 'var(--accent)' }}>
+                <span className="text-[15px] font-bold tabular-nums" style={{ color: getRiskColor(riskResult?.whoRiskBand?.tier ?? 'Low') }}>
                   {riskResult?.whoRiskBand?.band ?? '<10%'}
                 </span>
                 <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
@@ -1095,11 +1095,12 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setBPMode(bpMode === 'ptt' ? 'manual' : 'ptt')}
-                  className="px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide uppercase transition-colors outline-none cursor-pointer"
+                  className="text-[10px] transition-colors outline-none cursor-pointer"
                   style={{
-                    background: bpMode === 'ptt' ? 'rgba(74,157,255,0.12)' : 'var(--surface-alt)',
-                    color: bpMode === 'ptt' ? 'var(--accent)' : 'var(--text-secondary)',
-                    border: '1px solid var(--border)',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: bpMode === 'ptt' ? 'var(--text-secondary)' : 'var(--text-tertiary)',
                   }}
                   title="Toggle between PTT-derived optical estimation and manual slider override"
                 >

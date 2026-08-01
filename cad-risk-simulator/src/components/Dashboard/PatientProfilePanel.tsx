@@ -101,22 +101,20 @@ function Toggle({
 
 function SectionAccordion({
   title,
-  icon,
   isOpen,
   onToggle,
   children,
 }: {
   title: string;
-  icon: string;
   isOpen: boolean;
   onToggle: () => void;
   children: React.ReactNode;
 }) {
   return (
     <div
-      className="rounded-md overflow-hidden transition-all"
+      className="rounded overflow-hidden"
       style={{
-        background: 'var(--surface-alt)',
+        background: 'var(--surface)',
         border: '1px solid var(--border)',
         marginBottom: 'var(--space-xs)',
       }}
@@ -124,21 +122,19 @@ function SectionAccordion({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between text-left font-medium text-[12px]"
+        className="w-full flex items-center justify-between text-left eyebrow-label"
         style={{
           padding: 'var(--space-xs) var(--space-sm)',
-          color: 'var(--text-primary)',
+          color: 'var(--text-secondary)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
+          letterSpacing: '0.06em',
         }}
       >
-        <span className="flex items-center" style={{ gap: 'var(--space-xs)' }}>
-          <span>{icon}</span>
-          <span className="font-semibold">{title}</span>
-        </span>
-        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
-          {isOpen ? '▼' : '►'}
+        <span>{title}</span>
+        <span style={{ fontSize: '9px', color: 'var(--text-tertiary)', lineHeight: 1 }}>
+          {isOpen ? '▾' : '▸'}
         </span>
       </button>
 
@@ -146,7 +142,7 @@ function SectionAccordion({
         <div
           style={{
             padding: 'var(--space-xs) var(--space-sm) var(--space-sm)',
-            borderTop: '1px solid rgba(255,255,255,0.05)',
+            borderTop: '1px solid var(--border)',
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--space-xs)',
@@ -196,7 +192,6 @@ export function PatientProfilePanel() {
         {/* 1. Demographics */}
         <SectionAccordion
           title="Demographics"
-          icon="👤"
           isOpen={openSections.demographics}
           onToggle={() => toggleSection('demographics')}
         >
@@ -320,7 +315,6 @@ export function PatientProfilePanel() {
         {/* 2. Habits & Lifestyle */}
         <SectionAccordion
           title="Habits & Lifestyle"
-          icon="🏃"
           isOpen={openSections.habits}
           onToggle={() => toggleSection('habits')}
         >
@@ -384,7 +378,6 @@ export function PatientProfilePanel() {
         {/* 3. Medical History */}
         <SectionAccordion
           title="Medical History"
-          icon="🏥"
           isOpen={openSections.medicalHistory}
           onToggle={() => toggleSection('medicalHistory')}
         >
@@ -418,7 +411,6 @@ export function PatientProfilePanel() {
         {/* 4. Symptoms */}
         <SectionAccordion
           title="Symptoms"
-          icon="⚠️"
           isOpen={openSections.symptoms}
           onToggle={() => toggleSection('symptoms')}
         >

@@ -21,7 +21,7 @@ export function SensorStatus() {
     <div className="card">
       <div className="card-header">
         <span className="card-title">Sensor Status</span>
-        <span style={{ fontSize: '10px', color: 'var(--accent-cyan)' }}>
+        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
           Phase 1 — Simulated
         </span>
       </div>
@@ -37,7 +37,7 @@ export function SensorStatus() {
                   <div className="sensor-name">
                     {meta.icon} {meta.name}
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
                     {meta.desc}
                   </div>
                 </div>
@@ -52,14 +52,14 @@ export function SensorStatus() {
         <div style={{
           marginTop: 'var(--gap-md)',
           padding: '8px 12px',
-          background: 'rgba(0, 212, 255, 0.05)',
-          border: '1px solid rgba(0, 212, 255, 0.15)',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm)',
           fontSize: '10px',
-          color: 'var(--text-muted)',
+          color: 'var(--text-secondary)',
           lineHeight: 1.5,
         }}>
-          <strong style={{ color: 'var(--accent-cyan)' }}>Phase 2:</strong> Real BLE sensors
+          <strong style={{ color: 'var(--text-primary)' }}>Phase 2:</strong> Real BLE sensors
           (ESP32 / nRF52) will appear here as "BLE" when navigator.bluetooth connects.
         </div>
       </div>

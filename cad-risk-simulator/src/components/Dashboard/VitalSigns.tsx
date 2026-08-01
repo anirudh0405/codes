@@ -6,11 +6,11 @@ import React from 'react';
 import { useSimStore } from '../../store/simStore';
 
 const BP_CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
-  normal: { label: 'Normal', color: 'var(--risk-low)' },
-  elevated: { label: 'Elevated', color: 'var(--accent-cyan)' },
-  stage1: { label: 'Stage 1 HTN', color: 'var(--risk-moderate)' },
-  stage2: { label: 'Stage 2 HTN', color: 'var(--risk-high)' },
-  crisis: { label: 'Crisis', color: 'var(--risk-high)' },
+  normal: { label: 'Normal', color: 'var(--accent)' },
+  elevated: { label: 'Elevated', color: 'var(--alert-amber)' },
+  stage1: { label: 'Stage 1 HTN', color: 'var(--alert-amber)' },
+  stage2: { label: 'Stage 2 HTN', color: 'var(--alert-red)' },
+  crisis: { label: 'Crisis', color: 'var(--alert-red)' },
 };
 
 function MetricCard({
@@ -21,7 +21,7 @@ function MetricCard({
 }) {
   return (
     <div className="metric-card" id={id}
-      style={accent ? { borderColor: `${accent}33`, boxShadow: `0 0 20px ${accent}10` } : undefined}
+      style={accent ? { borderColor: `${accent}33` } : undefined}
     >
       <div className="metric-label">{label}</div>
       <div className="metric-value" style={{ color: color ?? 'var(--text-primary)' }}>
@@ -34,10 +34,10 @@ function MetricCard({
 }
 
 function bpArrow(systolic: number) {
-  if (systolic > 140) return { arrow: '↑', color: 'var(--risk-high)' };
-  if (systolic > 120) return { arrow: '↗', color: 'var(--risk-moderate)' };
-  if (systolic < 90) return { arrow: '↓', color: 'var(--accent-cyan)' };
-  return { arrow: '→', color: 'var(--risk-low)' };
+  if (systolic > 140) return { arrow: '↑', color: 'var(--alert-red)' };
+  if (systolic > 120) return { arrow: '↗', color: 'var(--alert-amber)' };
+  if (systolic < 90) return { arrow: '↓', color: 'var(--accent)' };
+  return { arrow: '→', color: 'var(--accent)' };
 }
 
 export function VitalSigns() {
@@ -56,22 +56,22 @@ export function VitalSigns() {
   const { arrow: bpAr, color: bpCol } = bpArrow(snapshot.systolic);
 
   const stColor = Math.abs(snapshot.stSegment) > 0.1
-    ? 'var(--risk-high)'
+    ? 'var(--alert-red)'
     : Math.abs(snapshot.stSegment) > 0.05
-    ? 'var(--risk-moderate)'
-    : 'var(--risk-low)';
+    ? 'var(--alert-amber)'
+    : 'var(--accent)';
 
   const qtColor = snapshot.qtcBazett > 500
-    ? 'var(--risk-high)'
+    ? 'var(--alert-red)'
     : snapshot.qtcBazett > 440
-    ? 'var(--risk-moderate)'
+    ? 'var(--alert-amber)'
     : 'var(--text-primary)';
 
   const hrvColor = snapshot.hrv < 20
-    ? 'var(--risk-high)'
+    ? 'var(--alert-red)'
     : snapshot.hrv < 40
-    ? 'var(--risk-moderate)'
-    : 'var(--risk-low)';
+    ? 'var(--alert-amber)'
+    : 'var(--accent)';
 
   return (
     <div className="grid-3">
@@ -81,7 +81,7 @@ export function VitalSigns() {
         value={snapshot.heartRate}
         unit="bpm"
         sub={snapshot.heartRate > 100 ? '⚠ Tachycardia' : snapshot.heartRate < 60 ? '⚠ Bradycardia' : 'Normal sinus'}
-        color={snapshot.heartRate < 60 || snapshot.heartRate > 100 ? 'var(--risk-moderate)' : 'var(--text-primary)'}
+        color={snapshot.heartRate < 60 || snapshot.heartRate > 100 ? 'var(--alert-amber)' : 'var(--text-primary)'}
       />
       <MetricCard
         id="metric-bp"
@@ -90,7 +90,7 @@ export function VitalSigns() {
         unit="mmHg"
         sub={<span style={{ color: bpCol }}>{bpAr} MAP {snapshot.hrv ? Math.round(snapshot.diastolic + (snapshot.systolic - snapshot.diastolic) / 3) : '—'} mmHg</span>}
         color={bpCol}
-        accent={snapshot.systolic > 140 ? 'var(--risk-high)' : undefined}
+        accent={snapshot.systolic > 140 ? 'var(--alert-red)' : undefined}
       />
       <MetricCard
         id="metric-hrv"
@@ -106,7 +106,7 @@ export function VitalSigns() {
         value={Math.round(snapshot.stressScore)}
         unit="/ 100"
         sub={snapshot.stressScore > 70 ? '⚠ High stress' : snapshot.stressScore > 40 ? 'Moderate' : 'Low'}
-        color={snapshot.stressScore > 70 ? 'var(--risk-high)' : snapshot.stressScore > 40 ? 'var(--risk-moderate)' : 'var(--risk-low)'}
+        color={snapshot.stressScore > 70 ? 'var(--alert-red)' : snapshot.stressScore > 40 ? 'var(--alert-amber)' : 'var(--accent)'}
       />
       <MetricCard
         id="metric-qtc"
@@ -123,7 +123,7 @@ export function VitalSigns() {
         unit="mV"
         sub={Math.abs(snapshot.stSegment) > 0.1 ? '⚠ Elevation' : 'Isoelectric'}
         color={stColor}
-        accent={Math.abs(snapshot.stSegment) > 0.1 ? 'var(--risk-high)' : undefined}
+        accent={Math.abs(snapshot.stSegment) > 0.1 ? 'var(--alert-red)' : undefined}
       />
     </div>
   );

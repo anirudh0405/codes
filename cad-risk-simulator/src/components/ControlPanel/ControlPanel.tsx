@@ -205,7 +205,7 @@ function LabSliderRow({
           {isLocked && (
             <span
               title="Manually set — auto-sync from PPG is paused"
-              style={{ fontSize: 9, color: 'var(--accent-cyan)', opacity: 0.8 }}
+              style={{ fontSize: 9, color: 'var(--text-tertiary)', opacity: 0.8 }}
             >
               ✎
             </span>

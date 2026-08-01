@@ -60,10 +60,10 @@ export function ContributionBreakdown() {
       {/* Legend for estimated values */}
       <div style={{
         fontSize: '8px',
-        color: 'var(--text-muted)',
+        color: 'var(--text-tertiary)',
         marginTop: '6px',
         paddingTop: '4px',
-        borderTop: '1px solid var(--hairline)',
+        borderTop: '1px solid var(--border)',
         letterSpacing: '0.05em',
       }}>
         * PPG-estimated, not measured

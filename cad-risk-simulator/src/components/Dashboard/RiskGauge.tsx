@@ -12,17 +12,17 @@ import {
 } from 'recharts';
 import { useSimStore } from '../../store/simStore';
 
-const BAND_COLORS = {
-  Low: 'var(--risk-low)',
-  Moderate: 'var(--risk-moderate)',
-  High: 'var(--risk-high)',
-};
+function getRiskColor(band: string): string {
+  if (band === 'High') return 'var(--alert-red)';
+  if (band === 'Moderate') return 'var(--alert-amber)';
+  return 'var(--accent)';
+}
 
 export function RiskGauge() {
   const riskResult = useSimStore(s => s.riskResult);
   const score = riskResult?.score ?? 0;
   const band = riskResult?.band ?? 'Low';
-  const color = BAND_COLORS[band];
+  const color = getRiskColor(band);
 
   const whoBand = riskResult?.whoRiskBand;
 
@@ -34,7 +34,7 @@ export function RiskGauge() {
       <div className="card">
         <div className="card-header">
           <span className="card-title">CAD Risk Score</span>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
             INTERHEART Composite Model
           </span>
         </div>
@@ -58,7 +58,7 @@ export function RiskGauge() {
                     tick={false}
                   />
                   <RadialBar
-                    background={{ fill: 'rgba(255,255,255,0.04)' }}
+                    background={{ fill: 'var(--border)' }}
                     dataKey="value"
                     cornerRadius={8}
                   />
@@ -69,7 +69,7 @@ export function RiskGauge() {
               <div className={`risk-score-number ${band.toLowerCase()}`} id="risk-score-value">
                 {score}
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 2 }}>/ 100</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: 2 }}>/ 100</div>
               <div className={`risk-band-badge ${band.toLowerCase()}`} id="risk-band-badge">
                 {band === 'Low' ? '● ' : band === 'Moderate' ? '◆ ' : '▲ '}
                 {band} Risk
@@ -78,7 +78,7 @@ export function RiskGauge() {
           </div>
 
           {riskResult && (
-            <div style={{ marginTop: 'var(--gap-md)', fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>
+            <div style={{ marginTop: 'var(--gap-md)', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
               Confidence: {Math.round(riskResult.confidence * 100)}% |{' '}
               {new Date(riskResult.timestamp).toLocaleTimeString()}
             </div>
@@ -91,8 +91,8 @@ export function RiskGauge() {
         <div className="flex items-center justify-between" style={{ marginBottom: '6px' }}>
           <span className="card-title" style={{ fontSize: '12px' }}>WHO 10-Year CVD Risk Band</span>
           <span
-            className="rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+            className="text-[9px]"
+            style={{ color: 'var(--text-tertiary)' }}
           >
             WHO South Asia non-lab chart
           </span>
@@ -101,7 +101,7 @@ export function RiskGauge() {
           <div className="flex items-baseline gap-1.5">
             <span
               className="text-[16px] font-bold tabular-nums"
-              style={{ color: whoBand?.color ?? 'var(--accent)' }}
+              style={{ color: getRiskColor(whoBand?.tier ?? 'Low') }}
             >
               {whoBand?.band ?? '<10%'}
             </span>
