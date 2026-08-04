@@ -40,8 +40,8 @@ function getStatus(value: number | undefined, rangeKey: RangeKey): StatusLabel {
   const span = dMax - dMin;
   const pct = Math.max(0, Math.min(1, (value - dMin) / span));
 
-  // HDL is inverted (higher = better)
-  if (rangeKey === 'hdl') {
+  // Inverted params: higher is BETTER — HDL and HRV (low values = risk)
+  if (rangeKey === 'hdl' || rangeKey === 'hrv') {
     if (entry.cadZone) {
       const cadMid = (entry.cadZone[0] + entry.cadZone[1]) / 2;
       if (pct <= cadMid) return 'CAD-Associated';
@@ -265,6 +265,8 @@ export function LabReportSummary({ onClose }: LabReportSummaryProps) {
           <Row label="Systolic BP"       value={snapshot?.systolic}          formattedValue={snapshot ? `${snapshot.systolic} mmHg` : '—'}                         rangeKey="systolicBP" />
           <Row label="Diastolic BP"      value={snapshot?.diastolic}         formattedValue={snapshot ? `${snapshot.diastolic} mmHg` : '—'}                        rangeKey="diastolicBP" />
           <Row label="Heart Rate"        value={snapshot?.heartRate}         formattedValue={snapshot ? `${snapshot.heartRate} bpm` : '—'}                         rangeKey="heartRate" />
+          <Row label="HRV RMSSD"         value={snapshot ? Math.round(snapshot.hrv) : undefined}  formattedValue={snapshot ? `${Math.round(snapshot.hrv)} ms` : '—'}              rangeKey="hrv" />
+          <Row label="Stress Index"      value={snapshot ? Math.round(snapshot.stressScore) : undefined} formattedValue={snapshot ? `${Math.round(snapshot.stressScore)} / 100` : '—'} rangeKey="stressIndex" />
           <Row label="BMI"               value={bmi}                         formattedValue={`${bmi} kg/m²`}                                                       rangeKey="bmi" isLast />
         </div>
 

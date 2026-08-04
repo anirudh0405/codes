@@ -1184,6 +1184,8 @@ export default function App() {
                 <span className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>/ 100</span>
               </div>
               <span className="text-[11px] font-medium" style={{ color: str.color }}>{str.label}</span>
+              {/* Stress Index Reference Range */}
+              {snapshot && <RangeIndicator rangeKey="stressIndex" value={Math.round(snapshot.stressScore)} />}
             </div>
 
             {/* HRV */}
@@ -1197,6 +1199,8 @@ export default function App() {
                 <span className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>ms</span>
               </div>
               <span className="text-[11px] font-medium" style={{ color: hrv.color }}>{hrv.label}</span>
+              {/* HRV RMSSD Reference Range */}
+              {snapshot && <RangeIndicator rangeKey="hrv" value={Math.round(snapshot.hrv)} />}
             </div>
           </div>
         </div>

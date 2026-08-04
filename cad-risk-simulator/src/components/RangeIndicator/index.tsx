@@ -33,8 +33,10 @@ function classifyValue(value: number, rangeKey: RangeKey): MarkerStatus {
   const span = domainMax - domainMin;
   const pct = Math.max(0, Math.min(1, (value - domainMin) / span));
 
-  // HDL is special: higher is better — CAD zone is BELOW normal
-  if (rangeKey === 'hdl') {
+  // Inverted params: higher is BETTER — CAD zone is at the LOW end of the bar.
+  // HDL: low HDL = cardiovascular risk.
+  // HRV: low RMSSD = reduced autonomic tone = higher sympathetic drive / CAD risk.
+  if (rangeKey === 'hdl' || rangeKey === 'hrv') {
     if (entry.cadZone) {
       const cadMid = (entry.cadZone[0] + entry.cadZone[1]) / 2;
       if (pct <= cadMid) return 'cad';
@@ -44,7 +46,7 @@ function classifyValue(value: number, rangeKey: RangeKey): MarkerStatus {
     return 'borderline';
   }
 
-  // All other params: higher = worse
+  // All other params: higher = worse (BP, cholesterol, stress, etc.)
   const [nStart, nEnd] = entry.normalZone;
   if (entry.cadZone) {
     const [cStart, cEnd] = entry.cadZone;

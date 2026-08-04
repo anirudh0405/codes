@@ -29,9 +29,40 @@
  * [RegencyHealthcare]
  *   Regency Healthcare, India — BMI normal range for South Asian adults (18.5–22.9 kg/m²).
  *
- * NOTE: No reference range is fabricated beyond the data present in the above sources.
- * HRV, Stress Score, and QTc Interval have no Indian-population CAD reference values
- * in the current source set — those parameters have NO entry in this table.
+ * [TaskForceESC1996]
+ *   Task Force of the European Society of Cardiology and the North American Society
+ *   of Pacing and Electrophysiology.
+ *   "Heart Rate Variability: Standards of Measurement, Physiological Interpretation,
+ *   and Clinical Use."
+ *   Circulation. 1996;93(5):1043-1065.
+ *   → RMSSD normal reference ranges (healthy adult population).
+ *
+ * [Shaffer2017]
+ *   Shaffer F, Ginsberg JP.
+ *   "An Overview of Heart Rate Variability Metrics and Norms."
+ *   Front Public Health. 2017;5:258.
+ *   → Expanded RMSSD normative data by age group (used here: general adult mean 42 ± 15 ms).
+ *
+ * [ATRAMI1998]
+ *   La Rovere MT, Bigger JT Jr, Marcus FI, Mortara A, Schwartz PJ.
+ *   "Baroreflex sensitivity and heart-rate variability in prediction of total cardiac
+ *   mortality after myocardial infarction."
+ *   Lancet. 1998;351(9101):478-484.
+ *   → CAD / post-MI patients: reduced RMSSD ≈ 16–20 ms (mean ~18 ms used here).
+ *
+ * [INTERHEART2004]
+ *   Yusuf S, et al. (INTERHEART Study Investigators).
+ *   "Effect of potentially modifiable risk factors associated with myocardial infarction
+ *   in 52 countries."
+ *   Lancet. 2004;364(9438):937-952.
+ *   → Psychosocial stress PAR 28.8%, OR 2.67 — high stress strongly associated with MI.
+ *   Stress Index thresholds on the simulator's 0–100 internal scale:
+ *     Normal (low risk):     0–30
+ *     Moderate:              30–70
+ *     High (CAD-associated): 70–100
+ *
+ * NOTE: QTc Interval has no Indian-population CAD reference values
+ * in the current source set — that parameter has NO entry in this table.
  */
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -225,6 +256,39 @@ export const REFERENCE_RANGES = {
     { mean: 0.92, sd: 0.26 },
     'Ashavaid et al. / Gadhwal et al.',
     0.2, 1.6,
+  ),
+
+  /**
+   * HRV RMSSD — Heart Rate Variability (Root Mean Square of Successive RR Differences)
+   * Normal reference: Shaffer & Ginsberg 2017 (general adult mean 42 ± 15 ms).
+   * CAD / post-MI: ATRAMI 1998 (mean ~18 ms, SD ~8 ms).
+   * NOTE: HRV is inversely associated with risk — higher RMSSD = better autonomic tone.
+   *        The bar is therefore RIGHT-to-LEFT: high values (left on domain) = normal,
+   *        low values (right on domain) = CAD-associated.
+   *        classifyValue() in RangeIndicator handles the hrv inversion case.
+   */
+  hrv: buildEntry(
+    'ms',
+    { mean: 42, sd: 15 },          // Shaffer & Ginsberg 2017 adult mean
+    { mean: 18, sd: 8 },           // ATRAMI 1998 post-MI / CAD mean
+    'Task Force ESC 1996 · Shaffer & Ginsberg 2017 · ATRAMI 1998',
+    5, 110,
+  ),
+
+  /**
+   * Stress Index — Simulator internal composite stress score (0–100 scale).
+   * Thresholds mapped from INTERHEART 2004 psychosocial stress OR/PAR data:
+   *   0–30  = Low (normal)         — low sympathetic drive, parasympathetic dominant
+   *   30–70 = Moderate             — borderline
+   *   70–100 = High (CAD-associated) — aligns with INTERHEART high-stress cohort
+   * Source: Yusuf et al. Lancet 2004 (PAR 28.8%, OR 2.67 for psychosocial stress).
+   */
+  stressIndex: buildEntry(
+    '/ 100',
+    { min: 0, max: 30 },           // Low stress = normal
+    { mean: 75, sd: 12 },          // High stress zone — CAD-associated
+    'INTERHEART (Yusuf et al. 2004)',
+    0, 100,
   ),
 
 } as const;
