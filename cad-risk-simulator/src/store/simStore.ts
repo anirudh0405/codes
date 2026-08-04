@@ -87,7 +87,12 @@ export interface SimState {
 }
 
 // Physiologically plausible random values within a specific category or across all
-function randomizeParamsForCategory(category: PresetCategory | null): { params: MockParams; profilePatch: Partial<PatientProfileData> } {
+// Physiologically plausible random values within a specific category or across all
+function randomizeParamsForCategory(category: PresetCategory | null): {
+  params: MockParams;
+  profilePatch: Partial<PatientProfileData>;
+  labPatch: Partial<LabInputs>;
+} {
   if (category === 'healthy') {
     const hr = Math.round(58 + Math.random() * 26);    // 58–84 bpm
     const systolic = Math.round(105 + Math.random() * 20); // 105–125 mmHg
@@ -112,6 +117,12 @@ function randomizeParamsForCategory(category: PresetCategory | null): { params: 
         hypertensionHistory: false,
         priorCVD: false,
         chestPain: 'none',
+      },
+      labPatch: {
+        totalCholesterol: Math.round(155 + Math.random() * 30), // 155–185 mg/dL (Healthy optimal)
+        hdl: Math.round(50 + Math.random() * 20),              // 50–70 mg/dL (Healthy optimal)
+        triglycerides: Math.round(75 + Math.random() * 50),     // 75–125 mg/dL (Healthy)
+        lpa: parseFloat((8 + Math.random() * 10).toFixed(1)),   // 8–18 mg/dL (Healthy median)
       },
     };
   }
@@ -142,6 +153,12 @@ function randomizeParamsForCategory(category: PresetCategory | null): { params: 
         diabetes: Math.random() > 0.5,
         chestPain: Math.random() > 0.5 ? 'atypical' : 'none',
       },
+      labPatch: {
+        totalCholesterol: Math.round(215 + Math.random() * 45), // 215–260 mg/dL (Elevated CAD)
+        hdl: Math.round(30 + Math.random() * 12),              // 30–42 mg/dL (Low CAD HDL)
+        triglycerides: Math.round(160 + Math.random() * 90),    // 160–250 mg/dL (High CAD Trig)
+        lpa: Math.round(35 + Math.random() * 30),              // 35–65 mg/dL (Elevated Lp(a))
+      },
     };
   }
 
@@ -162,6 +179,7 @@ function randomizeParamsForCategory(category: PresetCategory | null): { params: 
       qtInterval: Math.round(360 + Math.random() * 180),
     },
     profilePatch: {},
+    labPatch: {},
   };
 }
 
@@ -201,37 +219,27 @@ export const useSimStore = create<SimState>((set, get) => ({
     const profile = SCENARIO_PRESETS.find(p => p.id === profileId);
     if (!profile) return;
 
-    // Per-preset Lp(a) defaults (mg/dL), drawn from Indian-population reference ranges.
-    // Healthy: Ashavaid et al. 2005 median (12.9 mg/dL).
-    // CAD: varied within Gadhwal et al. range (44.5 ± 19.8 mg/dL) for inter-preset realism.
-    const lpaByPreset: Record<string, number> = {
-      'healthy-baseline':           LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL, // 12.9
-      'healthy-post-exercise':      LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL, // 12.9
-      'cad-borderline-hypertensive': 38,  // mild CAD elevation
-      'cad-high-stress-low-hrv':     47,  // moderate elevation, autonomic risk
-      'cad-cardiac-concern':         58,  // high elevation, multi-factor risk
-      'cad-smoker-sedentary':        42,  // moderate, INTERHEART smoking cohort
-      'cad-diabetic-hypertensive':   51,  // elevated, metabolic syndrome
-      'cad-post-mi-recovery':        45,  // CAD mean, on statin therapy
-    };
-    const lpa = lpaByPreset[profileId] ??
-      (profile.category === 'cad'
-        ? LP_A_REFERENCE.CAD_MEAN_MG_DL
-        : LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL);
+    const presetLab = profile.labInputs ?? {};
+    const defaultLpa = profile.category === 'cad'
+      ? LP_A_REFERENCE.CAD_MEAN_MG_DL
+      : LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL;
 
     set((s) => {
-      const newLabInputs: LabInputs = { ...s.labInputs, lpa };
+      const newLabInputs: LabInputs = {
+        ...s.labInputs,
+        totalCholesterol: presetLab.totalCholesterol ?? (profile.category === 'healthy' ? 175 : 220),
+        hdl: presetLab.hdl ?? (profile.category === 'healthy' ? 55 : 38),
+        triglycerides: presetLab.triglycerides ?? (profile.category === 'healthy' ? 105 : 180),
+        lpa: presetLab.lpa ?? defaultLpa,
+        trigsManuallySet: false, // reset manual flag on preset change
+      };
       return {
         params: { ...profile.params },
         patientProfile: { ...profile.patientProfile },
         activeProfile: profile,
         selectedCategory: profile.category,
         labInputs: newLabInputs,
-        apoBPanel: calculateApoBPanel({
-          totalCholesterol: newLabInputs.totalCholesterol,
-          hdl: newLabInputs.hdl,
-          triglycerides: newLabInputs.triglycerides,
-        }),
+        apoBPanel: calculateApoBPanel(newLabInputs),
       };
     });
   },
@@ -255,12 +263,20 @@ export const useSimStore = create<SimState>((set, get) => ({
   },
 
   randomize: () => {
-    const { selectedCategory, patientProfile } = get();
-    const { params, profilePatch } = randomizeParamsForCategory(selectedCategory);
+    const { selectedCategory, patientProfile, labInputs } = get();
+    const { params, profilePatch, labPatch } = randomizeParamsForCategory(selectedCategory);
+
+    const newLabInputs: LabInputs = {
+      ...labInputs,
+      ...labPatch,
+      trigsManuallySet: false,
+    };
 
     set({
       params,
       patientProfile: { ...patientProfile, ...profilePatch },
+      labInputs: newLabInputs,
+      apoBPanel: calculateApoBPanel(newLabInputs),
       activeProfile: null,
     });
   },

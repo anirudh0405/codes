@@ -25,6 +25,12 @@ export interface ScenarioPreset {
   description: string;
   params: MockParams;
   patientProfile: PatientProfileData;
+  labInputs?: {
+    totalCholesterol?: number;
+    hdl?: number;
+    triglycerides?: number;
+    lpa?: number;
+  };
 }
 
 export const PRESET_CATEGORIES: { id: PresetCategory; label: string; shortLabel: string; description: string }[] = [
@@ -80,6 +86,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       fatigue: false,
       palpitations: false,
     },
+    labInputs: {
+      totalCholesterol: 175,
+      hdl: 55,
+      triglycerides: 105,
+      lpa: 12.9,
+    },
   },
   {
     id: 'healthy-post-exercise',
@@ -116,6 +128,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       dyspnea: false,
       fatigue: false,
       palpitations: false,
+    },
+    labInputs: {
+      totalCholesterol: 178,
+      hdl: 58,
+      triglycerides: 115,
+      lpa: 12.9,
     },
   },
 
@@ -156,6 +174,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       fatigue: false,
       palpitations: false,
     },
+    labInputs: {
+      totalCholesterol: 215,
+      hdl: 42,
+      triglycerides: 165,
+      lpa: 38,
+    },
   },
   {
     id: 'cad-high-stress-low-hrv',
@@ -192,6 +216,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       dyspnea: false,
       fatigue: true,
       palpitations: true,
+    },
+    labInputs: {
+      totalCholesterol: 230,
+      hdl: 38,
+      triglycerides: 195,
+      lpa: 47,
     },
   },
   {
@@ -230,6 +260,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       fatigue: true,
       palpitations: true,
     },
+    labInputs: {
+      totalCholesterol: 255,
+      hdl: 32,
+      triglycerides: 240,
+      lpa: 58,
+    },
   },
   {
     id: 'cad-smoker-sedentary',
@@ -266,6 +302,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       dyspnea: true,
       fatigue: false,
       palpitations: false,
+    },
+    labInputs: {
+      totalCholesterol: 235,
+      hdl: 36,
+      triglycerides: 210,
+      lpa: 42,
     },
   },
   {
@@ -304,6 +346,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       fatigue: true,
       palpitations: false,
     },
+    labInputs: {
+      totalCholesterol: 245,
+      hdl: 34,
+      triglycerides: 230,
+      lpa: 51,
+    },
   },
   {
     id: 'cad-post-mi-recovery',
@@ -340,6 +388,12 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       dyspnea: false,
       fatigue: false,
       palpitations: false,
+    },
+    labInputs: {
+      totalCholesterol: 185,
+      hdl: 44,
+      triglycerides: 145,
+      lpa: 45,
     },
   },
 ];
