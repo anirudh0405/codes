@@ -21,6 +21,8 @@ import {
   DEFAULT_LAB_INPUTS,
   calculateApoBPanel,
   LAB_CLAMPS,
+  LP_A_CLAMP,
+  LP_A_REFERENCE,
 } from '../features/apoBCalculation';
 import {
   PatientProfileData,
@@ -198,11 +200,39 @@ export const useSimStore = create<SimState>((set, get) => ({
   applyProfile: (profileId) => {
     const profile = SCENARIO_PRESETS.find(p => p.id === profileId);
     if (!profile) return;
-    set({
-      params: { ...profile.params },
-      patientProfile: { ...profile.patientProfile },
-      activeProfile: profile,
-      selectedCategory: profile.category,
+
+    // Per-preset Lp(a) defaults (mg/dL), drawn from Indian-population reference ranges.
+    // Healthy: Ashavaid et al. 2005 median (12.9 mg/dL).
+    // CAD: varied within Gadhwal et al. range (44.5 ± 19.8 mg/dL) for inter-preset realism.
+    const lpaByPreset: Record<string, number> = {
+      'healthy-baseline':           LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL, // 12.9
+      'healthy-post-exercise':      LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL, // 12.9
+      'cad-borderline-hypertensive': 38,  // mild CAD elevation
+      'cad-high-stress-low-hrv':     47,  // moderate elevation, autonomic risk
+      'cad-cardiac-concern':         58,  // high elevation, multi-factor risk
+      'cad-smoker-sedentary':        42,  // moderate, INTERHEART smoking cohort
+      'cad-diabetic-hypertensive':   51,  // elevated, metabolic syndrome
+      'cad-post-mi-recovery':        45,  // CAD mean, on statin therapy
+    };
+    const lpa = lpaByPreset[profileId] ??
+      (profile.category === 'cad'
+        ? LP_A_REFERENCE.CAD_MEAN_MG_DL
+        : LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL);
+
+    set((s) => {
+      const newLabInputs: LabInputs = { ...s.labInputs, lpa };
+      return {
+        params: { ...profile.params },
+        patientProfile: { ...profile.patientProfile },
+        activeProfile: profile,
+        selectedCategory: profile.category,
+        labInputs: newLabInputs,
+        apoBPanel: calculateApoBPanel({
+          totalCholesterol: newLabInputs.totalCholesterol,
+          hdl: newLabInputs.hdl,
+          triglycerides: newLabInputs.triglycerides,
+        }),
+      };
     });
   },
 
@@ -254,6 +284,12 @@ export const useSimStore = create<SimState>((set, get) => ({
         clamped.triglycerides = Math.max(
           LAB_CLAMPS.triglycerides.min,
           Math.min(LAB_CLAMPS.triglycerides.max, inputs.triglycerides)
+        );
+      }
+      if (inputs.lpa !== undefined) {
+        clamped.lpa = Math.max(
+          LP_A_CLAMP.min,
+          Math.min(LP_A_CLAMP.max, inputs.lpa)
         );
       }
 

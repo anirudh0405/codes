@@ -17,6 +17,7 @@ import { WEIGHTS } from './riskEngine';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import { AnimatedNumber, AnimatedScore } from '@/components/ui/AnimatedNumber';
 import { ApoBCard } from '@/components/Dashboard/ApoBCard';
+import { LpaCard } from '@/components/Dashboard/LpaCard';
 import { PatientProfilePanel } from '@/components/Dashboard/PatientProfilePanel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1227,6 +1228,11 @@ export default function App() {
               {/* ApoB (est.) — full-width below the two PPG estimates */}
               <div className="md:col-span-2">
                 <ApoBCard />
+              </div>
+
+              {/* Lp(a) — full-width below ApoB; direct manual entry (not derived) */}
+              <div className="md:col-span-2">
+                <LpaCard />
               </div>
             </div>
           </div>

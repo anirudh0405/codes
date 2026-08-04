@@ -56,6 +56,25 @@ export interface LabInputs {
    * each tick. When true, the user's value is frozen until they clear it.
    */
   trigsManuallySet: boolean;
+
+  /**
+   * Lipoprotein(a) [Lp(a)] in mg/dL. Clamped to 0–200.
+   *
+   * ⚠ MANUAL ENTRY ONLY — cannot be derived or estimated from any other lipid
+   * value. Lp(a) is primarily genetically determined and does not correlate
+   * reliably with TC, HDL, LDL, or triglycerides.
+   *
+   * Reference ranges (Indian population):
+   *   Healthy median: 12.9 mg/dL
+   *   Source: Ashavaid TF, Kondkar AA, Todur SP, Dherai AJ, Morey J, Raghavan R.
+   *   "Lipid, lipoprotein, apolipoprotein and lipoprotein(a) levels: reference
+   *   intervals in a healthy Indian population."
+   *   J Atheroscler Thromb. 2005;12(5):251-259.
+   *
+   *   CAD patient reference: 44.5 ± 19.8 mg/dL
+   *   Source: Gadhwal AK et al. (Premature CAD cohort, Indian population).
+   */
+  lpa: number;
 }
 
 /** Calculated ApoB-panel outputs derived from LabInputs. */
@@ -92,6 +111,37 @@ export const LAB_CLAMPS = {
   totalCholesterol: { min: 100, max: 400 },
   hdl:              { min: 20,  max: 100  },
   triglycerides:    { min: 30,  max: 600  },
+} as const;
+
+/**
+ * Lp(a) clamp range: 0–200 mg/dL.
+ * Covers the healthy median (~12.9 mg/dL) through markedly elevated levels
+ * seen in high-risk CAD patients (> 50 mg/dL by AHA/ESC 2019 threshold).
+ */
+export const LP_A_CLAMP = { min: 0, max: 200 } as const;
+
+/**
+ * Lipoprotein(a) [Lp(a)] Indian-population reference constants.
+ *
+ * Healthy reference:
+ *   Ashavaid TF, Kondkar AA, Todur SP, Dherai AJ, Morey J, Raghavan R.
+ *   "Lipid, lipoprotein, apolipoprotein and lipoprotein(a) levels: reference
+ *   intervals in a healthy Indian population."
+ *   J Atheroscler Thromb. 2005;12(5):251-259.
+ *
+ * CAD patient reference:
+ *   Gadhwal AK et al. Premature CAD cohort, Indian population.
+ *   Mean 44.5 ± 19.8 mg/dL.
+ */
+export const LP_A_REFERENCE = {
+  /** Median Lp(a) in a healthy Indian population (Ashavaid et al. 2005). */
+  HEALTHY_MEDIAN_MG_DL: 12.9,
+
+  /** Mean Lp(a) in Indian premature CAD patients (Gadhwal et al.). */
+  CAD_MEAN_MG_DL: 44.5,
+
+  /** Standard deviation of Lp(a) in Indian premature CAD patients. */
+  CAD_SD_MG_DL: 19.8,
 } as const;
 
 /** Friedewald equation is invalid above this TG threshold. */
@@ -177,4 +227,6 @@ export const DEFAULT_LAB_INPUTS: LabInputs = {
   hdl:              55,
   triglycerides:    110,
   trigsManuallySet: false,
+  // Healthy Indian-population median (Ashavaid et al. 2005)
+  lpa:              12.9,
 };

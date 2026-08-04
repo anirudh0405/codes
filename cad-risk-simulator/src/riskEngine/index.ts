@@ -73,6 +73,14 @@ export interface RiskResult {
 
   /** WHO 2019 non-laboratory-based 10-year CVD Risk Band for South Asia. */
   whoRiskBand: WHORiskBandResult;
+
+  /**
+   * Lipoprotein(a) [Lp(a)] in mg/dL — passed through from the lab input for
+   * downstream consumers (e.g. future scoring pass, export, analytics).
+   * Not included in the current weighted score; staged here for Phase 2.
+   * Lp(a) is genetically determined and cannot be estimated from sensor data.
+   */
+  lpa?: number;
 }
 
 // ─── Patient Profile Context for Scoring ──────────────────────────────────────
@@ -251,5 +259,7 @@ export function scoreFromSnapshot(
     lipidUncertainFlag: isLipidLowConfidence,
     lipidConfidence,
     whoRiskBand,
+    // Lp(a) passthrough — not scored yet; available for Phase 2 weighting.
+    lpa: (snapshot as { lpa?: number }).lpa,
   };
 }

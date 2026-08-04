@@ -76,7 +76,7 @@ export function usePipeline() {
         // Store current PTT-derived BP in Zustand store for UI access
         setPttDerivedBP(pttBP);
 
-        const { bpMode, apoBPanel, patientProfile } = useSimStore.getState();
+        const { bpMode, apoBPanel, labInputs, patientProfile } = useSimStore.getState();
 
         // Apply PTT-derived BP as DEFAULT data source if bpMode === 'ptt'
         let systolic = rawSnapshot.systolic;
@@ -87,13 +87,16 @@ export function usePipeline() {
           diastolic = pttBP.diastolic;
         }
 
-        // Create annotated snapshot with active BP source and ApoB
+        // Create annotated snapshot with active BP source, ApoB, and Lp(a) passthrough
         const snapshot = {
           ...rawSnapshot,
           systolic,
           diastolic,
           pulseTransitTime: ptt,
           apoB: apoBPanel.apoB,
+          // Lp(a): manual lab input — not derived from sensor data.
+          // Passed through to RiskResult for Phase 2 scoring readiness.
+          lpa: labInputs.lpa,
         };
 
         // Layer 5: CAD Risk Engine (incorporates INTERHEART weights, PTT BP & WHO Risk Chart)

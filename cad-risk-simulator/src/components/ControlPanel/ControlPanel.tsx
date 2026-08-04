@@ -8,7 +8,7 @@ import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
 import { PATIENT_PROFILES } from '../../store/profiles';
 import { MockParams } from '../../hal/MockSensorSources';
-import { LAB_CLAMPS } from '../../features/apoBCalculation';
+import { LAB_CLAMPS, LP_A_CLAMP } from '../../features/apoBCalculation';
 
 // Physiological ranges for each parameter
 const PARAM_CONFIGS: {
@@ -114,12 +114,13 @@ function SliderRow({ cfg, value, onChange }: SliderRowProps) {
 // ─── Lab Report Section ──────────────────────────────────────────────────────
 
 interface LabFieldConfig {
-  key: 'totalCholesterol' | 'hdl' | 'triglycerides';
+  key: 'totalCholesterol' | 'hdl' | 'triglycerides' | 'lpa';
   label: string;
   unit: string;
   min: number;
   max: number;
   step: number;
+  note?: string; // optional explanatory note rendered below the slider row
 }
 
 const LAB_FIELD_CONFIGS: LabFieldConfig[] = [
@@ -146,6 +147,15 @@ const LAB_FIELD_CONFIGS: LabFieldConfig[] = [
     min: LAB_CLAMPS.triglycerides.min,
     max: LAB_CLAMPS.triglycerides.max,
     step: 1,
+  },
+  {
+    key: 'lpa',
+    label: 'Lipoprotein(a) [Lp(a)]',
+    unit: 'mg/dL',
+    min: LP_A_CLAMP.min,
+    max: LP_A_CLAMP.max,
+    step: 1,
+    note: 'Manual entry — cannot be derived from other lipid values',
   },
 ];
 
@@ -250,7 +260,12 @@ function LabReportSection() {
 
   const handleChange = useCallback(
     (key: LabFieldConfig['key'], val: number, isManual: boolean) => {
-      setLabInputs({ [key]: val }, key === 'triglycerides' ? isManual : false);
+      // triglycerides: honour the isManual flag to control PPG auto-sync lock
+      // lpa: always treated as manual (no auto-sync source exists for Lp(a))
+      const manualTrig =
+        key === 'triglycerides' ? isManual :
+        key === 'lpa'           ? false    : false;
+      setLabInputs({ [key]: val }, manualTrig);
     },
     [setLabInputs]
   );
@@ -296,13 +311,27 @@ function LabReportSection() {
         </p>
 
         {LAB_FIELD_CONFIGS.map((cfg) => (
-          <LabSliderRow
-            key={cfg.key}
-            cfg={cfg}
-            value={labInputs[cfg.key]}
-            onChange={(v, isManual) => handleChange(cfg.key, v, isManual)}
-            isLocked={cfg.key === 'triglycerides' && labInputs.trigsManuallySet}
-          />
+          <React.Fragment key={cfg.key}>
+            <LabSliderRow
+              cfg={cfg}
+              value={labInputs[cfg.key]}
+              onChange={(v, isManual) => handleChange(cfg.key, v, isManual)}
+              isLocked={cfg.key === 'triglycerides' && labInputs.trigsManuallySet}
+            />
+            {cfg.note && (
+              <p
+                style={{
+                  fontSize: 9,
+                  color: 'var(--text-tertiary)',
+                  margin: '-8px 0 0',
+                  lineHeight: 1.4,
+                  fontStyle: 'italic',
+                }}
+              >
+                {cfg.note}
+              </p>
+            )}
+          </React.Fragment>
         ))}
 
         {labInputs.trigsManuallySet && (
