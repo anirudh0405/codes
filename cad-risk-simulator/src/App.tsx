@@ -19,6 +19,8 @@ import { AnimatedNumber, AnimatedScore } from '@/components/ui/AnimatedNumber';
 import { ApoBCard } from '@/components/Dashboard/ApoBCard';
 import { LpaCard } from '@/components/Dashboard/LpaCard';
 import { PatientProfilePanel } from '@/components/Dashboard/PatientProfilePanel';
+import { RangeIndicator } from '@/components/RangeIndicator';
+import { LabReportSummary } from '@/components/Dashboard/LabReportSummary';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -515,7 +517,7 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
-function TopBar() {
+function TopBar({ onLabReport }: { onLabReport: () => void }) {
   const {
     activeProfile,
     applyProfile,
@@ -658,12 +660,28 @@ function TopBar() {
           </div>
         </div>
 
-        {/* Right — risk score + sim status + clock */}
+        {/* Right — risk score + sim status + clock + Lab Report */}
         <div className="flex items-center shrink-0" style={{ gap: 'var(--space-md)' }}>
           <div className="flex items-center text-[12px] font-semibold tabular-nums" style={{ gap: 'var(--space-xs)' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Risk</span>
             <span style={{ color: scoreColor }}>{score}</span>
           </div>
+          <div className="w-px h-4" style={{ background: 'var(--border)' }} />
+          {/* Lab Report toggle button */}
+          <button
+            id="btn-lab-report"
+            type="button"
+            onClick={onLabReport}
+            className="text-[10px] font-medium rounded px-2 py-0.5 outline-none cursor-pointer transition-colors"
+            style={{
+              background: 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
+            }}
+            title="Open Lab Report Summary — all parameters with reference ranges"
+          >
+            Lab Report
+          </button>
           <div className="w-px h-4" style={{ background: 'var(--border)' }} />
           <div className="flex items-center" style={{ gap: 'var(--space-xs)' }}>
             <div className="live-dot" />
@@ -753,6 +771,8 @@ function TopBar() {
 
 export default function App() {
   usePipeline();
+
+  const [labReportOpen, setLabReportOpen] = useState(false);
 
   const snapshot     = useSimStore(s => s.snapshot);
   const riskResult   = useSimStore(s => s.riskResult);
@@ -849,7 +869,10 @@ export default function App() {
         }
       `}</style>
 
-      <TopBar />
+      <TopBar onLabReport={() => setLabReportOpen(true)} />
+
+      {/* Lab Report Summary Modal */}
+      {labReportOpen && <LabReportSummary onClose={() => setLabReportOpen(false)} />}
 
       {/* ── Dashboard Grid: 3-col desktop, 1-col stacked mobile ──────── */}
       <div
@@ -941,17 +964,21 @@ export default function App() {
               style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
             >
               <div className="flex flex-col shrink-0" style={{ padding: 'var(--space-md)', gap: 'var(--space-sm)' }}>
-                <div id="right-hr" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                  <div>
-                    <div className="eyebrow-label flex items-center">Heart Rate<InfoTooltip text={TOOLTIPS.heartRate} /></div>
-                    <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
-                      <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                        {snapshot.heartRate}
-                      </span>
-                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>BPM</span>
+                <div id="right-hr" className="panel-card flex flex-col" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="eyebrow-label flex items-center">Heart Rate<InfoTooltip text={TOOLTIPS.heartRate} /></div>
+                      <div className="flex items-baseline" style={{ gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
+                        <span className="text-[15px] font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                          {snapshot.heartRate}
+                        </span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>BPM</span>
+                      </div>
                     </div>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.04em]" style={{ color: 'var(--accent)' }}>NSR</span>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.04em]" style={{ color: 'var(--accent)' }}>NSR</span>
+                  {/* Heart Rate Reference Range */}
+                  <RangeIndicator rangeKey="heartRate" value={snapshot.heartRate} />
                 </div>
 
                 <div id="right-qtc" className="panel-card flex items-center justify-between" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
@@ -1131,6 +1158,19 @@ export default function App() {
                   </span>
                 )}
               </div>
+              {/* BP Reference Range */}
+              {snapshot && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)', marginTop: 'var(--space-xs)' }}>
+                  <div>
+                    <span className="text-[9px]" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Systolic</span>
+                    <RangeIndicator rangeKey="systolicBP" value={snapshot.systolic} />
+                  </div>
+                  <div>
+                    <span className="text-[9px]" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Diastolic</span>
+                    <RangeIndicator rangeKey="diastolicBP" value={snapshot.diastolic} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Stress Index */}
@@ -1199,6 +1239,8 @@ export default function App() {
                 >
                   {lipidLowConf ? 'Low confidence — motion detected' : 'High confidence · PPG est.'}
                 </span>
+                {/* Total Cholesterol Reference Range */}
+                {snapshot && <RangeIndicator rangeKey="totalCholesterol" value={snapshot.totalCholesterol} />}
               </div>
 
               {/* Triglycerides */}
@@ -1223,6 +1265,8 @@ export default function App() {
                 >
                   {lipidLowConf ? 'Low confidence — motion detected' : 'High confidence · PPG est.'}
                 </span>
+                {/* Triglycerides Reference Range */}
+                {snapshot && <RangeIndicator rangeKey="triglycerides" value={snapshot.triglycerides} />}
               </div>
 
               {/* ApoB (est.) — full-width below the two PPG estimates */}

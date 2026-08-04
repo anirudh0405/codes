@@ -15,6 +15,7 @@
 import React from 'react';
 import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
+import { RangeIndicator } from '../RangeIndicator';
 
 export function ApoBCard() {
   const { apoBPanel, labInputs } = useSimStore(
@@ -120,6 +121,49 @@ export function ApoBCard() {
             TC {labInputs.totalCholesterol} · HDL {labInputs.hdl} · TG {labInputs.triglycerides}
             {labInputs.trigsManuallySet ? ' (lab)' : ' (PPG est.)'}
           </span>
+        </div>
+      </div>
+
+      {/* ── Reference range indicators ──────────────────────────────────── */}
+      <div
+        style={{
+          borderTop: '1px solid var(--border)',
+          marginTop: 'var(--space-xs)',
+          paddingTop: 'var(--space-xs)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-sm)',
+        }}
+      >
+        {/* ApoB range */}
+        <div>
+          <span className="text-[9px]" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>ApoB</span>
+          <RangeIndicator rangeKey="apoB" value={apoB} />
+        </div>
+
+        {/* LDL range — only when Friedewald is valid */}
+        {friedewaldValid && (
+          <div>
+            <span className="text-[9px]" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>LDL-C</span>
+            <RangeIndicator rangeKey="ldl" value={ldl} />
+          </div>
+        )}
+
+        {/* HDL range */}
+        <div>
+          <span className="text-[9px]" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>HDL-C</span>
+          <RangeIndicator rangeKey="hdl" value={labInputs.hdl} />
+        </div>
+
+        {/* ApoB/ApoA1 ratio — computed inline from apoB (mg/dL) and hdl.
+            ApoA1 ≈ HDL × 2.0 is a rough linear proxy used here for display
+            context only; this value is not used in any risk calculation. */}
+        <div>
+          <span className="text-[9px]" style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>ApoB/ApoA1 Ratio</span>
+          <RangeIndicator
+            rangeKey="apoBApoA1Ratio"
+            value={parseFloat((apoB / Math.max(1, labInputs.hdl * 2.0)).toFixed(2))}
+          />
         </div>
       </div>
 

@@ -13,6 +13,7 @@
 
 import React from 'react';
 import { useSimStore } from '../../store/simStore';
+import { RangeIndicator } from '../RangeIndicator';
 
 export interface PatientProfileData {
   // Demographics
@@ -310,6 +311,12 @@ export function PatientProfilePanel() {
               {bmi.toFixed(1)} kg/m²
             </span>
           </div>
+
+          {/* BMI Reference Range */}
+          <RangeIndicator
+            rangeKey="bmi"
+            value={parseFloat(bmi.toFixed(1))}
+          />
         </SectionAccordion>
 
         {/* 2. Habits & Lifestyle */}

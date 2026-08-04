@@ -23,6 +23,7 @@
 import React from 'react';
 import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
+import { RangeIndicator } from '../RangeIndicator';
 
 export function LpaCard() {
   const lpa = useSimStore(useShallow((s) => s.labInputs.lpa));
@@ -103,6 +104,11 @@ export function LpaCard() {
             30 – 49 mg/dL
           </span>
         </div>
+      </div>
+
+      {/* Reference range indicator */}
+      <div style={{ borderTop: '1px solid var(--border)', marginTop: 'var(--space-xs)', paddingTop: 'var(--space-xs)' }}>
+        <RangeIndicator rangeKey="lpA" value={lpa} />
       </div>
 
       {/* Reference attribution */}
