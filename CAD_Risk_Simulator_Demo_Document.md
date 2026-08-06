@@ -1,4 +1,4 @@
-﻿# CAD Risk Simulator — Complete Technical & Demo Document
+# CAD Risk Simulator — Complete Technical & Demo Document
 
 > **For:** Senior Demo Presentation
 > **Project:** CAD (Coronary Artery Disease) Risk Monitor
@@ -22,35 +22,37 @@ The **CAD Risk Simulator** is a real-time, browser-based medical monitoring dash
 
 ---
 
-## 2. High-Level Architecture (7 Layers)
+## 2. High-Level Architecture (Expanded 7-Row Dual Fusion Engine)
 
 ```
 +------------------------------------------------------------------------------+
-|  Layer 1 - Waveform Generators  (src/hal/generators/)                        |
-|  Pure math: ECG P-QRS-T, PPG morphology, BP noise, Stress/EDA proxy         |
+|  Row 1 - Patient Profile Input Layer (Sensor-Independent)                    |
+|  Clinical demographics, habits, history, symptoms | Lab: TC, HDL, TG, ApoB, Lp(a) |
 +------------------------------------------------------------------------------+
-|  Layer 2 - Hardware Abstraction Layer  (src/hal/)                            |
-|  ISensorSource interface + Mock classes (ECG, PPG, BP, Stress)               |
-|  Phase 2 swap: replace Mock* with BLESensorSource - no other code changes    |
+|  Row 2 - Hardware Abstraction Layer (HAL)  (src/hal/)                        |
+|  ISensorSource interface + Mock classes (ECG, PPG, BP, Stress, Motion)       |
 +------------------------------------------------------------------------------+
-|  Layer 3 - Feature Extraction  (src/features/)                               |
-|  HR, HRV, QTc Bazett, ST segment, PTT, lipid estimates from PPG morphology  |
+|  Row 3 - Sensor Manager  (src/sensorManager/)                               |
+|  Sensor polling, frame buffering, waveform windowing, & multi-channel sync   |
 +------------------------------------------------------------------------------+
-|  Layer 4 - Sensor Fusion  (src/fusion/)                                      |
-|  Normalizes features to 0-100 risk indices; cross-sensor artifact detection  |
+|  Row 4 - Feature Extraction  (src/features/)                                 |
+|  ECG: HR, ST (mV), QTc | PPG: HRV, PTT, vascular indices -> Est. TC & TG     |
 +------------------------------------------------------------------------------+
-|  Layer 5 - CAD Risk Engine  (src/riskEngine/)                                |
-|  INTERHEART weighted composite score 0-100 + WHO 10-year CVD risk band       |
+|  Row 5 - Multi-Sensor Dual Fusion Engine  (src/fusion/)                      |
+|  Box A: Cardiac/Motion Fusion (Correlation-Based)                           |
+|  Box B: Metabolic-Vascular Fusion (Two-Tier Divergence-Based:                 |
+|         Tier 1 PPGVascularIndex -> Tier 2 ApoB divergence check)             |
 +------------------------------------------------------------------------------+
-|  Layer 6 - Global State Store  (src/store/simStore.ts - Zustand)             |
-|  Single source of truth; pipeline WRITES, Dashboard READS                    |
+|  Row 6 - Clinical Risk Engine Layer  (src/riskEngine/)                       |
+|  Internal Composite CAD Risk Score (0-100) + WHO 2019 South-Asia Risk Band     |
 +------------------------------------------------------------------------------+
-|  Layer 7 - Dashboard UI  (src/App.tsx + src/components/)                     |
-|  React: waveforms, vitals cards, arc gauge, Patient Profile panel            |
+|  Row 7 - Live Dashboard & Control UI  (src/App.tsx + src/components/)        |
+|  Waveforms, Readout Cards, Arc Gauge, WHO Card, Contributions, Docs Panel    |
 +------------------------------------------------------------------------------+
 ```
 
-Orchestrated by `usePipeline.ts` — a single React hook that chains all 7 layers each tick and writes results to Zustand for the dashboard to read.
+Orchestrated by `usePipeline.ts` — a single React hook that executes the pipeline each tick and writes results to Zustand for the dashboard to read.
+
 
 ---
 
