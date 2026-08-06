@@ -869,9 +869,7 @@ export default function App() {
         }
       `}</style>
 
-      <TopBar
-        onLabReport={() => setLabReportOpen(true)}
-      />
+      <TopBar onLabReport={() => setLabReportOpen(true)} />
 
       {/* Lab Report Summary Modal */}
       {labReportOpen && <LabReportSummary onClose={() => setLabReportOpen(false)} />}
