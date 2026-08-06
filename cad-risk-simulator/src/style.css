@@ -3,30 +3,15 @@
 
 @import "tailwindcss";
 
-/* ══════════════════════════════════════════════════════════════════════════
-   CAD Monitor — Clinical Dashboard Design System
-   ==========================================================================
-   Palette
-     Background   #0B0B0C
-     Surface      #141416
-     Card         #18181B
-     Border       rgba(255,255,255,0.06)
-     Radius       16px
-     Gap          24px
-     Card padding 24px
-   Shadows are intentionally near-invisible.
-   Typography: only Hero 34/700 · Metric 26/600 · Body 14 · Caption 12.
-   All spacing follows an 8px grid.
-   ══════════════════════════════════════════════════════════════════════════ */
+/* ── CAD Risk Simulator — Black Minimalist Design System ──────────────────── */
 :root {
   /* Page & surface backgrounds */
-  --bg:           #0B0B0C;
+  --bg:           #0A0A0B;
   --surface:      #141416;
-  --card:         #18181B;
   --surface-alt:  #1B1B1E;
 
   /* Borders & dividers */
-  --border:       rgba(255,255,255,0.06);
+  --border:       #26272A;
 
   /* Accent — single primary color */
   --accent:       #4A9DFF;
@@ -43,18 +28,12 @@
   /* Typography */
   --font-body: 'Inter', system-ui, sans-serif;
 
-  /* Spacing tokens — 8px grid, use ONLY these throughout the layout */
+  /* Spacing tokens — use ONLY these throughout layout */
   --space-xs:  4px;
   --space-sm:  8px;
   --space-md:  16px;
   --space-lg:  24px;
   --space-xl:  32px;
-  --space-2xl: 48px;
-
-  /* Radii */
-  --radius:      16px;
-  --radius-sm:   12px;
-  --radius-xs:   8px;
 }
 
 *, *::before, *::after {
@@ -75,12 +54,6 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
-
-/* ── Typography scale ────────────────────────────────────────────────────── */
-.hero-type { font-size: 34px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
-.metric-type { font-size: 26px; font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; }
-.body-type { font-size: 14px; }
-.caption-type { font-size: 12px; }
 
 /* Tabular numerics — use on all readout spans */
 .tabular-nums {
@@ -110,42 +83,27 @@ html, body, #root {
 }
 
 /* ── Card primitives ─────────────────────────────────────────────────────── */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-lg);
-  position: relative;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.18);
-}
-
-.card-flat {
+.panel-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-lg);
+  border-radius: 8px;
   position: relative;
+  overflow: hidden;
 }
 
-.card--inset {
-  background: var(--surface);
+/* Derived / estimated data cards — slightly lighter than primary panels */
+.panel-card-alt {
+  background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-md);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
 }
 
 /* ── Eyebrow label — uppercase only for small metadata labels ────────────── */
 .eyebrow-label {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -170,272 +128,42 @@ input[type=number]::-webkit-outer-spin-button {
   display: none;
 }
 
-/* ── Focus ring for keyboard accessibility ───────────────────────────────── */
-:focus-visible {
-  outline: 2px solid rgba(74,157,255,0.6);
-  outline-offset: 2px;
-}
-
 /* ══════════════════════════════════════════════════════════════════════════
-   LAYOUT — Dashboard grid
-   Desktop : [left 240] [main 1fr] [right 320]
-   Tablet  : sidebar collapses to accordions above; summary moves below main
-   Mobile  : single column, hero risk score first
+   RESPONSIVE — Tablet & Phone (≤ 768px)
    ══════════════════════════════════════════════════════════════════════════ */
-.dashboard-root {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    "header"
-    "sidebar"
-    "main"
-    "summary"
-    "footer";
-  gap: var(--space-lg);
-  height: 100vh;
-  overflow-y: auto;
-  padding: var(--space-lg);
-}
-
-.dashboard-header { grid-area: header; }
-.dashboard-sidebar { grid-area: sidebar; }
-.dashboard-main { grid-area: main; min-width: 0; }
-.dashboard-summary { grid-area: summary; }
-.dashboard-footer { grid-area: footer; }
-
-@media (min-width: 768px) and (max-width: 1279px) {
-  .dashboard-root {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      "header header"
-      "sidebar sidebar"
-      "main   main"
-      "summary summary"
-      "footer footer";
-  }
-}
-
-@media (min-width: 1280px) {
-  .dashboard-root {
-    grid-template-columns: 240px minmax(0, 1fr) 320px;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "header header header"
-      "sidebar main summary"
-      "footer footer footer";
-    height: 100vh;
-    overflow: hidden;
-    align-content: start;
-  }
-
-  .dashboard-header { grid-area: header; }
-  .dashboard-sidebar { grid-area: sidebar; }
-  .dashboard-main { grid-area: main; }
-  .dashboard-summary { grid-area: summary; }
-  .dashboard-footer { grid-area: footer; }
-
-  .dashboard-main,
-  .dashboard-sidebar {
+@media (max-width: 768px) {
+  /* Allow vertical scroll on the full page for stacked layout */
+  html, body, #root {
     overflow-y: auto;
-    min-height: 0;
-    scrollbar-width: thin;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
-  .dashboard-summary {
-    position: sticky;
-    top: 0;
-    align-self: start;
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
-    scrollbar-width: thin;
+  /* Preset-button scrollable row — hide scrollbar but allow touch swipe */
+  .mobile-preset-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-}
+  .mobile-preset-scroll::-webkit-scrollbar {
+    display: none;
+  }
 
-/* ── 12-column main grid ─────────────────────────────────────────────────── */
-.main-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--space-lg);
-}
-
-.main-grid > * { min-width: 0; }
-
-.col-span-3 { grid-column: span 12; }
-@media (min-width: 768px) {
-  .col-span-3 { grid-column: span 6; }
-}
-@media (min-width: 1280px) {
-  .col-span-3 { grid-column: span 3; }
-}
-
-.col-span-4 { grid-column: span 12; }
-@media (min-width: 768px) {
-  .col-span-4 { grid-column: span 6; }
-}
-@media (min-width: 1280px) {
-  .col-span-4 { grid-column: span 4; }
-}
-
-.col-span-6 { grid-column: span 12; }
-@media (min-width: 768px) {
-  .col-span-6 { grid-column: span 6; }
-}
-
-.col-span-12 { grid-column: span 12; }
-
-/* ── Equal-height card row ───────────────────────────────────────────────── */
-.vitals-row {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--space-lg);
-}
-.vitals-row > * {
-  grid-column: span 12;
-}
-@media (min-width: 768px) {
-  .vitals-row > * { grid-column: span 6; }
-}
-@media (min-width: 1280px) {
-  .vitals-row > .card-bp   { grid-column: span 3; }
-  .vitals-row > .card-stress { grid-column: span 3; }
-  .vitals-row > .card-hrv  { grid-column: span 3; }
-  .vitals-row > .card-risk { grid-column: span 3; }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   ACCORDION
-   ══════════════════════════════════════════════════════════════════════════ */
-.accordion {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  transition: border-color 0.2s ease;
-}
-
-.accordion + .accordion { margin-top: var(--space-sm); }
-
-.accordion__trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary);
-  text-align: left;
-}
-
-.accordion__label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.accordion__chevron {
-  transition: transform 0.2s ease;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-.accordion__chevron.is-open { transform: rotate(180deg); }
-
-.accordion__panel {
-  border-top: 1px solid var(--border);
-  padding: var(--space-md);
-  animation: accordion-in 0.2s ease;
-}
-
-@keyframes accordion-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   SEGMENTED CONTROL
-   ══════════════════════════════════════════════════════════════════════════ */
-.segmented {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-xs);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  gap: 2px;
-}
-
-.segmented__option {
-  padding: var(--space-xs) var(--space-md);
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-xs);
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  white-space: nowrap;
-}
-
-.segmented__option:hover { color: var(--text-primary); }
-.segmented__option.is-active {
-  background: var(--card);
-  color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   PROGRESS BAR (contributors)
-   ══════════════════════════════════════════════════════════════════════════ */
-.progress-track {
-  height: 6px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.2s ease, background-color 0.3s ease;
-}
-
-/* ── Tooltip popover ─────────────────────────────────────────────────────── */
-.tooltip-pop {
-  position: fixed;
-  z-index: 9999;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  padding: var(--space-sm) var(--space-md);
-  pointer-events: none;
-  max-width: 260px;
-}
-
-/* ── Sparkline wrapper ───────────────────────────────────────────────────── */
-.sparkline-wrap {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  height: 36px;
-  min-width: 56px;
+  /* Touch-friendly slider hit area */
+  input[type=range] {
+    min-height: 44px;
+    cursor: pointer;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
    RESPONSIVE — Small phone (≤ 430px)
    ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 430px) {
-  .dashboard-root { padding: var(--space-md); gap: var(--space-md); }
-  .hero-type { font-size: 30px; }
+  /* Slightly tighter section spacing on very small screens */
+  .mobile-section-gap {
+    gap: var(--space-sm);
+  }
 }
