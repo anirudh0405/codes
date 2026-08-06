@@ -21,7 +21,6 @@ import { LpaCard } from '@/components/Dashboard/LpaCard';
 import { PatientProfilePanel } from '@/components/Dashboard/PatientProfilePanel';
 import { RangeIndicator } from '@/components/RangeIndicator';
 import { LabReportSummary } from '@/components/Dashboard/LabReportSummary';
-import { DocumentationPanel } from '@/components/Dashboard/DocumentationPanel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -518,7 +517,7 @@ function ParamSlider({ cfg }: { cfg: typeof PARAM_SLIDERS[0] }) {
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
-function TopBar({ onLabReport, onDocumentation }: { onLabReport: () => void; onDocumentation: () => void }) {
+function TopBar({ onLabReport }: { onLabReport: () => void }) {
   const {
     activeProfile,
     applyProfile,
@@ -683,21 +682,6 @@ function TopBar({ onLabReport, onDocumentation }: { onLabReport: () => void; onD
           >
             Lab Report
           </button>
-          {/* Documentation toggle button */}
-          <button
-            id="btn-documentation"
-            type="button"
-            onClick={onDocumentation}
-            className="text-[10px] font-medium rounded px-2 py-0.5 outline-none cursor-pointer transition-colors"
-            style={{
-              background: 'var(--surface-alt)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-secondary)',
-            }}
-            title="Open System Architecture & Pipeline Documentation"
-          >
-            Documentation
-          </button>
           <div className="w-px h-4" style={{ background: 'var(--border)' }} />
           <div className="flex items-center" style={{ gap: 'var(--space-xs)' }}>
             <div className="live-dot" />
@@ -789,7 +773,6 @@ export default function App() {
   usePipeline();
 
   const [labReportOpen, setLabReportOpen] = useState(false);
-  const [docOpen, setDocOpen]             = useState(false);
 
   const snapshot     = useSimStore(s => s.snapshot);
   const riskResult   = useSimStore(s => s.riskResult);
@@ -886,16 +869,10 @@ export default function App() {
         }
       `}</style>
 
-      <TopBar
-        onLabReport={() => setLabReportOpen(true)}
-        onDocumentation={() => setDocOpen(true)}
-      />
+      <TopBar onLabReport={() => setLabReportOpen(true)} />
 
       {/* Lab Report Summary Modal */}
       {labReportOpen && <LabReportSummary onClose={() => setLabReportOpen(false)} />}
-
-      {/* Documentation Panel Modal */}
-      {docOpen && <DocumentationPanel onClose={() => setDocOpen(false)} />}
 
       {/* ── Dashboard Grid: 3-col desktop, 1-col stacked mobile ──────── */}
       <div
