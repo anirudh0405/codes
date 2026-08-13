@@ -14,6 +14,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { AnimatedScore, AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { classifyBP } from '../../lib/bpRanges';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -151,6 +152,8 @@ function CardiacReadouts() {
   const stLabel = Math.abs(snapshot.stSegment) > 0.1 ? 'DEVIATED' : 'ISOELECTRIC';
   const stTagColor = Math.abs(snapshot.stSegment) > 0.1 ? 'var(--risk-moderate)' : undefined;
 
+  const bpInfo = classifyBP(snapshot.systolic, snapshot.diastolic);
+
   const readouts: {
     label: string;
     value: string;
@@ -158,6 +161,12 @@ function CardiacReadouts() {
     tagColor?: string;
     valueColor?: string;
   }[] = [
+    {
+      label: 'BLOOD PRESSURE',
+      value: `${snapshot.systolic}/${snapshot.diastolic} mmHg`,
+      tag: bpInfo.shortLabel.toUpperCase(),
+      tagColor: bpInfo.color,
+    },
     {
       label: 'HEART RATE',
       value: `${snapshot.heartRate} BPM`,

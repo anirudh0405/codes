@@ -11,6 +11,7 @@
 
 import React, { useRef, useCallback, useEffect } from 'react';
 import { useSimStore } from '../../store/simStore';
+import { classifyBP } from '../../lib/bpRanges';
 
 // ── Inline WaveformChart (same as App.tsx, no glow) ──────────────────────────
 
@@ -155,7 +156,7 @@ export function LiveWaveforms() {
   const lipidConf = riskResult?.lipidConfidence ?? 1.0;
   const lipidLowConf = lipidConf < 0.70;
 
-  const bp  = bpStatusLabel(sys);
+  const bpInfo = classifyBP(sys, dia);
   const str = stressStatusLabel(stress);
   const hrv = hrvStatusLabel(hrvVal);
 
@@ -204,11 +205,17 @@ export function LiveWaveforms() {
         <div className="panel-card dash-stat-card">
           <span className="dash-stat-label">Blood Pressure</span>
           <span className="dash-stat-value" style={{ fontFamily: 'var(--font-mono)' }}>
-            {sys}/{dia}
+            {sys}/{dia} <span className="dash-stat-unit">mmHg</span>
           </span>
-          <span className="dash-stat-sub" style={{ color: bp.color }}>
-            {bp.label}
+          <span className="dash-stat-sub" style={{ color: bpInfo.color }}>
+            {bpInfo.label}
           </span>
+          <div className="mt-1 pt-1 border-t border-[var(--border)] text-[10px] text-[var(--text-tertiary)] flex flex-col gap-0.5">
+            <span style={{ color: 'var(--risk-low)' }}>Healthy: &lt;120/80 mmHg</span>
+            <span style={{ color: sys >= 130 || dia >= 80 ? 'var(--risk-high)' : 'var(--text-tertiary)' }}>
+              Risk Threshold: ≥130/80 mmHg
+            </span>
+          </div>
         </div>
 
         {/* Stress Index */}

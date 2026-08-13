@@ -11,6 +11,7 @@ import React from 'react';
 import { useSimStore } from '../../store/simStore';
 import { WEIGHTS } from '../../riskEngine';
 import { SensorType } from '../../hal/ISensorSource';
+import { classifyBP } from '../../lib/bpRanges';
 
 // ── Risk helpers ─────────────────────────────────────────────────────────────
 
@@ -18,12 +19,6 @@ function getRiskColor(band: string): string {
   if (band === 'High') return 'var(--risk-high)';
   if (band === 'Moderate') return 'var(--risk-moderate)';
   return 'var(--risk-low)';
-}
-
-function bpStatusLabel(sys: number): { label: string; color: string } {
-  if (sys >= 140) return { label: 'Hypertensive', color: 'var(--risk-high)' };
-  if (sys >= 130) return { label: 'Elevated', color: 'var(--risk-moderate)' };
-  return { label: 'Normal', color: 'var(--risk-low)' };
 }
 
 function hrvStatusLabel(hrv: number): { label: string; color: string } {
@@ -67,7 +62,7 @@ export function DashboardHome() {
   const dia   = snapshot?.diastolic ?? 80;
   const hrvVal = snapshot?.hrv ?? 0;
 
-  const bp  = bpStatusLabel(sys);
+  const bpInfo = classifyBP(sys, dia);
   const hrv = hrvStatusLabel(hrvVal);
 
   return (
@@ -100,11 +95,17 @@ export function DashboardHome() {
         <div className="panel-card dash-stat-card">
           <span className="dash-stat-label">Blood Pressure</span>
           <span className="dash-stat-value" style={{ fontFamily: 'var(--font-mono)' }}>
-            {sys}/{dia}
+            {sys}/{dia} <span className="dash-stat-unit">mmHg</span>
           </span>
-          <span className="dash-stat-sub" style={{ color: bp.color }}>
-            {bp.label}
+          <span className="dash-stat-sub" style={{ color: bpInfo.color }}>
+            {bpInfo.label} ({bpInfo.shortLabel})
           </span>
+          <div className="mt-1.5 pt-1.5 border-t border-[var(--border)] text-[10px] text-[var(--text-tertiary)] flex flex-col gap-0.5">
+            <span style={{ color: 'var(--risk-low)' }}>Healthy: &lt;120/80 mmHg</span>
+            <span style={{ color: sys >= 130 || dia >= 80 ? 'var(--risk-high)' : 'var(--text-tertiary)' }}>
+              Risk Threshold: ≥130/80 mmHg
+            </span>
+          </div>
         </div>
 
         {/* Card 4: HRV RMSSD */}
