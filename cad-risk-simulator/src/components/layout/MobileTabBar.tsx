@@ -56,12 +56,21 @@ const IconLogs = (
   </svg>
 );
 
+const IconInfo = (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="10" cy="10" r="7" />
+    <line x1="10" y1="9" x2="10" y2="14" />
+    <circle cx="10" cy="6.5" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 const TABS: TabItem[] = [
   { id: 'dashboard',  label: 'Dashboard',  icon: IconDashboard },
   { id: 'waveforms',  label: 'Waveforms',  icon: IconWaveform },
   { id: 'profile',    label: 'Patient',    icon: IconPatient },
   { id: 'riskengine', label: 'Risk',       icon: IconRisk },
   { id: 'simlogs',    label: 'Logs',       icon: IconLogs },
+  { id: 'info',       label: 'Info',       icon: IconInfo },
 ];
 
 // ── Component ────────────────────────────────────────────────────────────────

@@ -101,6 +101,7 @@ const NAV_LABELS: Record<string, { section: string; page: string }> = {
   riskengine: { section: 'Analysis',  page: 'Risk Engine' },
   fusion:     { section: 'Analysis',  page: 'Fusion Layers' },
   simlogs:    { section: 'Analysis',  page: 'Sim Logs' },
+  info:       { section: 'Analysis',  page: 'Info Reference' },
 };
 
 // ── AppShell Component ───────────────────────────────────────────────────────

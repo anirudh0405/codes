@@ -87,6 +87,14 @@ const IconList = (
   </svg>
 );
 
+const IconInfo = (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="6" />
+    <line x1="8" y1="7" x2="8" y2="11" />
+    <circle cx="8" cy="5" r="0.8" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 // ── Logo mark (heart/monitor icon) ───────────────────────────────────────────
 
 const LogoMark = (
@@ -127,6 +135,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: 'riskengine', label: 'Risk Engine',     icon: IconGauge },
       { id: 'fusion',     label: 'Fusion Layers',   icon: IconLayers },
       { id: 'simlogs',    label: 'Sim Logs',        icon: IconList },
+      { id: 'info',       label: 'Info',            icon: IconInfo },
     ],
   },
 ];

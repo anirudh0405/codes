@@ -27,6 +27,7 @@ import { ScenariosPage } from '@/components/pages/ScenariosPage';
 import { RiskEnginePage } from '@/components/pages/RiskEnginePage';
 import { FusionLayersPage } from '@/components/pages/FusionLayersPage';
 import { SimLogsPage } from '@/components/pages/SimLogsPage';
+import { InfoPage } from '@/components/pages/InfoPage';
 import { MagneticButton } from '@/components/ui/magnetic-button';
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -361,6 +362,7 @@ export default function App() {
       {activeNav === 'riskengine' && <RiskEnginePage />}
       {activeNav === 'fusion' && <FusionLayersPage />}
       {activeNav === 'simlogs' && <SimLogsPage />}
+      {activeNav === 'info' && <InfoPage />}
 
 
     </AppShell>
