@@ -287,6 +287,13 @@ input[type=number]::-webkit-outer-spin-button {
   text-decoration: none;
 }
 
+.sidebar-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s ease;
+}
+
 .sidebar-footer a:hover {
   color: var(--text-secondary);
 }
