@@ -27,6 +27,7 @@ import { ScenariosPage } from '@/components/pages/ScenariosPage';
 import { RiskEnginePage } from '@/components/pages/RiskEnginePage';
 import { FusionLayersPage } from '@/components/pages/FusionLayersPage';
 import { SimLogsPage } from '@/components/pages/SimLogsPage';
+import { MagneticButton } from '@/components/ui/magnetic-button';
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -183,27 +184,26 @@ function InfoTooltip({ text }: { text: string }) {
   );
 }
 
-// â”€â”€â”€ Live Clock Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Live Clock Component ──────────────────────────────────────────────────────
 
 function LiveClock() {
   const [t, setT] = useState(() => new Date().toLocaleTimeString('en-GB'));
+
   useEffect(() => {
-    const id = setInterval(() => setT(new Date().toLocaleTimeString('en-GB')), 1000);
-    return () => clearInterval(id);
+    const timer = setInterval(() => {
+      setT(new Date().toLocaleTimeString('en-GB'));
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
+
   return (
-    <span
-      className="tabular-nums text-[11px] tracking-widest"
-      style={{ color: 'var(--text-secondary)' }}
-    >
+    <span className="font-mono text-xs text-[var(--text-secondary)] tracking-wider">
       {t}
     </span>
   );
 }
 
-
-
-// â”€â”€â”€ Scenario Preset Bar (renders in AppShell topBarCenter slot) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Scenario Preset Bar (renders in AppShell topBarCenter slot) ────────────────
 
 function ScenarioPresetBar({ onLabReport }: { onLabReport: () => void }) {
   const {
@@ -226,85 +226,105 @@ function ScenarioPresetBar({ onLabReport }: { onLabReport: () => void }) {
     return SCENARIO_PRESETS.filter(p => p.category === activeCategory);
   }, [activeCategory]);
 
+  const handleCategorySelect = (catId: PresetCategory) => {
+    setSelectedCategory(catId);
+    // If currently active scenario belongs to a different category, apply the baseline preset for the new category
+    const presets = SCENARIO_PRESETS.filter(p => p.category === catId);
+    if (presets.length > 0 && activeProfile?.category !== catId) {
+      applyProfile(presets[0].id);
+    }
+  };
+
   return (
     <>
-      {/* Category pills + sub-scenario buttons â€” horizontal scroll */}
-      <div className="flex items-center overflow-x-auto" style={{ gap: 'var(--space-sm)', scrollbarWidth: 'none' as any }}>
-        {/* Top-Level Category Selector */}
-        <div className="flex items-center shrink-0 rounded p-0.5" style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', gap: '2px' }}>
+      {/* Primary Category Selector (HEALTHY | CAD) + Secondary Scenario Selection */}
+      <div className="flex items-center overflow-x-auto gap-3 py-1 px-1" style={{ scrollbarWidth: 'none' as any }}>
+        {/* TWO PRIMARY BUTTONS: HEALTHY & CAD */}
+        <div className="flex items-center shrink-0 rounded-xl p-1 gap-2.5" style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)' }}>
           {PRESET_CATEGORIES.map(cat => {
             const isCatActive = activeCategory === cat.id;
             return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setSelectedCategory(cat.id)}
-                className="px-2.5 py-1 text-[11px] font-semibold rounded transition-colors outline-none cursor-pointer"
-                style={{
-                  background: isCatActive ? 'var(--accent)' : 'transparent',
-                  color: isCatActive ? 'var(--bg)' : 'var(--text-secondary)',
-                  border: 'none',
-                }}
-              >
-                {cat.label}
-              </button>
+              <MagneticButton key={cat.id} distance={0.15}>
+                <button
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.id)}
+                  className={cn(
+                    "px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer outline-none shrink-0 flex items-center gap-2",
+                    isCatActive
+                      ? "bg-[var(--accent)] text-[var(--bg)] shadow-md border border-blue-400/40"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] border border-transparent"
+                  )}
+                >
+                  <span className={cn("w-2 h-2 rounded-full", isCatActive ? "bg-[var(--bg)]" : "bg-[var(--text-tertiary)]")} />
+                  {cat.label}
+                </button>
+              </MagneticButton>
             );
           })}
         </div>
 
-        <div className="w-px h-4 shrink-0" style={{ background: 'var(--border)' }} />
+        <div className="w-px h-6 shrink-0 mx-1" style={{ background: 'var(--border)' }} />
 
-        {/* Sub-Scenario Buttons within active category */}
-        {categoryPresets.map(p => {
-          const active = activeProfile?.id === p.id;
-          return (
-            <AnimatedButton
-              key={p.id} id={`profile-${p.id}`}
-              onClick={() => applyProfile(p.id)}
-              className={cn(
-                'px-2.5 py-1 text-[11px] font-medium h-7 rounded transition-colors whitespace-nowrap shrink-0',
-                active ? 'border-[var(--accent)] font-semibold' : 'border-[var(--border)]'
-              )}
-              style={active
-                ? { background: 'rgba(74,157,255,0.12)', borderColor: 'var(--accent)', color: 'var(--accent)' }
-                : { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }
-              }
-            >
-              {p.name}
-            </AnimatedButton>
-          );
-        })}
+        {/* SECONDARY SELECTION: Scenarios for the currently selected category */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--text-tertiary)] shrink-0 hidden sm:inline">
+            {activeCategory === 'healthy' ? 'Healthy Scenarios:' : 'CAD Scenarios:'}
+          </span>
 
-        <div className="w-px h-4 shrink-0" style={{ background: 'var(--border)' }} />
+          {categoryPresets.map(p => {
+            const active = activeProfile?.id === p.id;
+            return (
+              <MagneticButton key={p.id} distance={0.2}>
+                <AnimatedButton
+                  id={`profile-${p.id}`}
+                  onClick={() => applyProfile(p.id)}
+                  className={cn(
+                    'px-3.5 py-1.5 text-[11px] font-bold h-8 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer border',
+                    active
+                      ? 'border-[var(--accent)] text-[var(--accent)] bg-[rgba(74,157,255,0.15)] shadow-sm ring-1 ring-[var(--accent)]/30'
+                      : 'border-[var(--border)] text-[var(--text-secondary)] bg-[var(--surface)] hover:text-[var(--text-primary)] hover:border-[var(--text-tertiary)]'
+                  )}
+                >
+                  {p.shortName || p.name}
+                </AnimatedButton>
+              </MagneticButton>
+            );
+          })}
+        </div>
 
-        {/* Randomize */}
-        <AnimatedButton
-          id="btn-randomize"
-          onClick={randomize}
-          className="px-3 py-1 text-[11px] font-semibold h-7 rounded border-0 whitespace-nowrap shrink-0"
-          style={{ background: 'var(--accent)', color: 'var(--bg)', border: 'none' }}
-          title={`Randomize parameters within ${activeCategory === 'cad' ? 'CAD' : 'Healthy'} scope`}
-        >
-          Randomize
-        </AnimatedButton>
+        <div className="w-px h-6 shrink-0 mx-1" style={{ background: 'var(--border)' }} />
 
-        <div className="w-px h-4 shrink-0" style={{ background: 'var(--border)' }} />
+        {/* Action Buttons: Randomize Vitals & Lab Report */}
+        <MagneticButton distance={0.35}>
+          <button
+            id="btn-randomize"
+            type="button"
+            onClick={randomize}
+            className="cursor-pointer rounded-lg bg-gradient-to-b from-blue-500 to-blue-700 px-3.5 py-1.5 text-[11px] font-semibold text-white ring-1 ring-white/20 ring-offset-1 ring-offset-blue-500 transition-transform duration-150 ring-inset active:scale-95 shadow-sm whitespace-nowrap shrink-0"
+            title={`Randomize parameters within ${activeCategory === 'cad' ? 'CAD' : 'Healthy'} scope`}
+          >
+            Randomize Vitals
+          </button>
+        </MagneticButton>
 
-        {/* Lab Report button */}
-        <button
-          id="btn-lab-report"
-          type="button"
-          onClick={onLabReport}
-          className="text-[10px] font-medium rounded px-2 py-1 outline-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
-          style={{
-            background: 'var(--surface-alt)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-secondary)',
-          }}
-          title="Open Lab Report Summary"
-        >
-          Lab Report
-        </button>
+        <div className="w-px h-6 shrink-0 mx-1" style={{ background: 'var(--border)' }} />
+
+        <MagneticButton distance={0.25}>
+          <button
+            id="btn-lab-report"
+            type="button"
+            onClick={onLabReport}
+            className="text-[11px] font-medium rounded-lg px-3 py-1.5 outline-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
+            style={{
+              background: 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
+            }}
+            title="Open Lab Report Summary"
+          >
+            Lab Report
+          </button>
+        </MagneticButton>
       </div>
     </>
   );

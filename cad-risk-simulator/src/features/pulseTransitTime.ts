@@ -38,7 +38,7 @@ export function detectPPGFoot(ppgWaveform: number[]): number {
 
   // Find systolic peak index first to locate the preceding foot
   let peakIdx = 0;
-  const searchLimit = Math.min(ppgWaveform.length, 40);
+  const searchLimit = ppgWaveform.length;
   for (let i = 1; i < searchLimit; i++) {
     if (ppgWaveform[i] > ppgWaveform[peakIdx]) {
       peakIdx = i;
@@ -62,7 +62,7 @@ export function detectPPGFoot(ppgWaveform: number[]): number {
  *
  * @param ecgWaveform Raw ECG waveform sample array (~250Hz)
  * @param ppgWaveform Raw PPG waveform sample array (~100Hz)
- * @returns Pulse Transit Time in ms (clamped to physiological range 100–400ms)
+ * @returns Pulse Transit Time in ms (clamped to physiological range 100–350ms)
  */
 export function calculatePTT(ecgWaveform: number[], ppgWaveform: number[]): number {
   if (!ecgWaveform || ecgWaveform.length === 0 || !ppgWaveform || ppgWaveform.length === 0) {
@@ -72,8 +72,13 @@ export function calculatePTT(ecgWaveform: number[], ppgWaveform: number[]): numb
   const rWavePeakTime = detectRWavePeak(ecgWaveform);
   const ppgFootTime = detectPPGFoot(ppgWaveform);
 
-  const rawPTT = ppgFootTime - rWavePeakTime;
+  let rawPTT = ppgFootTime - rWavePeakTime;
 
-  // Clamp PTT to physiologically plausible range (100–400ms)
-  return Math.max(100, Math.min(400, Math.round(rawPTT)));
+  // Handle beat cycle wrap-around if PPG foot occurs earlier in the buffer than ECG R-peak
+  if (rawPTT < 50) {
+    rawPTT += 833;
+  }
+
+  // Clamp PTT to physiologically plausible range (100–350ms)
+  return Math.max(100, Math.min(350, Math.round(rawPTT)));
 }

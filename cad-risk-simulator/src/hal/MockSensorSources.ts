@@ -96,6 +96,7 @@ export class MockPPGSensor implements ISensorSource {
   async read(): Promise<SensorReading> {
     const data = generatePPG({
       heartRate: this.params.heartRate,
+      systolic: this.params.systolic,
       hrv: this.params.hrv,
       perfusionIndex: 0.5 + Math.random() * 0.4,
     });
