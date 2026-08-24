@@ -12,6 +12,7 @@ import { useSimStore } from '../../store/simStore';
 import { WEIGHTS } from '../../riskEngine';
 import { SensorType } from '../../hal/ISensorSource';
 import { classifyBP } from '../../lib/bpRanges';
+import { CVDInfoPanel } from './CVDInfoPanel';
 
 // ── Risk helpers ─────────────────────────────────────────────────────────────
 
@@ -54,6 +55,7 @@ const SENSORS: { type: SensorType; label: string }[] = [
 export function DashboardHome() {
   const snapshot = useSimStore(s => s.snapshot);
   const riskResult = useSimStore(s => s.riskResult);
+  const patientProfile = useSimStore(s => s.patientProfile);
 
   const band  = riskResult?.band ?? 'Low';
   const score = riskResult?.score ?? 0;
@@ -61,6 +63,12 @@ export function DashboardHome() {
   const sys   = snapshot?.systolic ?? 120;
   const dia   = snapshot?.diastolic ?? 80;
   const hrvVal = snapshot?.hrv ?? 0;
+  const whoBand = riskResult?.whoRiskBand;
+
+  // Calculate BMI from patient profile
+  const height = patientProfile.height ?? 170;
+  const weight = patientProfile.weight ?? 70;
+  const bmi = weight / Math.pow(height / 100, 2);
 
   const bpInfo = classifyBP(sys, dia);
   const hrv = hrvStatusLabel(hrvVal);
@@ -120,6 +128,47 @@ export function DashboardHome() {
         </div>
       </div>
 
+      {/* ── WHO South-Asia Reference Panel ─────────────────────────── */}
+      <div className="panel-card dash-who-panel">
+        <div className="dash-who-panel-header">
+          <span className="dash-who-panel-title">WHO SOUTH-ASIA REFERENCE</span>
+          <span className="dash-who-panel-sub">(non-lab chart, 2019)</span>
+        </div>
+
+        <div className="dash-who-inputs">
+          <div className="dash-who-input-item">
+            <span className="dash-who-input-label">Age</span>
+            <span className="dash-who-input-value">{patientProfile.ageRange ?? '<40'}</span>
+          </div>
+          <div className="dash-who-input-item">
+            <span className="dash-who-input-label">Sex</span>
+            <span className="dash-who-input-value">{(patientProfile.sex ?? 'male').toUpperCase()}</span>
+          </div>
+          <div className="dash-who-input-item">
+            <span className="dash-who-input-label">Systolic BP</span>
+            <span className="dash-who-input-value">{sys} mmHg</span>
+          </div>
+          <div className="dash-who-input-item">
+            <span className="dash-who-input-label">Smoking</span>
+            <span className="dash-who-input-value">{(patientProfile.smoking ?? 'never').toUpperCase()}</span>
+          </div>
+          <div className="dash-who-input-item">
+            <span className="dash-who-input-label">BMI</span>
+            <span className="dash-who-input-value">{bmi.toFixed(1)} kg/m²</span>
+          </div>
+        </div>
+
+        <div className="dash-who-output">
+          <span className="dash-who-output-label">10-YEAR CVD RISK BAND</span>
+          <span
+            className="dash-who-output-value"
+            style={{ color: whoBand?.color ?? 'var(--accent)' }}
+          >
+            {whoBand?.displayLabel ?? '<10% — Low Risk'}
+          </span>
+        </div>
+      </div>
+
       {/* ── Bottom Row: INTERHEART Weights + Sensor Status ─────────── */}
       <div className="dash-summary-row">
         {/* Left: INTERHEART WEIGHTS panel */}
@@ -162,6 +211,9 @@ export function DashboardHome() {
           </div>
         </div>
       </div>
+
+      {/* ── CVD Disease Info Panel (only renders when CVD scenario is active) ── */}
+      <CVDInfoPanel />
     </div>
   );
 }

@@ -82,16 +82,8 @@ const BREAKDOWN_ROWS: BreakdownRow[] = [
 export function RiskEnginePage() {
   const snapshot = useSimStore(s => s.snapshot);
   const riskResult = useSimStore(s => s.riskResult);
-  const patientProfile = useSimStore(s => s.patientProfile);
 
   const score = riskResult?.score ?? 0;
-  const band = riskResult?.band ?? 'Low';
-  const whoBand = riskResult?.whoRiskBand;
-
-  // Calculate BMI from patient profile
-  const height = patientProfile.height ?? 170;
-  const weight = patientProfile.weight ?? 70;
-  const bmi = weight / Math.pow(height / 100, 2);
 
   return (
     <div className="re-page">
@@ -149,47 +141,6 @@ export function RiskEnginePage() {
             </tr>
           </tfoot>
         </table>
-      </div>
-
-      {/* ── WHO Reference Panel ──────────────────────────────────── */}
-      <div className="re-who-panel panel-card">
-        <div className="re-who-panel-header">
-          <span className="re-who-panel-title">WHO SOUTH-ASIA REFERENCE</span>
-          <span className="re-who-panel-sub">(non-lab chart, 2019)</span>
-        </div>
-
-        <div className="re-who-inputs">
-          <div className="re-who-input-item">
-            <span className="re-who-input-label">Age</span>
-            <span className="re-who-input-value">{patientProfile.ageRange ?? '<40'}</span>
-          </div>
-          <div className="re-who-input-item">
-            <span className="re-who-input-label">Sex</span>
-            <span className="re-who-input-value">{(patientProfile.sex ?? 'male').toUpperCase()}</span>
-          </div>
-          <div className="re-who-input-item">
-            <span className="re-who-input-label">Systolic BP</span>
-            <span className="re-who-input-value">{snapshot?.systolic ?? 120} mmHg</span>
-          </div>
-          <div className="re-who-input-item">
-            <span className="re-who-input-label">Smoking</span>
-            <span className="re-who-input-value">{(patientProfile.smoking ?? 'never').toUpperCase()}</span>
-          </div>
-          <div className="re-who-input-item">
-            <span className="re-who-input-label">BMI</span>
-            <span className="re-who-input-value">{bmi.toFixed(1)} kg/m²</span>
-          </div>
-        </div>
-
-        <div className="re-who-output">
-          <span className="re-who-output-label">10-year CVD risk band</span>
-          <span
-            className="re-who-output-value"
-            style={{ color: whoBand?.color ?? 'var(--accent)' }}
-          >
-            {whoBand?.displayLabel ?? '<10% — Low Risk'}
-          </span>
-        </div>
       </div>
     </div>
   );

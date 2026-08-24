@@ -13,7 +13,7 @@ import { MockParams } from '../hal/MockSensorSources';
 import { PhysiologicalSnapshot } from '../fusion';
 import { RiskResult } from '../riskEngine';
 import { SensorStatus, SensorType } from '../hal/ISensorSource';
-import { SCENARIO_PRESETS, PresetCategory, ScenarioPreset } from '../presets';
+import { SCENARIO_PRESETS, PresetCategory, ScenarioPreset, ECGRhythm } from '../presets';
 import { PTTDerivedBPResult } from '../features';
 import {
   LabInputs,
@@ -66,6 +66,16 @@ export interface SimState {
 
   // ── Computed ApoB Panel (reactive, recomputed on every labInputs change) ──
   apoBPanel: ApoBPanel;
+
+  // ── CVD Disease-Specific State ─────────────────────────────────────────────
+  /** Disease-specific parameters for the currently active CVD scenario (null for Healthy/CAD) */
+  activeDiseaseParams: Record<string, string | number | boolean> | null;
+  /** Active ECG rhythm mode — drives the ECG generator */
+  activeEcgRhythm: ECGRhythm;
+  /** Mechanism pathway steps for the active CVD scenario */
+  activeMechanismSteps: string[] | null;
+  /** Severity label for the active scenario */
+  activeSeverity: string | null;
 
   // ── Actions ───────────────────────────────────────────────────────────────
   setParams: (params: Partial<MockParams>) => void;
@@ -162,6 +172,40 @@ function randomizeParamsForCategory(category: PresetCategory | null): {
     };
   }
 
+  if (category === 'cvd') {
+    // CVD randomization: varied vitals typical of CVD conditions
+    const hr = Math.round(78 + Math.random() * 40);    // 78–118 bpm
+    const systolic = Math.round(104 + Math.random() * 88); // 104–192 mmHg
+    const diastolic = Math.round(68 + Math.random() * 44); // 68–112 mmHg
+    const hrv = Math.round(12 + Math.random() * 23);    // 12–35 ms
+    const stress = Math.round(40 + Math.random() * 35);  // 40–75
+
+    return {
+      params: {
+        heartRate: hr,
+        systolic,
+        diastolic,
+        hrv,
+        stressScore: stress,
+        stSegment: parseFloat((0.03 + Math.random() * 0.05).toFixed(2)),
+        qtInterval: Math.round(400 + Math.random() * 65),
+      },
+      profilePatch: {
+        smoking: Math.random() > 0.6 ? 'former' : 'never',
+        activity: 'sedentary',
+        hypertensionHistory: true,
+        diabetes: Math.random() > 0.5,
+        priorCVD: Math.random() > 0.5,
+      },
+      labPatch: {
+        totalCholesterol: Math.round(195 + Math.random() * 35), // 195–230 mg/dL
+        hdl: Math.round(35 + Math.random() * 10),              // 35–45 mg/dL
+        triglycerides: Math.round(150 + Math.random() * 50),    // 150–200 mg/dL
+        lpa: Math.round(30 + Math.random() * 20),              // 30–50 mg/dL
+      },
+    };
+  }
+
   // Full random across all
   const hrv = 15 + Math.random() * 80;
   const hr = Math.round(55 + Math.random() * 60);
@@ -204,6 +248,12 @@ export const useSimStore = create<SimState>((set, get) => ({
   labInputs: { ...DEFAULT_LAB_INPUTS },
   apoBPanel: calculateApoBPanel(DEFAULT_LAB_INPUTS),
 
+  // CVD-specific state
+  activeDiseaseParams: null,
+  activeEcgRhythm: 'sinus',
+  activeMechanismSteps: null,
+  activeSeverity: null,
+
   setParams: (newParams) => {
     set((s) => {
       const isBPModified = newParams.systolic !== undefined || newParams.diastolic !== undefined;
@@ -220,7 +270,7 @@ export const useSimStore = create<SimState>((set, get) => ({
     if (!profile) return;
 
     const presetLab = profile.labInputs ?? {};
-    const defaultLpa = profile.category === 'cad'
+    const defaultLpa = profile.category === 'cad' || profile.category === 'cvd'
       ? LP_A_REFERENCE.CAD_MEAN_MG_DL
       : LP_A_REFERENCE.HEALTHY_MEDIAN_MG_DL;
 
@@ -233,13 +283,25 @@ export const useSimStore = create<SimState>((set, get) => ({
         lpa: presetLab.lpa ?? defaultLpa,
         trigsManuallySet: false, // reset manual flag on preset change
       };
+
+      // Build params with ecgRhythm for CVD scenarios
+      const newParams: MockParams = {
+        ...profile.params,
+        ecgRhythm: profile.ecgRhythm === 'afib' ? 'afib' : 'sinus',
+      };
+
       return {
-        params: { ...profile.params },
+        params: newParams,
         patientProfile: { ...profile.patientProfile },
         activeProfile: profile,
         selectedCategory: profile.category,
         labInputs: newLabInputs,
         apoBPanel: calculateApoBPanel(newLabInputs),
+        // CVD-specific state
+        activeDiseaseParams: profile.diseaseParameters ?? null,
+        activeEcgRhythm: profile.ecgRhythm ?? 'sinus',
+        activeMechanismSteps: profile.mechanismSteps ?? null,
+        activeSeverity: profile.severity ?? null,
       };
     });
   },
@@ -278,6 +340,11 @@ export const useSimStore = create<SimState>((set, get) => ({
       labInputs: newLabInputs,
       apoBPanel: calculateApoBPanel(newLabInputs),
       activeProfile: null,
+      // Clear CVD-specific state on randomize
+      activeDiseaseParams: null,
+      activeEcgRhythm: 'sinus',
+      activeMechanismSteps: null,
+      activeSeverity: null,
     });
   },
 

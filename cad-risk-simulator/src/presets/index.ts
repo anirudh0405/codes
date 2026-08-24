@@ -1,9 +1,10 @@
 /**
  * Scenario Presets Engine — Grouped Categories
  * ============================================
- * Defines coherent combination scenarios under two parent categories:
+ * Defines coherent combination scenarios under three parent categories:
  *   1. "Healthy"
  *   2. "Coronary Artery Disease (CAD)"
+ *   3. "Cardiovascular Disease (CVD)"
  *
  * Each preset sets BOTH sensor parameters (MockParams) AND Patient Profile fields
  * (PatientProfileData) simultaneously so that physiological and clinical risk factors
@@ -13,12 +14,14 @@
 import { MockParams } from '../hal/MockSensorSources';
 import { PatientProfileData } from '../components/Dashboard/PatientProfilePanel';
 
-export type PresetCategory = 'healthy' | 'cad';
+export type ECGRhythm = 'sinus' | 'sinus-tachycardia' | 'afib';
+
+export type PresetCategory = 'healthy' | 'cad' | 'cvd';
 
 export interface ScenarioPreset {
   id: string;
   category: PresetCategory;
-  categoryName: string; // "Healthy" | "Coronary Artery Disease (CAD)"
+  categoryName: string; // "Healthy" | "Coronary Artery Disease (CAD)" | "Cardiovascular Disease (CVD)"
   name: string;
   shortName: string;
   emoji: string;
@@ -31,6 +34,14 @@ export interface ScenarioPreset {
     triglycerides?: number;
     lpa?: number;
   };
+  /** ECG rhythm for this scenario — drives the ECG generator mode. Default: 'sinus' */
+  ecgRhythm?: ECGRhythm;
+  /** Disease-specific parameters displayed in the CVD Info Panel. Not fed to sensors. */
+  diseaseParameters?: Record<string, string | number | boolean>;
+  /** Severity label for display */
+  severity?: string;
+  /** Disease mechanism pathway steps (displayed in CVDInfoPanel) */
+  mechanismSteps?: string[];
 }
 
 export const PRESET_CATEGORIES: { id: PresetCategory; label: string; shortLabel: string; description: string }[] = [
@@ -45,6 +56,12 @@ export const PRESET_CATEGORIES: { id: PresetCategory; label: string; shortLabel:
     label: 'Coronary Artery Disease (CAD)',
     shortLabel: 'CAD',
     description: 'Established and emerging coronary risk profiles, hypertension, metabolic, and post-MI scenarios',
+  },
+  {
+    id: 'cvd',
+    label: 'Cardiovascular Disease (CVD)',
+    shortLabel: 'CVD',
+    description: 'Stroke, peripheral artery disease, heart failure, and arrhythmia scenarios beyond coronary artery disease',
   },
 ];
 
@@ -394,6 +411,332 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 44,
       triglycerides: 145,
       lpa: 45,
+    },
+  },
+
+  // ── Category 3: Cardiovascular Disease (CVD) ──────────────────────────────
+  {
+    id: 'cvd-ischemic-stroke',
+    category: 'cvd',
+    categoryName: 'Cardiovascular Disease (CVD)',
+    name: 'CVD — Ischemic Stroke',
+    shortName: 'Ischemic Stroke',
+    emoji: '🧠',
+    description: 'Cerebral blood flow is reduced because a blood clot or embolus obstructs a cerebral artery, resulting in neurological impairment.',
+    severity: 'Moderate',
+    ecgRhythm: 'sinus',
+    mechanismSteps: [
+      'Cerebral artery obstruction',
+      'Reduced cerebral perfusion',
+      'Neurological dysfunction',
+      'Ischemic stroke',
+    ],
+    params: {
+      heartRate: 88,
+      systolic: 168,
+      diastolic: 96,
+      hrv: 30,
+      stressScore: 55,
+      stSegment: 0.04,
+      qtInterval: 420,
+    },
+    patientProfile: {
+      ageRange: '60-69',
+      sex: 'male',
+      ethnicity: 'south_asian',
+      height: 170,
+      weight: 82,
+      smoking: 'former',
+      activity: 'sedentary',
+      dietAlcohol: 'high_risk',
+      diabetes: true,
+      familyHistoryCAD: true,
+      priorCVD: false,
+      hypertensionHistory: true,
+      statinTherapy: false,
+      chestPain: 'none',
+      dyspnea: false,
+      fatigue: true,
+      palpitations: false,
+    },
+    labInputs: {
+      totalCholesterol: 225,
+      hdl: 38,
+      triglycerides: 190,
+      lpa: 42,
+    },
+    diseaseParameters: {
+      'Cerebral Artery Obstruction': '75%',
+      'Neurological Deficit': 'Moderate',
+      'Consciousness': 'Alert',
+      'Facial Weakness': true,
+      'Arm/Leg Weakness': true,
+      'Speech Difficulty': true,
+      'SpO₂': '96%',
+      'Respiratory Rate': '20/min',
+    },
+  },
+  {
+    id: 'cvd-hemorrhagic-stroke',
+    category: 'cvd',
+    categoryName: 'Cardiovascular Disease (CVD)',
+    name: 'CVD — Hemorrhagic Stroke',
+    shortName: 'Hemorrhagic Stroke',
+    emoji: '🩸',
+    description: 'A cerebral blood vessel ruptures, causing intracranial bleeding and neurological injury.',
+    severity: 'Severe',
+    ecgRhythm: 'sinus-tachycardia',
+    mechanismSteps: [
+      'Cerebral vessel rupture',
+      'Intracranial bleeding',
+      'Increased intracranial pressure',
+      'Neurological injury',
+      'Hemorrhagic stroke',
+    ],
+    params: {
+      heartRate: 102,
+      systolic: 192,
+      diastolic: 112,
+      hrv: 18,
+      stressScore: 75,
+      stSegment: 0.06,
+      qtInterval: 440,
+    },
+    patientProfile: {
+      ageRange: '60-69',
+      sex: 'male',
+      ethnicity: 'south_asian',
+      height: 168,
+      weight: 85,
+      smoking: 'current',
+      activity: 'sedentary',
+      dietAlcohol: 'high_risk',
+      diabetes: false,
+      familyHistoryCAD: true,
+      priorCVD: false,
+      hypertensionHistory: true,
+      statinTherapy: false,
+      chestPain: 'none',
+      dyspnea: true,
+      fatigue: true,
+      palpitations: true,
+    },
+    labInputs: {
+      totalCholesterol: 210,
+      hdl: 40,
+      triglycerides: 175,
+      lpa: 38,
+    },
+    diseaseParameters: {
+      'Cerebral Vessel Status': 'Ruptured',
+      'Intracranial Bleeding': 'Severe',
+      'Neurological Deficit': 'Severe',
+      'Consciousness': 'Reduced',
+      'Headache': 'Severe',
+      'Facial Weakness': true,
+      'Arm/Leg Weakness': true,
+      'Speech Difficulty': true,
+      'SpO₂': '94%',
+      'Respiratory Rate': '22/min',
+    },
+  },
+  {
+    id: 'cvd-pad',
+    category: 'cvd',
+    categoryName: 'Cardiovascular Disease (CVD)',
+    name: 'CVD — Peripheral Artery Disease',
+    shortName: 'PAD',
+    emoji: '🦵',
+    description: 'Atherosclerotic narrowing of peripheral arteries reduces blood flow to the limbs, particularly during physical activity.',
+    severity: 'Moderate',
+    ecgRhythm: 'sinus',
+    mechanismSteps: [
+      'Peripheral arterial stenosis',
+      'Reduced limb blood flow',
+      'Reduced exercise perfusion',
+      'Intermittent claudication',
+    ],
+    params: {
+      heartRate: 82,
+      systolic: 148,
+      diastolic: 88,
+      hrv: 35,
+      stressScore: 40,
+      stSegment: 0.03,
+      qtInterval: 410,
+    },
+    patientProfile: {
+      ageRange: '60-69',
+      sex: 'male',
+      ethnicity: 'south_asian',
+      height: 172,
+      weight: 80,
+      smoking: 'former',
+      activity: 'sedentary',
+      dietAlcohol: 'high_risk',
+      diabetes: true,
+      familyHistoryCAD: true,
+      priorCVD: false,
+      hypertensionHistory: true,
+      statinTherapy: true,
+      chestPain: 'none',
+      dyspnea: false,
+      fatigue: true,
+      palpitations: false,
+    },
+    labInputs: {
+      totalCholesterol: 230,
+      hdl: 36,
+      triglycerides: 200,
+      lpa: 48,
+    },
+    diseaseParameters: {
+      'Peripheral Artery Stenosis': '65%',
+      'ABI (Ankle-Brachial Index)': 0.68,
+      'Limb Perfusion': 'Reduced',
+      'Pedal Pulse': 'Reduced',
+      'Claudication': true,
+      'Walking Pain': 'Moderate',
+      'Rest Pain': false,
+      'Skin Temperature': 'Slightly Reduced',
+      'Limb Color': 'Slight Pallor',
+      'SpO₂': '97%',
+      'Respiratory Rate': '17/min',
+    },
+  },
+  {
+    id: 'cvd-heart-failure',
+    category: 'cvd',
+    categoryName: 'Cardiovascular Disease (CVD)',
+    name: 'CVD — Heart Failure (HFrEF)',
+    shortName: 'Heart Failure',
+    emoji: '💔',
+    description: 'Reduced left ventricular pumping function causes decreased cardiac output and systemic/pulmonary congestion.',
+    severity: 'Moderate–Severe',
+    ecgRhythm: 'sinus-tachycardia',
+    mechanismSteps: [
+      'Reduced myocardial contractility',
+      'Reduced stroke volume',
+      'Reduced cardiac output',
+      'Compensatory tachycardia',
+      'Pulmonary/systemic congestion',
+      'Heart failure symptoms',
+    ],
+    params: {
+      heartRate: 104,
+      systolic: 104,
+      diastolic: 68,
+      hrv: 16,
+      stressScore: 65,
+      stSegment: 0.08,
+      qtInterval: 465,
+    },
+    patientProfile: {
+      ageRange: '60-69',
+      sex: 'male',
+      ethnicity: 'south_asian',
+      height: 170,
+      weight: 88,
+      smoking: 'former',
+      activity: 'sedentary',
+      dietAlcohol: 'high_risk',
+      diabetes: true,
+      familyHistoryCAD: true,
+      priorCVD: true,
+      hypertensionHistory: true,
+      statinTherapy: true,
+      chestPain: 'atypical',
+      dyspnea: true,
+      fatigue: true,
+      palpitations: true,
+    },
+    labInputs: {
+      totalCholesterol: 205,
+      hdl: 35,
+      triglycerides: 185,
+      lpa: 50,
+    },
+    diseaseParameters: {
+      'LVEF (Left Ventricular Ejection Fraction)': '30%',
+      'Cardiac Output': 'Reduced',
+      'Stroke Volume': 'Reduced',
+      'Peripheral Perfusion': 'Reduced',
+      'Pulmonary Congestion': true,
+      'Exercise Tolerance': 'Severely Reduced',
+      'Dyspnea': true,
+      'Peripheral Edema': true,
+      'Fatigue': 'Severe',
+      'BNP': '450 pg/mL',
+      'SpO₂': '91%',
+      'Respiratory Rate': '24/min',
+    },
+  },
+  {
+    id: 'cvd-atrial-fibrillation',
+    category: 'cvd',
+    categoryName: 'Cardiovascular Disease (CVD)',
+    name: 'CVD — Atrial Fibrillation',
+    shortName: 'Atrial Fib',
+    emoji: '⚡',
+    description: 'An irregular atrial rhythm produces an irregular ventricular response and can increase the risk of thromboembolic stroke.',
+    severity: 'Moderate',
+    ecgRhythm: 'afib',
+    mechanismSteps: [
+      'Atrial fibrillation',
+      'Ineffective atrial contraction',
+      'Irregular ventricular response',
+      'Blood stasis in atria',
+      'Possible atrial thrombus',
+      'Possible embolization',
+      'Ischemic stroke risk',
+    ],
+    params: {
+      heartRate: 118,
+      systolic: 132,
+      diastolic: 84,
+      hrv: 12,
+      stressScore: 50,
+      stSegment: 0.03,
+      qtInterval: 400,
+    },
+    patientProfile: {
+      ageRange: '60-69',
+      sex: 'male',
+      ethnicity: 'south_asian',
+      height: 174,
+      weight: 78,
+      smoking: 'never',
+      activity: 'moderate',
+      dietAlcohol: 'balanced',
+      diabetes: false,
+      familyHistoryCAD: false,
+      priorCVD: false,
+      hypertensionHistory: true,
+      statinTherapy: false,
+      chestPain: 'none',
+      dyspnea: true,
+      fatigue: false,
+      palpitations: true,
+    },
+    labInputs: {
+      totalCholesterol: 195,
+      hdl: 45,
+      triglycerides: 150,
+      lpa: 30,
+    },
+    diseaseParameters: {
+      'ECG Rhythm': 'Atrial Fibrillation',
+      'Rhythm Regularity': 'Irregularly Irregular',
+      'P Waves': 'Absent / Disorganized',
+      'QRS': 'Usually Narrow',
+      'Ventricular Response': 'Rapid',
+      'Peripheral Pulse': 'Irregular',
+      'Stroke Risk': 'Elevated',
+      'Palpitations': true,
+      'Exercise Tolerance': 'Reduced',
+      'Dyspnea': 'Mild',
+      'SpO₂': '97%',
+      'Respiratory Rate': '19/min',
     },
   },
 ];

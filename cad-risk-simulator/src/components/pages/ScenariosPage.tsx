@@ -20,6 +20,15 @@ import { classifyBP } from '../../lib/bpRanges';
 
 // ── Scenario Card ────────────────────────────────────────────────────────────
 
+// Key disease parameter labels to show as chips on CVD scenario cards
+const CVD_KEY_PARAMS: Record<string, string[]> = {
+  'cvd-ischemic-stroke':     ['Cerebral Artery Obstruction', 'Neurological Deficit'],
+  'cvd-hemorrhagic-stroke':  ['Intracranial Bleeding', 'Consciousness'],
+  'cvd-pad':                 ['Peripheral Artery Stenosis', 'ABI (Ankle-Brachial Index)'],
+  'cvd-heart-failure':       ['LVEF (Left Ventricular Ejection Fraction)', 'Cardiac Output'],
+  'cvd-atrial-fibrillation': ['ECG Rhythm', 'Rhythm Regularity'],
+};
+
 function ScenarioCard({
   preset,
   isActive,
@@ -37,11 +46,27 @@ function ScenarioCard({
     { label: 'HRV', value: `${preset.params.hrv} ms` },
   ];
 
+  // Add CVD-specific key parameter chips
+  if (preset.category === 'cvd' && preset.diseaseParameters) {
+    const keyParams = CVD_KEY_PARAMS[preset.id] ?? [];
+    for (const key of keyParams) {
+      const val = preset.diseaseParameters[key];
+      if (val !== undefined) {
+        // Short label: use last word or abbreviation
+        const shortLabel = key.includes('(') ? key.match(/\(([^)]+)\)/)?.[1] ?? key : key.split(' ').pop() ?? key;
+        chips.push({ label: shortLabel, value: String(val) });
+      }
+    }
+  }
+
   return (
     <div className={`sc-card${isActive ? ' sc-card-active' : ''}`}>
       <div className="sc-card-header">
         <span className="sc-card-emoji">{preset.emoji}</span>
         <span className="sc-card-name">{preset.name}</span>
+        {preset.severity && (
+          <span className="sc-severity-badge">{preset.severity}</span>
+        )}
       </div>
       <p className="sc-card-desc">{preset.description}</p>
       

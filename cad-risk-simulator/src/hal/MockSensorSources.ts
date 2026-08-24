@@ -25,6 +25,8 @@ export interface MockParams {
   stressScore: number;
   stSegment: number;
   qtInterval: number;
+  /** ECG rhythm mode — 'sinus' (default) or 'afib' for atrial fibrillation */
+  ecgRhythm?: 'sinus' | 'afib';
 }
 
 const DEFAULT_PARAMS: MockParams = {
@@ -35,6 +37,7 @@ const DEFAULT_PARAMS: MockParams = {
   stressScore: 30,
   stSegment: 0,
   qtInterval: 400,
+  ecgRhythm: 'sinus',
 };
 
 // ─── ECG Mock Sensor ─────────────────────────────────────────────────────────
@@ -57,6 +60,7 @@ export class MockECGSensor implements ISensorSource {
       heartRate: this.params.heartRate,
       stElevation: this.params.stSegment,
       qtInterval: this.params.qtInterval,
+      rhythm: this.params.ecgRhythm === 'afib' ? 'afib' : 'sinus',
     });
     return {
       type: 'ecg',

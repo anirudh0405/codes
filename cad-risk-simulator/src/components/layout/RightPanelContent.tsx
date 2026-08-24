@@ -143,6 +143,8 @@ function ContributionsSection() {
 
 function CardiacReadouts() {
   const snapshot = useSimStore(s => s.snapshot);
+  const activeEcgRhythm = useSimStore(s => s.activeEcgRhythm);
+  const activeDiseaseParams = useSimStore(s => s.activeDiseaseParams);
 
   if (!snapshot) return null;
 
@@ -153,6 +155,29 @@ function CardiacReadouts() {
   const stTagColor = Math.abs(snapshot.stSegment) > 0.1 ? 'var(--risk-moderate)' : undefined;
 
   const bpInfo = classifyBP(snapshot.systolic, snapshot.diastolic);
+
+  // Dynamic rhythm tag based on active ECG rhythm
+  let rhythmTag = 'NSR';
+  let rhythmTagColor: string | undefined;
+  if (activeEcgRhythm === 'afib') {
+    rhythmTag = 'AF';
+    rhythmTagColor = 'var(--risk-high)';
+  } else if (activeEcgRhythm === 'sinus-tachycardia') {
+    rhythmTag = 'SINUS TACHY';
+    rhythmTagColor = 'var(--risk-moderate)';
+  }
+
+  // Dynamic SpO₂ from CVD disease parameters, fallback to 98%
+  let spo2Value = '98%';
+  let spo2Color = 'var(--risk-low)';
+  if (activeDiseaseParams && activeDiseaseParams['SpO₂']) {
+    spo2Value = String(activeDiseaseParams['SpO₂']);
+    const numericSpo2 = parseInt(spo2Value, 10);
+    if (!isNaN(numericSpo2)) {
+      if (numericSpo2 < 93) spo2Color = 'var(--risk-high)';
+      else if (numericSpo2 < 96) spo2Color = 'var(--risk-moderate)';
+    }
+  }
 
   const readouts: {
     label: string;
@@ -170,7 +195,8 @@ function CardiacReadouts() {
     {
       label: 'HEART RATE',
       value: `${snapshot.heartRate} BPM`,
-      tag: 'NSR',
+      tag: rhythmTag,
+      tagColor: rhythmTagColor,
     },
     {
       label: 'QTC BAZETT',
@@ -190,8 +216,8 @@ function CardiacReadouts() {
     },
     {
       label: 'SPO₂ (OPTICAL)',
-      value: '98%',
-      valueColor: 'var(--risk-low)',
+      value: spo2Value,
+      valueColor: spo2Color,
     },
   ];
 
