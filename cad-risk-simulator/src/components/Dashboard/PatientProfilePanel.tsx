@@ -17,6 +17,7 @@ import { RangeIndicator } from '../RangeIndicator';
 
 export interface PatientProfileData {
   // Demographics
+  name?: string;
   ageRange: string;
   sex: 'male' | 'female';
   ethnicity: string;
@@ -43,6 +44,7 @@ export interface PatientProfileData {
 }
 
 export const DEFAULT_PATIENT_PROFILE_DATA: PatientProfileData = {
+  name: 'Patient',
   ageRange: '50-59',
   sex: 'male',
   ethnicity: 'south_asian',

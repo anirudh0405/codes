@@ -64,12 +64,19 @@ const IconInfo = (
   </svg>
 );
 
+const IconHeart = (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 16 4.5 10.8A3.8 3.8 0 0 1 10 5.5a3.8 3.8 0 0 1 5.5 5.3L10 16Z" />
+  </svg>
+);
+
 const TABS: TabItem[] = [
   { id: 'dashboard',  label: 'Dashboard',  icon: IconDashboard },
   { id: 'waveforms',  label: 'Waveforms',  icon: IconWaveform },
   { id: 'profile',    label: 'Patient',    icon: IconPatient },
   { id: 'riskengine', label: 'Risk',       icon: IconRisk },
-  { id: 'simlogs',    label: 'Logs',       icon: IconLogs },
+  { id: 'fusion',     label: 'Fusion',     icon: IconHeart },
+  { id: 'healthytip', label: 'Healthy',    icon: IconHeart },
   { id: 'info',       label: 'Info',       icon: IconInfo },
 ];
 

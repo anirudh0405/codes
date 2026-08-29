@@ -76,6 +76,12 @@ const IconLayers = (
   </svg>
 );
 
+const IconHeart = (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 13.2 2.7 8.3A3 3 0 0 1 8 3.3a3 3 0 0 1 5.3 5l-5.3 4.9Z" />
+  </svg>
+);
+
 const IconList = (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
     <line x1="5" y1="4" x2="14" y2="4" />
@@ -84,6 +90,13 @@ const IconList = (
     <circle cx="2.5" cy="4" r="0.7" fill="currentColor" stroke="none" />
     <circle cx="2.5" cy="8" r="0.7" fill="currentColor" stroke="none" />
     <circle cx="2.5" cy="12" r="0.7" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const IconClock = (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="5.5" />
+    <path d="M8 4.5v3.2l2.2 1.8" />
   </svg>
 );
 
@@ -140,7 +153,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'riskengine', label: 'Risk Engine',     icon: IconGauge },
       { id: 'fusion',     label: 'Fusion Layers',   icon: IconLayers },
+      { id: 'healthytip', label: 'Healthy Tip',     icon: IconHeart },
       { id: 'simlogs',    label: 'Sim Logs',        icon: IconList },
+      { id: 'history',    label: 'History',         icon: IconClock },
       { id: 'info',       label: 'Info',            icon: IconInfo },
     ],
   },

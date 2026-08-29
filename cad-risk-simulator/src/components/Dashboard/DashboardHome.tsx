@@ -2,7 +2,7 @@
  * DashboardHome — Default Landing View
  * ======================================
  * Top row: 4 stat cards (Risk Score, Heart Rate, Blood Pressure, HRV RMSSD)
- * Below: INTERHEART Weights panel + Sensor Status panel side by side
+ * Below: INTERHEART Weights panel
  *
  * UI PASS ONLY — no logic, reads from store.
  */
@@ -10,8 +10,8 @@
 import React from 'react';
 import { useSimStore } from '../../store/simStore';
 import { WEIGHTS } from '../../riskEngine';
-import { SensorType } from '../../hal/ISensorSource';
 import { classifyBP } from '../../lib/bpRanges';
+import { CardiacReadouts } from '../layout/RightPanelContent';
 import { CVDInfoPanel } from './CVDInfoPanel';
 
 // ── Risk helpers ─────────────────────────────────────────────────────────────
@@ -39,16 +39,6 @@ const INTERHEART_FACTORS: { key: keyof typeof WEIGHTS; label: string }[] = [
 
 // Max weight among displayed factors, for relative bar scaling
 const MAX_WEIGHT = Math.max(...INTERHEART_FACTORS.map(f => WEIGHTS[f.key]));
-
-// ── Sensor list ──────────────────────────────────────────────────────────────
-
-const SENSORS: { type: SensorType; label: string }[] = [
-  { type: 'ecg',    label: 'ECG' },
-  { type: 'ppg',    label: 'PPG' },
-  { type: 'bp',     label: 'BP' },
-  { type: 'stress', label: 'Stress' },
-  { type: 'ppg',    label: 'Motion' },
-];
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -128,50 +118,16 @@ export function DashboardHome() {
         </div>
       </div>
 
-      {/* ── WHO South-Asia Reference Panel ─────────────────────────── */}
-      <div className="panel-card dash-who-panel">
-        <div className="dash-who-panel-header">
-          <span className="dash-who-panel-title">WHO SOUTH-ASIA REFERENCE</span>
-          <span className="dash-who-panel-sub">(non-lab chart, 2019)</span>
-        </div>
-
-        <div className="dash-who-inputs">
-          <div className="dash-who-input-item">
-            <span className="dash-who-input-label">Age</span>
-            <span className="dash-who-input-value">{patientProfile.ageRange ?? '<40'}</span>
-          </div>
-          <div className="dash-who-input-item">
-            <span className="dash-who-input-label">Sex</span>
-            <span className="dash-who-input-value">{(patientProfile.sex ?? 'male').toUpperCase()}</span>
-          </div>
-          <div className="dash-who-input-item">
-            <span className="dash-who-input-label">Systolic BP</span>
-            <span className="dash-who-input-value">{sys} mmHg</span>
-          </div>
-          <div className="dash-who-input-item">
-            <span className="dash-who-input-label">Smoking</span>
-            <span className="dash-who-input-value">{(patientProfile.smoking ?? 'never').toUpperCase()}</span>
-          </div>
-          <div className="dash-who-input-item">
-            <span className="dash-who-input-label">BMI</span>
-            <span className="dash-who-input-value">{bmi.toFixed(1)} kg/m²</span>
-          </div>
-        </div>
-
-        <div className="dash-who-output">
-          <span className="dash-who-output-label">10-YEAR CVD RISK BAND</span>
-          <span
-            className="dash-who-output-value"
-            style={{ color: whoBand?.color ?? 'var(--accent)' }}
-          >
-            {whoBand?.displayLabel ?? '<10% — Low Risk'}
-          </span>
+      {/* ── Cardiac Readouts ─────────────────────────────────────── */}
+      <div className="panel-card dash-cardiac-panel">
+        <div className="dash-panel-header">CARDIAC READOUTS</div>
+        <div className="dash-cardiac-body">
+          <CardiacReadouts />
         </div>
       </div>
 
-      {/* ── Bottom Row: INTERHEART Weights + Sensor Status ─────────── */}
+      {/* ── Bottom Row: INTERHEART Weights ───────────────────────── */}
       <div className="dash-summary-row">
-        {/* Left: INTERHEART WEIGHTS panel */}
         <div className="panel-card dash-interheart-panel">
           <div className="dash-panel-header">INTERHEART WEIGHTS</div>
           <div className="dash-interheart-list">
@@ -191,23 +147,6 @@ export function DashboardHome() {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* Right: SENSOR STATUS compact panel */}
-        <div className="panel-card dash-sensor-panel">
-          <div className="dash-panel-header">SENSOR STATUS</div>
-          <div className="dash-sensor-list">
-            {SENSORS.map(({ type, label }, i) => (
-              <div key={`${type}-${i}`} className="dash-sensor-row">
-                <span
-                  className="dash-sensor-dot"
-                  style={{ background: 'var(--risk-low)' }}
-                />
-                <span className="dash-sensor-name">{label}</span>
-                <span className="dash-sensor-mode">SIMULATED</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>

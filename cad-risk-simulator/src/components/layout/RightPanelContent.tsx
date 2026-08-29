@@ -11,7 +11,8 @@
  * the risk-score badge in the top bar.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useSimStore } from '../../store/simStore';
 import { AnimatedScore, AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { classifyBP } from '../../lib/bpRanges';
@@ -103,35 +104,114 @@ const CONTRIB_ROWS: { key: string; label: string; isComposite?: boolean }[] = [
   { key: 'apoB',          label: 'Metabolic-Vascular', isComposite: true },
 ];
 
+const CONTRIB_COLORS = [
+  '#ef4444',
+  '#38bdf8',
+  '#f59e0b',
+  '#22c55e',
+  '#a78bfa',
+  '#f472b6',
+  '#14b8a6',
+];
+
 function ContributionsSection() {
   const riskResult = useSimStore(s => s.riskResult);
 
+  const pieData = useMemo(() => {
+    const values = CONTRIB_ROWS.map(({ key, label, isComposite }, index) => {
+      const raw = riskResult?.rawContributions[key as keyof typeof riskResult.rawContributions] ?? 0;
+      const color = CONTRIB_COLORS[index % CONTRIB_COLORS.length];
+
+      return {
+        key,
+        label,
+        isComposite,
+        value: Math.max(raw, 0),
+        color,
+      };
+    });
+
+    return values.filter(item => item.value > 0);
+  }, [riskResult]);
+
+  const total = pieData.reduce((sum, item) => sum + item.value, 0);
+
+  const renderSliceLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
+    const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#ffffff"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={9}
+        fontWeight={600}
+        fontFamily="var(--font-ui)"
+        style={{ paintOrder: 'stroke', stroke: 'rgba(10, 15, 20, 0.55)', strokeWidth: 2 }}
+      >
+        {name}
+        <tspan x={x} dy={10}>{`${Math.round(percent * 100)}%`}</tspan>
+      </text>
+    );
+  };
+
   return (
     <div className="rp-contributions">
-      {CONTRIB_ROWS.map(({ key, label, isComposite }) => {
-        const raw = riskResult?.rawContributions[key as keyof typeof riskResult.rawContributions] ?? 0;
-        const barColor = raw >= 65 ? 'var(--risk-high)' : raw >= 35 ? 'var(--risk-moderate)' : 'var(--accent)';
+      <div className="rp-contrib-chart-wrap">
+        <ResponsiveContainer width="100%" height={150}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="label"
+              innerRadius={30}
+              outerRadius={56}
+              paddingAngle={2}
+              stroke="var(--surface)"
+              strokeWidth={2}
+              cornerRadius={4}
+              label={renderSliceLabel}
+              labelLine={false}
+            >
+              {pieData.map(entry => (
+                <Cell key={entry.key} fill={entry.color} />
+              ))}
+            </Pie>
+            <text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dominantBaseline="central"
+              className="rp-contrib-chart-center"
+            >
+              <tspan x="50%" dy="-4">RISK</tspan>
+              <tspan x="50%" dy="14" className="tabular-nums">{total > 0 ? Math.round(total) : 0}</tspan>
+            </text>
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
 
-        return (
-          <div key={key} className="rp-contrib-row">
-            <div className="rp-contrib-header">
+      <div className="rp-contrib-legend">
+        {pieData.map(({ key, label, isComposite, value, color }) => (
+          <div key={key} className="rp-contrib-legend-row">
+            <span className="rp-contrib-legend-item">
+              <span className="rp-contrib-legend-dot" style={{ background: color }} />
               <span className="rp-contrib-label">
                 {isComposite && <span className="rp-contrib-sigma">∑</span>}
                 {label}
               </span>
-              <span className="rp-contrib-value tabular-nums">
-                <AnimatedNumber value={raw} className="rp-contrib-value-inner" />
-              </span>
-            </div>
-            <div className="rp-contrib-bar-track">
-              <div
-                className="rp-contrib-bar-fill"
-                style={{ width: `${raw}%`, background: barColor }}
-              />
-            </div>
+            </span>
+            <span className="rp-contrib-value tabular-nums">
+              <AnimatedNumber value={value} className="rp-contrib-value-inner" />
+            </span>
           </div>
-        );
-      })}
+        ))}
+      </div>
+
       <div className="rp-contrib-footnote">
         * PPG morphology estimate — not lab-measured
       </div>
@@ -141,7 +221,7 @@ function ContributionsSection() {
 
 // ── Section 4: Cardiac Readouts ──────────────────────────────────────────────
 
-function CardiacReadouts() {
+export function CardiacReadouts() {
   const snapshot = useSimStore(s => s.snapshot);
   const activeEcgRhythm = useSimStore(s => s.activeEcgRhythm);
   const activeDiseaseParams = useSimStore(s => s.activeDiseaseParams);
@@ -334,8 +414,6 @@ export function RightPanelContent() {
   const score = riskResult?.score ?? 0;
   const lipidConf = riskResult?.lipidConfidence ?? 1.0;
 
-  const whoBand = riskResult?.whoRiskBand;
-
   return (
     <div className="rp-content">
       {/* ── Section 1: CAD Risk Score ──────────────────────────────── */}
@@ -347,27 +425,10 @@ export function RightPanelContent() {
         </span>
       </section>
 
-      {/* ── Section 2: WHO Risk Band ──────────────────────────────── */}
-      <section className="rp-section rp-section-who">
-        <div className="rp-who-card">
-          <span className="rp-who-label">WHO SOUTH-ASIA REF.</span>
-          <span className="rp-who-value tabular-nums">
-            {whoBand?.band ?? '<10%'} · {whoBand?.tier?.toUpperCase() ?? 'VERY LOW'}
-          </span>
-          <span className="rp-who-sub">10-yr CVD Risk · Non-lab chart</span>
-        </div>
-      </section>
-
-      {/* ── Section 3: Contributions ──────────────────────────────── */}
+      {/* ── Section 2: Contributions ──────────────────────────────── */}
       <section className="rp-section rp-section-contributions">
         <span className="rp-section-label">CONTRIBUTIONS</span>
         <ContributionsSection />
-      </section>
-
-      {/* ── Section 4: Cardiac Readouts ───────────────────────────── */}
-      <section className="rp-section rp-section-readouts">
-        <span className="rp-section-label">CARDIAC READOUTS</span>
-        <CardiacReadouts />
       </section>
     </div>
   );
