@@ -16,11 +16,27 @@ import { MobileTabBar } from './MobileTabBar';
 // ── Live Clock ───────────────────────────────────────────────────────────────
 
 function ShellLiveClock() {
-  const [t, setT] = useState(() => new Date().toLocaleTimeString('en-GB'));
+  const [t, setT] = useState(() => {
+    const now = new Date();
+    return `${new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    }).format(now)} · ${now.toLocaleTimeString('en-GB')}`;
+  });
+
   useEffect(() => {
-    const id = setInterval(() => setT(new Date().toLocaleTimeString('en-GB')), 1000);
+    const id = setInterval(() => {
+      const now = new Date();
+      setT(`${new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+      }).format(now)} · ${now.toLocaleTimeString('en-GB')}`);
+    }, 1000);
     return () => clearInterval(id);
   }, []);
+
   return (
     <span
       className="tabular-nums"
@@ -100,7 +116,9 @@ const NAV_LABELS: Record<string, { section: string; page: string }> = {
   scenarios:  { section: 'Patient',   page: 'Scenarios' },
   riskengine: { section: 'Analysis',  page: 'Risk Engine' },
   fusion:     { section: 'Analysis',  page: 'Fusion Layers' },
+  healthytip: { section: 'Analysis',  page: 'Healthy Tips' },
   simlogs:    { section: 'Analysis',  page: 'Sim Logs' },
+  history:    { section: 'Analysis',  page: 'History' },
   info:       { section: 'Analysis',  page: 'Info Reference' },
 };
 

@@ -24,54 +24,58 @@ const SUB_TABS: SubTabOption[] = [
   { id: 'references', label: 'References' },
 ];
 
+function InfoKeyword({ children }: { children: React.ReactNode }) {
+  return <span className="info-keyword">{children}</span>;
+}
+
 // ── Sub-Tab 1: About CAD ─────────────────────────────────────────────────────
 
 function AboutCADContent() {
   return (
     <div className="info-text-section">
       <div className="info-block">
-        <h2 className="info-heading">WHAT IS CORONARY ARTERY DISEASE (CAD)?</h2>
+        <h2 className="info-heading">WHAT IS CAD?</h2>
         <p className="info-paragraph">
-          Coronary Artery Disease occurs when the coronary arteries — the blood vessels that supply oxygen-rich blood to the heart muscle — become narrowed or blocked due to a buildup of atherosclerotic plaques (deposits of cholesterol, fat, calcium, and other substances). This restricts blood flow to the heart, which can cause chest pain (angina), shortness of breath, and in severe cases, myocardial infarction (heart attack) or sudden cardiac death.
+          <InfoKeyword>CAD</InfoKeyword> is <InfoKeyword>atherosclerotic narrowing</InfoKeyword> of the <InfoKeyword>coronary arteries</InfoKeyword>, reducing blood supply to the heart. It can lead to <InfoKeyword>angina</InfoKeyword>, <InfoKeyword>ischemia</InfoKeyword>, and <InfoKeyword>myocardial infarction</InfoKeyword>.
         </p>
       </div>
 
       <div className="info-block">
-        <h2 className="info-heading">WHY CONTINUOUS MONITORING MATTERS</h2>
+        <h2 className="info-heading">WHY CONTINUOUS MONITORING?</h2>
         <p className="info-paragraph">
-          Traditional CAD diagnosis relies on hospital-based tests — ECG, stress testing, echocardiography, CT angiography, and blood panels — which provide accurate but only point-in-time readings. A wearable platform that fuses multiple physiological signals continuously can detect early warning patterns before a clinical event occurs.
+          Clinic tests capture a snapshot. Continuous <InfoKeyword>ECG</InfoKeyword>, <InfoKeyword>PPG</InfoKeyword>, and <InfoKeyword>BP</InfoKeyword> monitoring helps detect early <InfoKeyword>risk drift</InfoKeyword> before a major event.
         </p>
       </div>
 
       <div className="info-block">
-        <h2 className="info-heading">RISK FACTORS (INTERHEART Study — Yusuf et al., The Lancet, 2004)</h2>
+        <h2 className="info-heading">KEY RISK FACTORS</h2>
         <p className="info-paragraph mb-2">
-          Nine modifiable risk factors account for over 90% of myocardial infarction risk globally, consistent across South Asian populations:
+          The <InfoKeyword>INTERHEART</InfoKeyword> study shows that nine modifiable factors explain over <InfoKeyword>90%</InfoKeyword> of MI risk, especially in <InfoKeyword>South Asian</InfoKeyword> populations.
         </p>
         <ol className="info-ordered-list">
-          <li>Raised ApoB/ApoA1 ratio (lipid imbalance)</li>
-          <li>Smoking</li>
-          <li>Hypertension (high blood pressure)</li>
-          <li>Diabetes mellitus</li>
-          <li>Abdominal obesity</li>
-          <li>Psychosocial stress</li>
-          <li>Low fruit and vegetable consumption</li>
-          <li>Low physical activity</li>
-          <li>Alcohol consumption pattern</li>
+          <li><InfoKeyword>ApoB/ApoA1</InfoKeyword> ratio</li>
+          <li><InfoKeyword>Smoking</InfoKeyword></li>
+          <li><InfoKeyword>Hypertension</InfoKeyword></li>
+          <li><InfoKeyword>Diabetes</InfoKeyword></li>
+          <li><InfoKeyword>Obesity</InfoKeyword></li>
+          <li><InfoKeyword>Stress</InfoKeyword></li>
+          <li><InfoKeyword>Diet</InfoKeyword></li>
+          <li><InfoKeyword>Physical inactivity</InfoKeyword></li>
+          <li><InfoKeyword>Alcohol</InfoKeyword> pattern</li>
         </ol>
       </div>
 
       <div className="info-block">
-        <h2 className="info-heading">INDIAN POPULATION CONTEXT</h2>
+        <h2 className="info-heading">INDIAN CONTEXT</h2>
         <p className="info-paragraph">
-          CAD presents at a younger age in Indian populations compared to Western populations — urban mean age of first presentation ~57 years vs. rural ~61 years (Sheikh et al., J Family Med Primary Care, 2024). Major risk factors in the Indian context: smoking (72%), hypertension (63.5%), dyslipidaemia (48%), diabetes (41%), physical inactivity (35.5%), obesity (26.16%), family history (9%). (Sheikh et al., Kashmir Heart Survey, 2024)
+          CAD often appears earlier in Indian populations. Key contributors are <InfoKeyword>smoking</InfoKeyword>, <InfoKeyword>hypertension</InfoKeyword>, <InfoKeyword>dyslipidaemia</InfoKeyword>, <InfoKeyword>diabetes</InfoKeyword>, and <InfoKeyword>central adiposity</InfoKeyword>.
         </p>
       </div>
 
       <div className="info-block">
         <h2 className="info-heading">HOW THIS SIMULATOR WORKS</h2>
         <p className="info-paragraph">
-          This platform fuses data from 5 sensors (ECG, PPG, Blood Pressure, Stress/EDA, Motion) through a 7-layer pipeline (HAL → Sensor Manager → Feature Extraction → Dual Fusion Engines → CAD Risk Engine → Dashboard) to produce a real-time 0-100 CAD Risk Score. It is a Phase 1 software simulator — every module is designed so that real biomedical hardware can be substituted at the HAL layer in Phase 2 without changing any prediction logic above it.
+          It fuses <InfoKeyword>5 signals</InfoKeyword> through a <InfoKeyword>7-layer pipeline</InfoKeyword> to generate a <InfoKeyword>0–100 CAD risk score</InfoKeyword>.
         </p>
       </div>
     </div>
@@ -387,36 +391,21 @@ function FusionDesignContent() {
       <div className="info-block">
         <h2 className="info-heading">WHY SENSOR FUSION?</h2>
         <p className="info-paragraph">
-          A single sensor is insufficient for reliable CAD risk assessment. ECG alone can produce false irregularity readings during movement. PPG lipid estimates alone carry significant estimation uncertainty. Combining independent measurements — and knowing when they agree vs. when they diverge — produces a more trustworthy picture.
+          One sensor is noisy. <InfoKeyword>ECG</InfoKeyword> adds rhythm, <InfoKeyword>PPG</InfoKeyword> adds perfusion, and <InfoKeyword>motion</InfoKeyword> helps separate real signals from <InfoKeyword>artifact</InfoKeyword>.
         </p>
       </div>
 
       <div className="info-block">
-        <h2 className="info-heading">FUSION MECHANISM 1: CARDIAC/MOTION FUSION (correlation-based)</h2>
+        <h2 className="info-heading">CARDIAC + MOTION FUSION</h2>
         <p className="info-paragraph">
-          <strong>What it does:</strong> compares cardiac signal changes against the motion sensor to determine whether an apparent cardiac irregularity is caused by physical movement (artifact) or is a genuine event.
-        </p>
-        <p className="info-paragraph">
-          <strong>Why correlation is valid here:</strong> ECG/PPG and the Motion accelerometer are physically independent sensors — a real correlation between them carries meaningful information.
-        </p>
-        <p className="info-paragraph">
-          <strong>Formula:</strong> Pearson r between cardiac window and motion window.
-        </p>
-        <p className="info-paragraph">
-          <strong>Output:</strong> Normal / Possible Artifact / Likely Real Event.
+          We compare the cardiac signal with the <InfoKeyword>motion</InfoKeyword> channel using <InfoKeyword>correlation</InfoKeyword>. If they move together, the event is likely motion-related; if not, it is more likely a true cardiac signal.
         </p>
       </div>
 
       <div className="info-block">
-        <h2 className="info-heading">FUSION MECHANISM 2: METABOLIC-VASCULAR FUSION (divergence-based)</h2>
+        <h2 className="info-heading">METABOLIC + VASCULAR FUSION</h2>
         <p className="info-paragraph">
-          <strong>Why correlation cannot be used here:</strong> Blood Pressure (PTT-derived), Total Cholesterol (PPG morphology), and Triglycerides (PPG morphology) all derive from the same PPG waveform. Correlating them would partly measure their shared derivation, not independent physiological agreement.
-        </p>
-        <p className="info-paragraph">
-          <strong>Tier 1 — PPG/PTT group:</strong> BP + Cholesterol + Triglycerides are combined via a weighted average (PPGVascularIndex). TG carries the highest weight because it shows the strongest independent correlation with arterial stiffness in published literature.
-        </p>
-        <p className="info-paragraph">
-          <strong>Tier 2 — ApoB as independent anchor:</strong> ApoB is calculated from manually-entered blood report values (TC, HDL) — genuinely independent of the PPG waveform. It enters only at Tier 2 as a validation anchor. If the PPGVascularIndex and ApoB-implied risk diverge significantly, the confidence on PPG-derived lipid estimates is reduced. Convergence is NOT taken as confirmation of accuracy (absence of divergence is not proof — it could still reflect shared derivation).
+          <InfoKeyword>BP</InfoKeyword>, <InfoKeyword>cholesterol</InfoKeyword>, and <InfoKeyword>triglycerides</InfoKeyword> are combined as a vascular signal. <InfoKeyword>ApoB</InfoKeyword> acts as an independent anchor to check whether the PPG-based estimates are drifting or misleading.
         </p>
       </div>
     </div>

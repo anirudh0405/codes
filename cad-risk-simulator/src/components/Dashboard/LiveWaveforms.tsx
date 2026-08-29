@@ -9,20 +9,41 @@
  * reads from Zustand store. No new logic.
  */
 
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { classifyBP } from '../../lib/bpRanges';
+
+interface SelectedWavePoint {
+  t: number;
+  value: number;
+  index: number;
+}
 
 // ── Inline WaveformChart (same as App.tsx, no glow) ──────────────────────────
 
 interface WPt { t: number; v: number; }
 
-function WaveformCanvas({ bufferKey, color, yMin = -0.5, yMax = 1.5 }: {
-  bufferKey: 'ecgBuffer' | 'ppgBuffer'; color?: string; yMin?: number; yMax?: number;
+function WaveformCanvas({
+  bufferKey,
+  color,
+  yMin = -0.5,
+  yMax = 1.5,
+  onPointSelect,
+  selectedPoint,
+}: {
+  bufferKey: 'ecgBuffer' | 'ppgBuffer';
+  color?: string;
+  yMin?: number;
+  yMax?: number;
+  onPointSelect?: (point: SelectedWavePoint) => void;
+  selectedPoint?: SelectedWavePoint | null;
 }) {
   const buffer = useSimStore(s => s[bufferKey] as WPt[]);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [internalSelected, setInternalSelected] = useState<SelectedWavePoint | null>(null);
+
+  const currentSelection = selectedPoint ?? internalSelected;
 
   const draw = useCallback(() => {
     const container = containerRef.current;
@@ -79,7 +100,25 @@ function WaveformCanvas({ bufferKey, color, yMin = -0.5, yMax = 1.5 }: {
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     });
     ctx.stroke();
-  }, [buffer, color, yMin, yMax]);
+
+    if (currentSelection) {
+      const x = ((currentSelection.t - minT) / span) * W;
+      const y = toY(currentSelection.value);
+      ctx.beginPath();
+      ctx.strokeStyle = traceColor;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 4]);
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.fillStyle = traceColor;
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, [buffer, color, yMin, yMax, currentSelection]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -98,9 +137,41 @@ function WaveformCanvas({ bufferKey, color, yMin = -0.5, yMax = 1.5 }: {
     return () => observer.disconnect();
   }, [draw]);
 
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || buffer.length === 0) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const W = rect.width || 1;
+
+    const minT = buffer[0].t;
+    const maxT = buffer[buffer.length - 1].t;
+    const span = maxT - minT || 1;
+    const t = minT + (x / W) * span;
+
+    let nearest = buffer[0];
+    let nearestDiff = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < buffer.length; i += 1) {
+      const diff = Math.abs(buffer[i].t - t);
+      if (diff < nearestDiff) {
+        nearest = buffer[i];
+        nearestDiff = diff;
+      }
+    }
+
+    const point = { t: nearest.t, value: nearest.v, index: buffer.indexOf(nearest) };
+    setInternalSelected(point);
+    onPointSelect?.(point);
+  };
+
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+      <canvas
+        ref={canvasRef}
+        onClick={handleCanvasClick}
+        style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
+      />
     </div>
   );
 }
@@ -140,6 +211,8 @@ function hrvStatusLabel(hrv: number): { label: string; color: string } {
 export function LiveWaveforms() {
   const snapshot = useSimStore(s => s.snapshot);
   const riskResult = useSimStore(s => s.riskResult);
+  const [selectedEcg, setSelectedEcg] = useState<SelectedWavePoint | null>(null);
+  const [selectedPpg, setSelectedPpg] = useState<SelectedWavePoint | null>(null);
 
   const hr   = snapshot?.heartRate ?? 0;
   const qtc  = snapshot?.qtcBazett ?? 0;
@@ -173,13 +246,34 @@ export function LiveWaveforms() {
           <span className="wf-specs">25 mm/s · 10 mm/mV</span>
         </div>
         <div className="wf-canvas wf-canvas-ecg">
-          <WaveformCanvas bufferKey="ecgBuffer" color="#4A9DFF" yMin={-0.5} yMax={1.5} />
+          <WaveformCanvas
+            bufferKey="ecgBuffer"
+            color="#4A9DFF"
+            yMin={-0.5}
+            yMax={1.5}
+            onPointSelect={setSelectedEcg}
+            selectedPoint={selectedEcg}
+          />
         </div>
         <div className="wf-chips-row">
           <Chip label="HR" value={`${hr} BPM`} />
           <Chip label="QTc" value={`${qtc} ms`} />
           <Chip label="ST" value={`${st.toFixed(2)} mV`} />
           <Chip label="PTT" value={`${ptt} ms`} />
+        </div>
+        <div className="wf-detail-panel">
+          <span className="wf-detail-label">Selected ECG path</span>
+          {selectedEcg ? (
+            <>
+              <span className="wf-detail-value">{selectedEcg.value.toFixed(3)} mV</span>
+              <span className="wf-detail-meta">t = {selectedEcg.t.toFixed(3)} s</span>
+            </>
+          ) : (
+            <>
+              <span className="wf-detail-value">No point selected</span>
+              <span className="wf-detail-meta">Click the waveform</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -190,12 +284,33 @@ export function LiveWaveforms() {
           <span className="wf-specs">100 Hz</span>
         </div>
         <div className="wf-canvas wf-canvas-ppg">
-          <WaveformCanvas bufferKey="ppgBuffer" color="#4A9DFF" yMin={0} yMax={1.2} />
+          <WaveformCanvas
+            bufferKey="ppgBuffer"
+            color="#4A9DFF"
+            yMin={0}
+            yMax={1.2}
+            onPointSelect={setSelectedPpg}
+            selectedPoint={selectedPpg}
+          />
         </div>
         <div className="wf-chips-row">
           <Chip label="HR" value={`${hr} BPM`} />
           <Chip label="SpO₂" value="98%" />
           <Chip label="Perfusion" value="Normal" />
+        </div>
+        <div className="wf-detail-panel">
+          <span className="wf-detail-label">Selected PPG path</span>
+          {selectedPpg ? (
+            <>
+              <span className="wf-detail-value">{selectedPpg.value.toFixed(3)} AU</span>
+              <span className="wf-detail-meta">t = {selectedPpg.t.toFixed(3)} s</span>
+            </>
+          ) : (
+            <>
+              <span className="wf-detail-value">No point selected</span>
+              <span className="wf-detail-meta">Click the waveform</span>
+            </>
+          )}
         </div>
       </div>
 

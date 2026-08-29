@@ -42,7 +42,7 @@ function PillToggleGroup<T extends string>({
   value,
   onChange,
 }: {
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; symbol?: string }[];
   value: T;
   onChange: (val: T) => void;
 }) {
@@ -55,7 +55,8 @@ function PillToggleGroup<T extends string>({
           className={`pp-pill-btn${value === opt.value ? ' pp-pill-active' : ''}`}
           onClick={() => onChange(opt.value)}
         >
-          {opt.label}
+          {opt.symbol && <span className="pp-pill-symbol">{opt.symbol}</span>}
+          <span>{opt.label}</span>
         </button>
       ))}
     </div>
@@ -196,6 +197,18 @@ export function PatientProfilePage() {
         isOpen={openSections.demographics}
         onToggle={() => toggleSection('demographics')}
       >
+        {/* Name */}
+        <div className="pp-field-row">
+          <label className="pp-field-label">NAME</label>
+          <input
+            type="text"
+            value={patientProfile.name ?? 'Patient'}
+            onChange={e => update('name', e.target.value || 'Patient')}
+            className="pp-num-input pp-name-input"
+            placeholder="Patient"
+          />
+        </div>
+
         {/* Age */}
         <div className="pp-field-row">
           <label className="pp-field-label">AGE</label>
@@ -214,8 +227,8 @@ export function PatientProfilePage() {
           <label className="pp-field-label">SEX</label>
           <PillToggleGroup
             options={[
-              { value: 'male' as const, label: 'Male' },
-              { value: 'female' as const, label: 'Female' },
+              { value: 'male' as const, label: 'Male', symbol: '♂' },
+              { value: 'female' as const, label: 'Female', symbol: '♀' },
             ]}
             value={patientProfile.sex}
             onChange={v => update('sex', v)}

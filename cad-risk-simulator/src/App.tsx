@@ -26,8 +26,10 @@ import { LabReportPage } from '@/components/pages/LabReportPage';
 import { ScenariosPage } from '@/components/pages/ScenariosPage';
 import { RiskEnginePage } from '@/components/pages/RiskEnginePage';
 import { FusionLayersPage } from '@/components/pages/FusionLayersPage';
+import { HealthyTipsPage } from '@/components/pages/HealthyTipsPage';
 import { SimLogsPage } from '@/components/pages/SimLogsPage';
 import { InfoPage } from '@/components/pages/InfoPage';
+import { HistoryPage } from '@/components/pages/HistoryPage';
 import { MagneticButton } from '@/components/ui/magnetic-button';
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -213,7 +215,35 @@ export default function App() {
 
   const [labReportOpen, setLabReportOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
+  const lastLoggedHistoryNav = useRef<string | null>(null);
   const handleNavChange = useCallback((id: string) => { setActiveNav(id); }, []);
+
+  useEffect(() => {
+    if (activeNav !== 'history') {
+      lastLoggedHistoryNav.current = null;
+      return;
+    }
+
+    if (lastLoggedHistoryNav.current === 'history') {
+      return;
+    }
+
+    lastLoggedHistoryNav.current = 'history';
+
+    const entry = {
+      page: 'History',
+      section: 'Analysis',
+      time: new Date().toISOString(),
+    };
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('cad-monitor-visit-history') ?? '[]');
+      const next = [entry, ...((Array.isArray(existing) ? existing : []).filter((item: any) => item?.page !== entry.page || item?.section !== entry.section).slice(0, 9))];
+      localStorage.setItem('cad-monitor-visit-history', JSON.stringify(next.slice(0, 10)));
+    } catch {
+      // no-op: localStorage may be unavailable
+    }
+  }, [activeNav]);
 
   return (
     <>
@@ -236,7 +266,9 @@ export default function App() {
       {activeNav === 'scenarios' && <ScenariosPage />}
       {activeNav === 'riskengine' && <RiskEnginePage />}
       {activeNav === 'fusion' && <FusionLayersPage />}
+      {activeNav === 'healthytip' && <HealthyTipsPage />}
       {activeNav === 'simlogs' && <SimLogsPage />}
+      {activeNav === 'history' && <HistoryPage />}
       {activeNav === 'info' && <InfoPage />}
 
 

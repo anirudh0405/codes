@@ -197,8 +197,6 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
         })}
       </div>
 
-      <div className="w-px h-6 shrink-0 mx-0.5" style={{ background: 'var(--border)' }} />
-
       {/* ── ACTIVE SCENARIO DISPLAY BADGE ─────────────────────────── */}
       {activeProfile && (
         <div
@@ -219,39 +217,7 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
         </div>
       )}
 
-      <div className="w-px h-6 shrink-0 mx-0.5 hidden md:block" style={{ background: 'var(--border)' }} />
-
-      {/* ── ACTION BUTTONS: RANDOMIZE VITALS & LAB REPORT ──────────── */}
-      <div className="flex items-center gap-2 shrink-0">
-        <MagneticButton distance={0.3}>
-          <button
-            id="btn-randomize"
-            type="button"
-            onClick={randomize}
-            className="cursor-pointer rounded-lg bg-gradient-to-b from-blue-500 to-blue-700 px-3 py-1.5 text-[11px] font-semibold text-white ring-1 ring-white/20 ring-offset-1 ring-offset-blue-500 transition-transform duration-150 ring-inset active:scale-95 shadow-sm whitespace-nowrap shrink-0"
-            title={`Randomize parameters within ${currentActiveCategory.toUpperCase()} scope`}
-          >
-            Randomize Vitals
-          </button>
-        </MagneticButton>
-
-        <MagneticButton distance={0.2}>
-          <button
-            id="btn-lab-report"
-            type="button"
-            onClick={onLabReport}
-            className="text-[11px] font-medium rounded-lg px-3 py-1.5 outline-none cursor-pointer transition-colors whitespace-nowrap shrink-0 hover:border-[var(--text-tertiary)]"
-            style={{
-              background: 'var(--surface-alt)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-secondary)',
-            }}
-            title="Open Lab Report Summary"
-          >
-            Lab Report
-          </button>
-        </MagneticButton>
-      </div>
+      {/* ── ACTION BUTTONS ───────────────────────────────────────────── */}
     </div>
   );
 }
