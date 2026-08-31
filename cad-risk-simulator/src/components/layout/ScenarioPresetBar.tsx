@@ -109,19 +109,13 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
                   aria-expanded={isOpen}
                   className={`scenario-category-btn px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer outline-none flex items-center gap-2 ${
                     isCategoryActive
-                      ? 'bg-[var(--accent)] text-[var(--bg)] shadow-md border border-blue-400/40 font-extrabold'
+                      ? 'bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] font-semibold'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] border border-transparent'
                   }`}
                   style={{
-                    boxShadow: isOpen ? '0 0 0 2px var(--accent)' : undefined,
+                    boxShadow: isOpen ? '0 0 0 1px var(--border)' : undefined,
                   }}
                 >
-                  {/* Category active status dot */}
-                  <span
-                    className={`w-2 h-2 rounded-full shrink-0 ${
-                      isCategoryActive ? 'bg-[var(--bg)]' : 'bg-[var(--text-tertiary)]'
-                    }`}
-                  />
                   <span>{cat.shortLabel || cat.label}</span>
                   {/* Dropdown Chevron indicator */}
                   <span
@@ -196,26 +190,6 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
           );
         })}
       </div>
-
-      {/* ── ACTIVE SCENARIO DISPLAY BADGE ─────────────────────────── */}
-      {activeProfile && (
-        <div
-          className="active-scenario-pill hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg shrink-0"
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-          }}
-          title={activeProfile.description}
-        >
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--text-tertiary)]">
-            Active:
-          </span>
-          <span className="text-sm">{activeProfile.emoji}</span>
-          <span className="text-xs font-semibold text-[var(--text-primary)]">
-            {activeProfile.shortName || activeProfile.name}
-          </span>
-        </div>
-      )}
 
       {/* ── ACTION BUTTONS ───────────────────────────────────────────── */}
     </div>
