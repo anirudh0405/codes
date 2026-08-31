@@ -22,7 +22,11 @@ function ShellLiveClock() {
       weekday: 'short',
       day: '2-digit',
       month: 'short',
-    }).format(now)} · ${now.toLocaleTimeString('en-GB')}`;
+    }).format(now)} · ${now.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })}`;
   });
 
   useEffect(() => {
@@ -32,7 +36,11 @@ function ShellLiveClock() {
         weekday: 'short',
         day: '2-digit',
         month: 'short',
-      }).format(now)} · ${now.toLocaleTimeString('en-GB')}`);
+      }).format(now)} · ${now.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })}`);
     }, 1000);
     return () => clearInterval(id);
   }, []);
@@ -149,10 +157,8 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
       <div className="app-main">
         {/* ── TOP BAR (spans center + right columns) ──────────────── */}
         <header className="shell-topbar">
-          {/* Left: Breadcrumb */}
+          {/* Left: Current page label */}
           <div className="shell-topbar-breadcrumb">
-            <span>{navInfo.section}</span>
-            <span className="breadcrumb-separator">/</span>
             <span className="breadcrumb-current">{navInfo.page}</span>
           </div>
 
@@ -161,12 +167,8 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
             {topBarCenter}
           </div>
 
-          {/* Right: LIVE indicator + clock + settings */}
+          {/* Right: clock + settings */}
           <div className="shell-topbar-right">
-            <div className="shell-live-indicator">
-              <div className="live-dot" />
-              LIVE
-            </div>
             <ShellLiveClock />
             <ThemeToggleButton />
           </div>

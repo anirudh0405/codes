@@ -78,7 +78,8 @@
 html, body, #root {
   height: 100vh;
   height: 100dvh;
-  width: 100vw;
+  width: 100%;
+  min-width: 0;
   margin: 0;
   padding: 0;
   font-family: var(--font-ui);
@@ -100,21 +101,6 @@ html, body, #root {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
-
-/* ── Status dot — simple opacity pulse, no glow ──────────────────────────── */
-@keyframes status-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.35; }
-}
-
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--risk-low);
-  animation: status-blink 2s ease-in-out infinite;
-  flex-shrink: 0;
-}
 
 /* ── Card primitives ─────────────────────────────────────────────────────── */
 .panel-card {
@@ -169,7 +155,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .app-shell {
   display: flex;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -257,7 +243,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .sidebar-nav-item.active {
   background: var(--surface-alt);
-  border-left-color: var(--accent);
+  border-left-color: transparent;
   font-weight: 500;
 }
 
@@ -269,7 +255,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .sidebar-nav-item.active svg {
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .sidebar-footer {
@@ -365,17 +351,6 @@ input[type=number]::-webkit-outer-spin-button {
   align-items: center;
   gap: var(--space-md);
   white-space: nowrap;
-}
-
-.shell-live-indicator {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--risk-low);
 }
 
 .shell-settings-btn {
@@ -2703,7 +2678,7 @@ input[type=number]::-webkit-outer-spin-button {
   }
 
   .mobile-tab-bar-item.active {
-    color: var(--accent);
+    color: var(--text-primary);
   }
 
   .mobile-tab-bar-item svg {
@@ -2718,8 +2693,25 @@ input[type=number]::-webkit-outer-spin-button {
 
   /* Top bar adjustments for mobile */
   .shell-topbar {
-    padding: 0 var(--space-md);
-    gap: var(--space-sm);
+    padding: 0 var(--space-sm);
+    gap: var(--space-xs);
+  }
+
+  .shell-topbar-pills {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 0;
+    min-width: 0;
+  }
+
+  .scenario-category-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .scenario-category-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   /* ── Font sizes: bump tertiary text to 12px for mobile readability ──────── */
