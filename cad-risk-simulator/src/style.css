@@ -353,6 +353,15 @@ input[type=number]::-webkit-outer-spin-button {
   white-space: nowrap;
 }
 
+.scenario-bar-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .shell-settings-btn {
   display: flex;
   align-items: center;
@@ -2617,10 +2626,16 @@ input[type=number]::-webkit-outer-spin-button {
     justify-content: flex-start;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    overflow-x: auto;
+    overflow: visible;
   }
   .shell-topbar-pills::-webkit-scrollbar {
     display: none;
+  }
+
+  .shell-topbar {
+    overflow: visible;
+    position: relative;
+    z-index: 80;
   }
 
   /* ── Touch targets: minimum 44px ───────────────────────────────────────── */
@@ -3622,9 +3637,11 @@ html[data-theme='light'] .info-keyword {
 .scenario-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   min-width: 290px;
-  max-width: 340px;
+  max-width: min(90vw, 340px);
+  width: min(90vw, 340px);
   background: var(--surface-alt);
   background: rgba(20, 20, 24, 0.98);
   backdrop-filter: blur(20px);
@@ -3634,7 +3651,28 @@ html[data-theme='light'] .info-keyword {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
   z-index: 9999;
   animation: dropdownFadeSlide 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: top left;
+  transform-origin: top center;
+}
+
+@media (max-width: 768px) {
+  .scenario-dropdown-menu {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    min-width: 0;
+    width: min(86vw, 320px);
+    max-width: min(86vw, 320px);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+
+  .scenario-category-group {
+    overflow: visible;
+    position: relative;
+    z-index: 120;
+  }
 }
 
 @keyframes dropdownFadeSlide {
@@ -3655,6 +3693,23 @@ html[data-theme='light'] .info-keyword {
   padding: 8px 10px 6px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 4px;
+  gap: 8px;
+}
+
+.scenario-dropdown-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
 }
 
 .scenario-dropdown-header-title {
