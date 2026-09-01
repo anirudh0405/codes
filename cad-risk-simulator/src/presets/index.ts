@@ -46,6 +46,12 @@ export interface ScenarioPreset {
 
 export const PRESET_CATEGORIES: { id: PresetCategory; label: string; shortLabel: string; description: string }[] = [
   {
+    id: 'healthy',
+    label: 'Healthy',
+    shortLabel: 'Healthy',
+    description: 'Low-risk, baseline, and normal physiology scenarios',
+  },
+  {
     id: 'cad',
     label: 'Coronary Artery Disease (CAD)',
     shortLabel: 'CAD',

@@ -31,14 +31,16 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
     applyProfile,
     randomize,
     selectedCategory,
+    setSelectedCategory,
   } = useSimStore(useShallow(s => ({
     activeProfile: s.activeProfile,
     applyProfile: s.applyProfile,
     randomize: s.randomize,
     selectedCategory: s.selectedCategory,
+    setSelectedCategory: s.setSelectedCategory,
   })));
 
-  const [openCategory, setOpenCategory] = useState<PresetCategory | null>(null);
+  const [openCategory, setOpenCategory] = useState<PresetCategory | 'scenario' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click or ESC key
@@ -68,23 +70,30 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
     };
   }, [openCategory]);
 
-  const toggleCategory = (catId: PresetCategory) => {
+  const toggleCategory = (catId: PresetCategory | 'scenario') => {
     setOpenCategory(prev => (prev === catId ? null : catId));
+  };
+
+  const handleSelectScenarioCategory = (catId: PresetCategory) => {
+    setSelectedCategory(catId);
+    setOpenCategory(catId);
   };
 
   const handleSelectScenario = (preset: ScenarioPreset) => {
     applyProfile(preset.id);
-    setOpenCategory(null);
+    setOpenCategory('scenario');
   };
 
   const currentActiveCategory = activeProfile?.category ?? selectedCategory ?? 'healthy';
+  const activeCategoryPresets = openCategory && openCategory !== 'scenario'
+    ? SCENARIO_PRESETS.filter(p => p.category === openCategory)
+    : SCENARIO_PRESETS.filter(p => p.category === currentActiveCategory);
 
   return (
     <div
       ref={containerRef}
       className="scenario-preset-bar-root flex items-center gap-3 py-1"
     >
-      {/* ── THREE MAIN CATEGORY DROPDOWN BUTTONS ──────────────────── */}
       <div
         className="scenario-category-group flex items-center rounded-xl p-1 gap-1.5"
         style={{
@@ -93,105 +102,121 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
           position: 'relative',
         }}
       >
-        {PRESET_CATEGORIES.map(cat => {
-          const isOpen = openCategory === cat.id;
-          const isCategoryActive = currentActiveCategory === cat.id;
-          const presetsForCat = SCENARIO_PRESETS.filter(p => p.category === cat.id);
+        <div className="relative category-dropdown-container">
+          <MagneticButton distance={0.15}>
+            <button
+              type="button"
+              id="scenario-dropdown-trigger"
+              onClick={() => toggleCategory('scenario')}
+              aria-haspopup="true"
+              aria-expanded={openCategory === 'scenario'}
+              className={`scenario-category-btn px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer outline-none flex items-center gap-2 ${
+                currentActiveCategory
+                  ? 'bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] font-semibold'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] border border-transparent'
+              }`}
+              style={{
+                boxShadow: openCategory === 'scenario' ? '0 0 0 1px var(--border)' : undefined,
+              }}
+            >
+              <span>Scenario</span>
+              <span
+                className="text-[10px] opacity-80 shrink-0 transition-transform duration-200"
+                style={{ transform: openCategory === 'scenario' ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ▼
+              </span>
+            </button>
+          </MagneticButton>
 
-          return (
-            <div key={cat.id} className="relative category-dropdown-container">
-              <MagneticButton distance={0.15}>
+          {(openCategory === 'scenario' || PRESET_CATEGORIES.some(cat => cat.id === openCategory)) && (
+            <div
+              role="menu"
+              aria-label="Scenario categories"
+              className="scenario-dropdown-menu"
+            >
+              <div className="scenario-dropdown-header">
                 <button
                   type="button"
-                  id={`cat-btn-${cat.id}`}
-                  onClick={() => toggleCategory(cat.id)}
-                  aria-haspopup="true"
-                  aria-expanded={isOpen}
-                  className={`scenario-category-btn px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer outline-none flex items-center gap-2 ${
-                    isCategoryActive
-                      ? 'bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] font-semibold'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] border border-transparent'
-                  }`}
-                  style={{
-                    boxShadow: isOpen ? '0 0 0 1px var(--border)' : undefined,
-                  }}
+                  className="scenario-dropdown-back"
+                  onClick={() => setOpenCategory('scenario')}
+                  style={{ display: openCategory === 'scenario' ? 'none' : 'inline-flex' }}
                 >
-                  <span>{cat.shortLabel || cat.label}</span>
-                  {/* Dropdown Chevron indicator */}
-                  <span
-                    className="text-[10px] opacity-80 shrink-0 transition-transform duration-200"
-                    style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    ▼
-                  </span>
+                  ← Back
                 </button>
-              </MagneticButton>
+                <span className="scenario-dropdown-header-title">
+                  {openCategory === 'scenario' ? 'Scenario' : PRESET_CATEGORIES.find(cat => cat.id === openCategory)?.label ?? 'Scenario'}
+                </span>
+                <span className="scenario-dropdown-header-count">
+                  {openCategory === 'scenario' ? `${PRESET_CATEGORIES.length} groups` : `${activeCategoryPresets.length} scenarios`}
+                </span>
+              </div>
 
-              {/* ── DROPDOWN MENU ──────────────────────────────────── */}
-              {isOpen && (
-                <div
-                  role="menu"
-                  aria-label={`${cat.label} scenarios`}
-                  className="scenario-dropdown-menu"
-                >
-                  <div className="scenario-dropdown-header">
-                    <span className="scenario-dropdown-header-title">{cat.label}</span>
-                    <span className="scenario-dropdown-header-count">
-                      {presetsForCat.length} scenarios
-                    </span>
-                  </div>
+              {openCategory === 'scenario' ? (
+                <div className="scenario-dropdown-list">
+                  {PRESET_CATEGORIES.map(cat => {
+                    const isCategoryActive = currentActiveCategory === cat.id;
+                    const presetsForCat = SCENARIO_PRESETS.filter(p => p.category === cat.id);
 
-                  <div className="scenario-dropdown-list">
-                    {presetsForCat.map(preset => {
-                      const isPresetActive = activeProfile?.id === preset.id;
-                      return (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          role="menuitem"
-                          id={`preset-option-${preset.id}`}
-                          onClick={() => handleSelectScenario(preset)}
-                          className={`scenario-dropdown-item ${
-                            isPresetActive ? 'active' : ''
-                          }`}
-                        >
-                          <span className="scenario-dropdown-item-emoji">
-                            {preset.emoji}
-                          </span>
-                          <div className="scenario-dropdown-item-info">
-                            <div className="scenario-dropdown-item-name-row">
-                              <span className="scenario-dropdown-item-name">
-                                {preset.shortName || preset.name}
-                              </span>
-                              {preset.severity && (
-                                <span className="scenario-dropdown-item-badge">
-                                  {preset.severity}
-                                </span>
-                              )}
-                            </div>
-                            <span className="scenario-dropdown-item-desc">
-                              {preset.description}
-                            </span>
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        role="menuitem"
+                        id={`scenario-category-${cat.id}`}
+                        onClick={() => handleSelectScenarioCategory(cat.id)}
+                        className={`scenario-dropdown-item ${isCategoryActive ? 'active' : ''}`}
+                      >
+                        <div className="scenario-dropdown-item-info" style={{ width: '100%' }}>
+                          <div className="scenario-dropdown-item-name-row">
+                            <span className="scenario-dropdown-item-name">{cat.label}</span>
+                            {isCategoryActive && (
+                              <span className="scenario-dropdown-item-check" aria-hidden="true">✓</span>
+                            )}
                           </div>
-
-                          {/* Active Checkmark indicator */}
-                          {isPresetActive && (
-                            <span className="scenario-dropdown-item-check" aria-hidden="true">
-                              ✓
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                          <span className="scenario-dropdown-item-desc">
+                            {presetsForCat.length} scenarios
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="scenario-dropdown-list">
+                  {activeCategoryPresets.map(preset => {
+                    const isPresetActive = activeProfile?.id === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        role="menuitem"
+                        id={`preset-option-${preset.id}`}
+                        onClick={() => handleSelectScenario(preset)}
+                        className={`scenario-dropdown-item ${isPresetActive ? 'active' : ''}`}
+                      >
+                        <span className="scenario-dropdown-item-emoji">{preset.emoji}</span>
+                        <div className="scenario-dropdown-item-info">
+                          <div className="scenario-dropdown-item-name-row">
+                            <span className="scenario-dropdown-item-name">{preset.shortName || preset.name}</span>
+                            {preset.severity && (
+                              <span className="scenario-dropdown-item-badge">{preset.severity}</span>
+                            )}
+                          </div>
+                          <span className="scenario-dropdown-item-desc">{preset.description}</span>
+                        </div>
+                        {isPresetActive && (
+                          <span className="scenario-dropdown-item-check" aria-hidden="true">✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
-
-      {/* ── ACTION BUTTONS ───────────────────────────────────────────── */}
     </div>
   );
 }
