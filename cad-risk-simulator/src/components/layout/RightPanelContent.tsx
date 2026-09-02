@@ -94,14 +94,17 @@ function RiskArcGauge({ score, band }: { score: number; band: string }) {
 
 // ── Section 3: Contributions ─────────────────────────────────────────────────
 
-const CONTRIB_ROWS: { key: string; label: string; isComposite?: boolean }[] = [
-  { key: 'bloodPressure', label: 'BP' },
-  { key: 'heartRate',     label: 'HR' },
-  { key: 'hrv',           label: 'HRV' },
-  { key: 'stress',        label: 'Stress' },
-  { key: 'qtInterval',    label: 'QTc' },
-  { key: 'stSegment',     label: 'ST-Seg' },
-  { key: 'apoB',          label: 'Metabolic-Vascular', isComposite: true },
+const CONTRIB_ROWS: { key: keyof import('../../riskEngine').RiskContributions; label: string; isComposite?: boolean }[] = [
+  { key: 'bloodPressure',    label: 'BP' },
+  { key: 'heartRate',        label: 'HR' },
+  { key: 'hrv',              label: 'HRV' },
+  { key: 'stress',           label: 'Stress' },
+  { key: 'qtInterval',       label: 'QTc' },
+  { key: 'stSegment',        label: 'ST-Seg' },
+  { key: 'apoB',             label: 'Metabolic-Vascular', isComposite: true },
+  { key: 'smoking',          label: 'Smoking' },
+  { key: 'totalCholesterol', label: 'TC (est.)' },
+  { key: 'triglycerides',    label: 'TG (est.)' },
 ];
 
 const CONTRIB_COLORS = [
@@ -112,6 +115,9 @@ const CONTRIB_COLORS = [
   '#a78bfa',
   '#f472b6',
   '#14b8a6',
+  '#fb923c',
+  '#818cf8',
+  '#34d399',
 ];
 
 function ContributionsSection() {
@@ -119,14 +125,14 @@ function ContributionsSection() {
 
   const pieData = useMemo(() => {
     const values = CONTRIB_ROWS.map(({ key, label, isComposite }, index) => {
-      const raw = riskResult?.rawContributions[key as keyof typeof riskResult.rawContributions] ?? 0;
+      const val = riskResult?.contributions ? (riskResult.contributions[key] ?? 0) : 0;
       const color = CONTRIB_COLORS[index % CONTRIB_COLORS.length];
 
       return {
         key,
         label,
         isComposite,
-        value: Math.max(raw, 0),
+        value: Math.max(val, 0),
         color,
       };
     });
@@ -134,9 +140,10 @@ function ContributionsSection() {
     return values.filter(item => item.value > 0);
   }, [riskResult]);
 
-  const total = pieData.reduce((sum, item) => sum + item.value, 0);
+  const scoreDisplay = Math.round(riskResult?.score ?? 0);
 
   const renderSliceLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+    if (percent < 0.05) return null; // Hide labels on tiny slices (<5%) to prevent visual clutter
     const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
@@ -165,19 +172,19 @@ function ContributionsSection() {
         <ResponsiveContainer width="100%" height={150}>
           <PieChart>
             <Pie
-              data={pieData}
+              data={pieData.length > 0 ? pieData : [{ key: 'empty', label: 'None', value: 1, color: 'var(--border)' }]}
               dataKey="value"
               nameKey="label"
               innerRadius={30}
               outerRadius={56}
-              paddingAngle={2}
+              paddingAngle={pieData.length > 1 ? 2 : 0}
               stroke="var(--surface)"
               strokeWidth={2}
               cornerRadius={4}
-              label={renderSliceLabel}
+              label={pieData.length > 0 ? renderSliceLabel : false}
               labelLine={false}
             >
-              {pieData.map(entry => (
+              {(pieData.length > 0 ? pieData : [{ key: 'empty', label: 'None', value: 1, color: 'var(--border)' }]).map(entry => (
                 <Cell key={entry.key} fill={entry.color} />
               ))}
             </Pie>
@@ -189,7 +196,7 @@ function ContributionsSection() {
               className="rp-contrib-chart-center"
             >
               <tspan x="50%" dy="-4">RISK</tspan>
-              <tspan x="50%" dy="14" className="tabular-nums">{total > 0 ? Math.round(total) : 0}</tspan>
+              <tspan x="50%" dy="14" className="tabular-nums">{scoreDisplay}</tspan>
             </text>
           </PieChart>
         </ResponsiveContainer>
@@ -206,14 +213,14 @@ function ContributionsSection() {
               </span>
             </span>
             <span className="rp-contrib-value tabular-nums">
-              <AnimatedNumber value={value} className="rp-contrib-value-inner" />
+              <AnimatedNumber value={value} className="rp-contrib-value-inner" /> pts
             </span>
           </div>
         ))}
       </div>
 
       <div className="rp-contrib-footnote">
-        * PPG morphology estimate — not lab-measured
+        * Weighted contribution points toward 0–100 CAD Risk Score
       </div>
     </div>
   );

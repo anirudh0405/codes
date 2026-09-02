@@ -104,11 +104,11 @@ function randomizeParamsForCategory(category: PresetCategory | null): {
   labPatch: Partial<LabInputs>;
 } {
   if (category === 'healthy') {
-    const hr = Math.round(58 + Math.random() * 26);    // 58–84 bpm
-    const systolic = Math.round(105 + Math.random() * 20); // 105–125 mmHg
-    const diastolic = Math.round(65 + Math.random() * 15); // 65–80 mmHg
-    const hrv = Math.round(45 + Math.random() * 45);    // 45–90 ms
-    const stress = Math.round(10 + Math.random() * 25);  // 10–35
+    const hr = Math.round(60 + Math.random() * 20);        // 60–80 bpm
+    const systolic = Math.round(108 + Math.random() * 10);  // 108–118 mmHg (optimal healthy <120)
+    const diastolic = Math.round(68 + Math.random() * 10);  // 68–78 mmHg (optimal healthy <80)
+    const hrv = Math.round(50 + Math.random() * 35);        // 50–85 ms
+    const stress = Math.round(10 + Math.random() * 20);      // 10–30
 
     return {
       params: {

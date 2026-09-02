@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileTabBar } from './MobileTabBar';
+import { CadRiskTrendBar } from '../Dashboard/CadRiskTrendBar';
 
 // ── Live Clock ───────────────────────────────────────────────────────────────
 
@@ -176,9 +177,12 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
 
         {/* ── CONTENT BODY: Center + Right split ──────────────────── */}
         <div className="app-content-body">
-          {/* CENTER: scrollable main content */}
+          {/* CENTER: main content + persistent bottom CAD Risk Trend bar */}
           <div className="app-center">
-            {children}
+            <div className="app-center-scroll">
+              {children}
+            </div>
+            <CadRiskTrendBar />
           </div>
 
           {/* RIGHT: fixed risk panel */}

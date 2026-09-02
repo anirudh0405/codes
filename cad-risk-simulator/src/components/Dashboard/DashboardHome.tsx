@@ -13,6 +13,7 @@ import { WEIGHTS } from '../../riskEngine';
 import { classifyBP } from '../../lib/bpRanges';
 import { CardiacReadouts } from '../layout/RightPanelContent';
 import { CVDInfoPanel } from './CVDInfoPanel';
+import { RangeIndicator } from '../RangeIndicator';
 
 // ── Risk helpers ─────────────────────────────────────────────────────────────
 
@@ -53,12 +54,6 @@ export function DashboardHome() {
   const sys   = snapshot?.systolic ?? 120;
   const dia   = snapshot?.diastolic ?? 80;
   const hrvVal = snapshot?.hrv ?? 0;
-  const whoBand = riskResult?.whoRiskBand;
-
-  // Calculate BMI from patient profile
-  const height = patientProfile.height ?? 170;
-  const weight = patientProfile.weight ?? 70;
-  const bmi = weight / Math.pow(height / 100, 2);
 
   const bpInfo = classifyBP(sys, dia);
   const hrv = hrvStatusLabel(hrvVal);
@@ -87,6 +82,7 @@ export function DashboardHome() {
           <span className="dash-stat-sub" style={{ color: 'var(--text-secondary)' }}>
             NSR
           </span>
+          <RangeIndicator rangeKey="heartRate" value={hr} />
         </div>
 
         {/* Card 3: Blood Pressure */}
@@ -98,11 +94,9 @@ export function DashboardHome() {
           <span className="dash-stat-sub" style={{ color: bpInfo.color }}>
             {bpInfo.label} ({bpInfo.shortLabel})
           </span>
-          <div className="mt-1.5 pt-1.5 border-t border-[var(--border)] text-[10px] text-[var(--text-tertiary)] flex flex-col gap-0.5">
-            <span style={{ color: 'var(--risk-low)' }}>Healthy: &lt;120/80 mmHg</span>
-            <span style={{ color: sys >= 130 || dia >= 80 ? 'var(--risk-high)' : 'var(--text-tertiary)' }}>
-              Risk Threshold: ≥130/80 mmHg
-            </span>
+          <div style={{ marginTop: 'var(--space-xs)', display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+            <RangeIndicator rangeKey="systolicBP" value={sys} />
+            <RangeIndicator rangeKey="diastolicBP" value={dia} />
           </div>
         </div>
 
@@ -115,6 +109,7 @@ export function DashboardHome() {
           <span className="dash-stat-sub" style={{ color: hrv.color }}>
             {hrv.label}
           </span>
+          <RangeIndicator rangeKey="hrv" value={hrvVal} />
         </div>
       </div>
 

@@ -24,9 +24,9 @@ interface BPParams {
 export function generateBP(params: BPParams = {}): BPRawData {
   const { systolic = 120, diastolic = 80 } = params;
 
-  // Add small physiological variability (±3 mmHg beat-to-beat)
-  const sysSample = Math.round(systolic + (Math.random() - 0.5) * 6);
-  const diaSample = Math.round(diastolic + (Math.random() - 0.5) * 4);
+  // Add subtle physiological variability (±1 mmHg beat-to-beat)
+  const sysSample = Math.round(systolic + (Math.random() - 0.5) * 2);
+  const diaSample = Math.round(diastolic + (Math.random() - 0.5) * 2);
 
   const map = Math.round(diaSample + (sysSample - diaSample) / 3);
   const pp = sysSample - diaSample;
