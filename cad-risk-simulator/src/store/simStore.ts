@@ -24,6 +24,7 @@ import {
   LP_A_CLAMP,
   LP_A_REFERENCE,
 } from '../features/apoBCalculation';
+import { DiseaseSubScores, computeDiseaseSubScores } from '../riskEngine/diseaseSubScores';
 import {
   PatientProfileData,
   DEFAULT_PATIENT_PROFILE_DATA,
@@ -37,6 +38,9 @@ export interface WaveformPoint {
 }
 
 export type BPMode = 'ptt' | 'manual';
+
+export const FAI_CLAMP = { min: -190, max: -30, default: -80 };
+export const CAC_CLAMP = { min: 0, default: 0 };
 
 export interface SimState {
   // ── Control Parameters (set by user via sliders / presets / randomize) ──────
@@ -67,6 +71,13 @@ export interface SimState {
   // ── Computed ApoB Panel (reactive, recomputed on every labInputs change) ──
   apoBPanel: ApoBPanel;
 
+  // ── CT Radiomic & Calcium Biomarkers (Manual Entry) ───────────────────────
+  fai: number;
+  cac: number;
+
+  // ── Disease-Specific Sub-Scores (5 conditions) ────────────────────────────
+  diseaseSubScores: DiseaseSubScores | null;
+
   // ── CVD Disease-Specific State ─────────────────────────────────────────────
   /** Disease-specific parameters for the currently active CVD scenario (null for Healthy/CAD) */
   activeDiseaseParams: Record<string, string | number | boolean> | null;
@@ -85,6 +96,8 @@ export interface SimState {
   setBPMode: (mode: BPMode) => void;
   setPttDerivedBP: (result: PTTDerivedBPResult) => void;
   randomize: () => void;
+  setFai: (val: number) => void;
+  setCac: (val: number) => void;
   setLabInputs: (inputs: Partial<Omit<LabInputs, 'trigsManuallySet'>>, manualTrig?: boolean) => void;
   updatePipelineData: (
     snapshot: PhysiologicalSnapshot,
@@ -92,16 +105,18 @@ export interface SimState {
     status: Record<SensorType, SensorStatus>,
     ecgWaveform: number[],
     ppgWaveform: number[],
-    ppgTriglycerides?: number
+    ppgTriglycerides?: number,
+    diseaseSubScores?: DiseaseSubScores
   ) => void;
 }
 
-// Physiologically plausible random values within a specific category or across all
 // Physiologically plausible random values within a specific category or across all
 function randomizeParamsForCategory(category: PresetCategory | null): {
   params: MockParams;
   profilePatch: Partial<PatientProfileData>;
   labPatch: Partial<LabInputs>;
+  fai?: number;
+  cac?: number;
 } {
   if (category === 'healthy') {
     const hr = Math.round(60 + Math.random() * 20);        // 60–80 bpm
@@ -134,6 +149,8 @@ function randomizeParamsForCategory(category: PresetCategory | null): {
         triglycerides: Math.round(75 + Math.random() * 50),     // 75–125 mg/dL (Healthy)
         lpa: parseFloat((8 + Math.random() * 10).toFixed(1)),   // 8–18 mg/dL (Healthy median)
       },
+      fai: -82,
+      cac: 0,
     };
   }
 
@@ -169,6 +186,8 @@ function randomizeParamsForCategory(category: PresetCategory | null): {
         triglycerides: Math.round(160 + Math.random() * 90),    // 160–250 mg/dL (High CAD Trig)
         lpa: Math.round(35 + Math.random() * 30),              // 35–65 mg/dL (Elevated Lp(a))
       },
+      fai: Math.round(-74 + Math.random() * 16),
+      cac: Math.round(20 + Math.random() * 350),
     };
   }
 
@@ -203,6 +222,8 @@ function randomizeParamsForCategory(category: PresetCategory | null): {
         triglycerides: Math.round(150 + Math.random() * 50),    // 150–200 mg/dL
         lpa: Math.round(30 + Math.random() * 20),              // 30–50 mg/dL
       },
+      fai: Math.round(-72 + Math.random() * 12),
+      cac: Math.round(30 + Math.random() * 250),
     };
   }
 
@@ -224,6 +245,8 @@ function randomizeParamsForCategory(category: PresetCategory | null): {
     },
     profilePatch: {},
     labPatch: {},
+    fai: Math.round(-85 + Math.random() * 45),
+    cac: Math.round(Math.random() * 400),
   };
 }
 
@@ -247,6 +270,9 @@ export const useSimStore = create<SimState>((set, get) => ({
 
   labInputs: { ...DEFAULT_LAB_INPUTS },
   apoBPanel: calculateApoBPanel(DEFAULT_LAB_INPUTS),
+  fai: DEFAULT_PRESET.labInputs?.fai ?? -82,
+  cac: DEFAULT_PRESET.labInputs?.cac ?? 0,
+  diseaseSubScores: null,
 
   // CVD-specific state
   activeDiseaseParams: null,
@@ -290,6 +316,9 @@ export const useSimStore = create<SimState>((set, get) => ({
         ecgRhythm: profile.ecgRhythm === 'afib' ? 'afib' : 'sinus',
       };
 
+      const faiVal = presetLab.fai ?? (profile.category === 'healthy' ? -82 : -65);
+      const cacVal = presetLab.cac ?? (profile.category === 'healthy' ? 0 : 150);
+
       return {
         params: newParams,
         patientProfile: { ...profile.patientProfile },
@@ -297,6 +326,8 @@ export const useSimStore = create<SimState>((set, get) => ({
         selectedCategory: profile.category,
         labInputs: newLabInputs,
         apoBPanel: calculateApoBPanel(newLabInputs),
+        fai: faiVal,
+        cac: cacVal,
         // CVD-specific state
         activeDiseaseParams: profile.diseaseParameters ?? null,
         activeEcgRhythm: profile.ecgRhythm ?? 'sinus',
@@ -326,7 +357,7 @@ export const useSimStore = create<SimState>((set, get) => ({
 
   randomize: () => {
     const { selectedCategory, patientProfile, labInputs } = get();
-    const { params, profilePatch, labPatch } = randomizeParamsForCategory(selectedCategory);
+    const { params, profilePatch, labPatch, fai: randFai, cac: randCac } = randomizeParamsForCategory(selectedCategory);
 
     const newLabInputs: LabInputs = {
       ...labInputs,
@@ -334,17 +365,57 @@ export const useSimStore = create<SimState>((set, get) => ({
       trigsManuallySet: false,
     };
 
-    set({
+    set((s) => ({
       params,
       patientProfile: { ...patientProfile, ...profilePatch },
       labInputs: newLabInputs,
       apoBPanel: calculateApoBPanel(newLabInputs),
+      fai: randFai ?? s.fai,
+      cac: randCac ?? s.cac,
       activeProfile: null,
       // Clear CVD-specific state on randomize
       activeDiseaseParams: null,
       activeEcgRhythm: 'sinus',
       activeMechanismSteps: null,
       activeSeverity: null,
+    }));
+  },
+
+  setFai: (val: number) => {
+    const clamped = Math.max(FAI_CLAMP.min, Math.min(FAI_CLAMP.max, val));
+    set((s) => {
+      const nextScores = s.snapshot
+        ? computeDiseaseSubScores({
+            ...s.snapshot,
+            ...s.patientProfile,
+            fai: clamped,
+            cac: s.cac,
+            ldl: s.apoBPanel.ldl,
+            nonHDL: s.apoBPanel.nonHDL,
+            apoB: s.apoBPanel.apoB,
+            apoBApoa1Ratio: s.labInputs.hdl > 0 ? s.apoBPanel.apoB / (s.labInputs.hdl * 2) : undefined,
+          })
+        : s.diseaseSubScores;
+      return { fai: clamped, diseaseSubScores: nextScores };
+    });
+  },
+
+  setCac: (val: number) => {
+    const clamped = Math.max(CAC_CLAMP.min, val);
+    set((s) => {
+      const nextScores = s.snapshot
+        ? computeDiseaseSubScores({
+            ...s.snapshot,
+            ...s.patientProfile,
+            fai: s.fai,
+            cac: clamped,
+            ldl: s.apoBPanel.ldl,
+            nonHDL: s.apoBPanel.nonHDL,
+            apoB: s.apoBPanel.apoB,
+            apoBApoa1Ratio: s.labInputs.hdl > 0 ? s.apoBPanel.apoB / (s.labInputs.hdl * 2) : undefined,
+          })
+        : s.diseaseSubScores;
+      return { cac: clamped, diseaseSubScores: nextScores };
     });
   },
 
@@ -389,7 +460,7 @@ export const useSimStore = create<SimState>((set, get) => ({
     });
   },
 
-  updatePipelineData: (snapshot, risk, status, ecgWaveform, ppgWaveform, ppgTriglycerides) => {
+  updatePipelineData: (snapshot, risk, status, ecgWaveform, ppgWaveform, ppgTriglycerides, diseaseSubScores) => {
     const now = Date.now();
     const newECG: WaveformPoint[] = ecgWaveform.slice(0, 100).map((v, i) => ({
       t: waveformTicker * 100 + i,
@@ -425,6 +496,7 @@ export const useSimStore = create<SimState>((set, get) => ({
         ].slice(-TREND_HISTORY_LENGTH),
         labInputs,
         apoBPanel,
+        diseaseSubScores: diseaseSubScores ?? s.diseaseSubScores,
       };
     });
   },

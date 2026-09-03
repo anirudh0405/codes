@@ -19,6 +19,7 @@ import { sensorManager } from '../sensorManager';
 import { extractFeatures, calculatePTT, estimateBPFromPTT, DEFAULT_PTT_CALIBRATION } from '../features';
 import { fuseFeatures } from '../fusion';
 import { scoreFromSnapshot } from '../riskEngine';
+import { computeDiseaseSubScores } from '../riskEngine/diseaseSubScores';
 import { useSimStore } from '../store/simStore';
 import { LatestReadings } from '../sensorManager';
 
@@ -76,7 +77,7 @@ export function usePipeline() {
         // Store current PTT-derived BP in Zustand store for UI access
         setPttDerivedBP(pttBP);
 
-        const { bpMode, apoBPanel, labInputs, patientProfile } = useSimStore.getState();
+        const { bpMode, apoBPanel, labInputs, patientProfile, fai, cac } = useSimStore.getState();
 
         // Apply PTT-derived BP as DEFAULT data source if bpMode === 'ptt'
         let systolic = rawSnapshot.systolic;
@@ -102,6 +103,18 @@ export function usePipeline() {
         // Layer 5: CAD Risk Engine (incorporates INTERHEART weights, PTT BP & WHO Risk Chart)
         const risk = scoreFromSnapshot(snapshot, patientProfile);
 
+        // Disease-Specific Sub-Scores (5 conditions computed alongside CAD Risk Score)
+        const diseaseSubScores = computeDiseaseSubScores({
+          ...snapshot,
+          ...patientProfile,
+          fai,
+          cac,
+          ldl: apoBPanel.ldl,
+          nonHDL: apoBPanel.nonHDL,
+          apoB: apoBPanel.apoB,
+          apoBApoa1Ratio: labInputs.hdl > 0 ? apoBPanel.apoB / (labInputs.hdl * 2.0) : undefined,
+        });
+
         // Write to store (Layer 7 reads from here).
         updatePipelineData(
           snapshot,
@@ -110,6 +123,7 @@ export function usePipeline() {
           ecgWaveform,
           ppgWaveform,
           snapshot.triglycerides,
+          diseaseSubScores,
         );
       });
 

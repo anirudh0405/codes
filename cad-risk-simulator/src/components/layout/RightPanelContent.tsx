@@ -413,6 +413,179 @@ function MobileBottomSheet({
   );
 }
 
+// ── Section 1b: Disease-Specific Risk ────────────────────────────────────────
+
+function getSubScoreZone(val: number) {
+  if (val <= 25) {
+    return {
+      color: 'var(--risk-low, #34C759)',
+      label: 'Healthy',
+    };
+  }
+  if (val <= 50) {
+    return {
+      color: 'var(--accent, #4A9DFF)',
+      label: 'Watch',
+    };
+  }
+  if (val <= 75) {
+    return {
+      color: 'var(--alert-amber, #FFB340)',
+      label: 'Moderate',
+    };
+  }
+  return {
+    color: 'var(--alert-red, #FF453A)',
+    label: 'High',
+  };
+}
+
+function DiseaseSpecificRiskSection() {
+  const diseaseSubScores = useSimStore(s => s.diseaseSubScores);
+
+  const subScoreList = [
+    {
+      name: 'Atherosclerosis',
+      score: diseaseSubScores?.atherosclerosis ?? 0,
+    },
+    {
+      name: 'Myocardial Ischemia',
+      score: diseaseSubScores?.myocardialIschemia ?? 0,
+    },
+    {
+      name: 'Arrhythmia',
+      score: diseaseSubScores?.arrhythmia ?? 0,
+    },
+    {
+      name: 'Hypertensive Heart Disease',
+      score: diseaseSubScores?.hypertensiveHeartDisease ?? 0,
+    },
+    {
+      name: 'Heart Failure',
+      score: diseaseSubScores?.heartFailure ?? 0,
+    },
+  ];
+
+  return (
+    <section className="rp-section rp-section-disease-risk" style={{ padding: 'var(--space-md) var(--space-md) var(--space-sm)' }}>
+      <span
+        className="rp-section-label"
+        style={{
+          fontSize: 9,
+          textTransform: 'uppercase',
+          color: 'var(--text-tertiary)',
+          letterSpacing: '0.08em',
+          fontWeight: 600,
+          display: 'block',
+          marginBottom: 10,
+        }}
+      >
+        DISEASE-SPECIFIC RISK
+      </span>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {subScoreList.map(({ name, score }) => {
+          const zone = getSubScoreZone(score);
+          const barPct = Math.max(0, Math.min(100, score));
+
+          return (
+            <div
+              key={name}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(95px, 1fr) 75px 65px',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              {/* Left: disease name (13px --t2) */}
+              <span
+                style={{
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  fontWeight: 500,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={name}
+              >
+                {name}
+              </span>
+
+              {/* Center: thin horizontal bar (0 to 100) */}
+              <div
+                style={{
+                  position: 'relative',
+                  height: 4,
+                  borderRadius: 2,
+                  background: 'var(--border)',
+                  width: '100%',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${barPct}%`,
+                    height: '100%',
+                    background: zone.color,
+                    borderRadius: 2,
+                    transition: 'width 0.35s ease, background-color 0.35s ease',
+                  }}
+                />
+              </div>
+
+              {/* Right: numeric score (13px tabular-nums) + band label (10px) */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'flex-end',
+                  gap: 4,
+                }}
+              >
+                <span
+                  className="tabular-nums"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: zone.color,
+                  }}
+                >
+                  {Math.round(score)}
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    color: zone.color,
+                  }}
+                >
+                  {zone.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footnote below all 5 rows: 9px --t4 */}
+      <div
+        style={{
+          fontSize: 9,
+          color: 'var(--text-tertiary)',
+          marginTop: 10,
+          lineHeight: 1.4,
+          borderTop: '1px solid var(--border)',
+          paddingTop: 8,
+        }}
+      >
+        Sub-scores are weighted composites from existing sensor parameters. FAI and CAC, when entered, contribute to Atherosclerosis risk only. Not individually clinically validated — research simulator.
+      </div>
+    </section>
+  );
+}
+
 // ── Main Export: RightPanelContent ────────────────────────────────────────────
 
 export function RightPanelContent() {
@@ -431,6 +604,9 @@ export function RightPanelContent() {
           Confidence: {Math.round(lipidConf * 100)}%
         </span>
       </section>
+
+      {/* ── Section 1b: Disease-Specific Risk ──────────────────────── */}
+      <DiseaseSpecificRiskSection />
 
       {/* ── Section 2: Contributions ──────────────────────────────── */}
       <section className="rp-section rp-section-contributions">

@@ -12,6 +12,7 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { classifyBP } from '../../lib/bpRanges';
+import { FaiCard, CacCard } from './CtBiomarkerCards';
 
 interface SelectedWavePoint {
   t: number;
@@ -402,6 +403,12 @@ export function LiveWaveforms() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── CT Biomarker Readouts (FAI & CAC) ──────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
+        <FaiCard />
+        <CacCard />
       </div>
     </div>
   );

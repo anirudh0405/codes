@@ -33,6 +33,8 @@ export interface ScenarioPreset {
     hdl?: number;
     triglycerides?: number;
     lpa?: number;
+    fai?: number;
+    cac?: number;
   };
   /** ECG rhythm for this scenario — drives the ECG generator mode. Default: 'sinus' */
   ecgRhythm?: ECGRhythm;
@@ -108,6 +110,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 55,
       triglycerides: 105,
       lpa: 12.9,
+      fai: -82,
+      cac: 0,
     },
   },
   {
@@ -151,6 +155,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 58,
       triglycerides: 115,
       lpa: 12.9,
+      fai: -80,
+      cac: 0,
     },
   },
 
@@ -196,6 +202,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 42,
       triglycerides: 165,
       lpa: 38,
+      fai: -72,
+      cac: 45,
     },
   },
   {
@@ -239,6 +247,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 38,
       triglycerides: 195,
       lpa: 47,
+      fai: -71,
+      cac: 20,
     },
   },
   {
@@ -282,6 +292,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 32,
       triglycerides: 240,
       lpa: 58,
+      fai: -62,
+      cac: 320,
     },
   },
   {
@@ -325,6 +337,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 36,
       triglycerides: 210,
       lpa: 42,
+      fai: -65,
+      cac: 85,
     },
   },
   {
@@ -368,6 +382,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 34,
       triglycerides: 230,
       lpa: 51,
+      fai: -68,
+      cac: 210,
     },
   },
   {
@@ -411,6 +427,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 44,
       triglycerides: 145,
       lpa: 45,
+      fai: -58,
+      cac: 480,
     },
   },
 
@@ -464,6 +482,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 38,
       triglycerides: 190,
       lpa: 42,
+      fai: -68,
+      cac: 120,
     },
     diseaseParameters: {
       'Cerebral Artery Obstruction': '75%',
@@ -526,6 +546,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 40,
       triglycerides: 175,
       lpa: 38,
+      fai: -70,
+      cac: 60,
     },
     diseaseParameters: {
       'Cerebral Vessel Status': 'Ruptured',
@@ -589,6 +611,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 36,
       triglycerides: 200,
       lpa: 48,
+      fai: -64,
+      cac: 280,
     },
     diseaseParameters: {
       'Peripheral Artery Stenosis': '65%',
@@ -655,6 +679,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 35,
       triglycerides: 185,
       lpa: 50,
+      fai: -66,
+      cac: 190,
     },
     diseaseParameters: {
       'LVEF (Left Ventricular Ejection Fraction)': '30%',
@@ -723,6 +749,8 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       hdl: 45,
       triglycerides: 150,
       lpa: 30,
+      fai: -74,
+      cac: 40,
     },
     diseaseParameters: {
       'ECG Rhythm': 'Atrial Fibrillation',

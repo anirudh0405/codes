@@ -134,6 +134,8 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
       { name: 'ApoA1', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '—', cadRange: '—', citation: '—' },
       { name: 'ApoB/ApoA1 Ratio', source: 'Lab calculation', derivedFrom: 'ApoB ÷ ApoA1', normalRange: '0.76±0.19', cadRange: '0.92±0.26', citation: 'Ashavaid et al. 2005' },
       { name: 'Lp(a)', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '12.9 mg/dL (median)', cadRange: '44.5±19.8 mg/dL', citation: 'Ashavaid et al. 2005' },
+      { name: 'Fat Attenuation Index (FAI)', source: 'CT angiography (CCTA) — manual entry', derivedFrom: 'Pericoronary adipose tissue HU attenuation', normalRange: '≤ -70.1 HU (less inflammation)', cadRange: '> -70.1 HU (elevated pericoronary inflammation)', citation: 'Antonopoulos AS et al. Eur Heart J. 2017; Radiology: Cardiothoracic Imaging 2021' },
+      { name: 'Coronary Artery Calcium Score (CAC)', source: 'CT scan — manual entry (Agatston method)', derivedFrom: 'Calcified plaque area × density in CT', normalRange: '0 AU (no detectable calcification)', cadRange: '> 100 AU (mild–moderate), > 400 AU (severe)', citation: 'Agatston AS et al. JACC 1990; NLA CAC Scoring Guidelines' },
       { name: 'sdLDL (est.)', source: 'Lab calculation', derivedFrom: 'Sampson/modified equation', normalRange: '—', cadRange: '42.7±14.3 mg/dL', citation: 'Gadhwal et al.' },
       { name: 'BMI', source: 'Patient profile', derivedFrom: 'Weight(kg)/Height(m)²', normalRange: '18.5–22.9 kg/m²', cadRange: '26.1–26.8 kg/m²', citation: 'Regency Healthcare / Gadhwal et al.' },
     ],
@@ -334,6 +336,26 @@ const FORMULAS: FormulaItem[] = [
     name: '16. WHO 10-year CVD Risk (South Asia)',
     formula: 'Lookup: Age \\times Sex \\times SBP\\ Band \\times Smoking \\times BMI\\ Band',
     source: 'Source: WHO CVD Risk Chart Working Group. Lancet Glob Health. 2019;7(10):e1332-e1345',
+  },
+
+  // CT RADIOMIC & CALCIUM BIOMARKERS
+  {
+    id: 17,
+    category: 'CT RADIOMIC & CALCIUM BIOMARKERS',
+    name: '17. Fat Attenuation Index (FAI)',
+    formula: 'FAI = \\text{mean attenuation of pericoronary adipose tissue voxels in range } (-190\\ \\text{to } -30\\ \\text{HU})',
+    source: 'Source: Antonopoulos AS et al. Sci Transl Med 2017',
+    isPlaceholder: true,
+    badgeLabel: 'NOT LITERATURE-BACKED — ESTIMATED PROXY (MANUAL ENTRY ONLY)',
+    note: 'Cannot be computed from wearable sensors — only accepts direct manual entry from CCTA report',
+  },
+  {
+    id: 18,
+    category: 'CT RADIOMIC & CALCIUM BIOMARKERS',
+    name: '18. Agatston CAC Score',
+    formula: 'Agatston\\ Score = \\sum (\\text{lesion area} \\times \\text{density factor}), \\quad \\text{density: } 130\\text{-}199\\text{ HU}\\to 1,\\ 200\\text{-}299\\text{ HU}\\to 2,\\ 300\\text{-}399\\text{ HU}\\to 3,\\ \\ge 400\\text{ HU}\\to 4',
+    source: 'Source: Agatston AS et al. J Am Coll Cardiol. 1990;15(4):827-832',
+    note: 'Standard CT calcium scoring method. 0: None, 1–10: Minimal, 11–100: Mild, 101–400: Moderate, >400: Severe',
   },
 ];
 
