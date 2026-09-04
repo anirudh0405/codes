@@ -7,7 +7,7 @@
  * UI PASS ONLY — no logic, reads from store.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { WEIGHTS } from '../../riskEngine';
 import { classifyBP } from '../../lib/bpRanges';
@@ -47,6 +47,21 @@ export function DashboardHome() {
   const snapshot = useSimStore(s => s.snapshot);
   const riskResult = useSimStore(s => s.riskResult);
   const patientProfile = useSimStore(s => s.patientProfile);
+  const echonextResult = useSimStore(s => s.echonextResult);
+  const runEchoNext = useSimStore(s => s.runEchoNext);
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [lastInferredTime, setLastInferredTime] = useState<string | null>(null);
+
+  const handleReinfer = () => {
+    setIsAnalyzing(true);
+    setTimeout(() => {
+      runEchoNext();
+      setIsAnalyzing(false);
+      const now = new Date();
+      setLastInferredTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }, 350);
+  };
 
   const band  = riskResult?.band ?? 'Low';
   const score = riskResult?.score ?? 0;
@@ -110,6 +125,99 @@ export function DashboardHome() {
             {hrv.label}
           </span>
           <RangeIndicator rangeKey="hrv" value={hrvVal} />
+        </div>
+      </div>
+
+      {/* ── EchoNext 1D ResNet-34 Diagnostic Card ─────────────────── */}
+      <div
+        className="panel-card"
+        style={{
+          padding: '12px 16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '10px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '9px',
+              height: '9px',
+              borderRadius: '50%',
+              background: echonextResult.detectedClasses.includes('NORM') ? 'var(--risk-low)' : 'var(--risk-high)',
+              boxShadow: echonextResult.detectedClasses.includes('NORM') ? '0 0 8px var(--risk-low)' : '0 0 8px var(--risk-high)',
+            }}
+          />
+          <div>
+            <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+              ECHONEXT 1D RESNET-34 DEEP LEARNING (IN-APP)
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>Classified:</span>
+              {echonextResult.detectedClasses.map(cls => (
+                <span
+                  key={cls}
+                  style={{
+                    background: cls === 'NORM' ? 'rgba(52, 199, 89, 0.2)' : 'rgba(217, 83, 79, 0.2)',
+                    color: cls === 'NORM' ? 'var(--risk-low)' : 'var(--risk-high)',
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {cls}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>SHD Index: </span>
+            <strong style={{ color: echonextResult.predictions.SHD >= 0.3 ? 'var(--risk-high)' : 'var(--accent)' }}>
+              {(echonextResult.predictions.SHD * 100).toFixed(0)}%
+            </strong>
+          </div>
+          {lastInferredTime && (
+            <span style={{ fontSize: '10px', color: 'var(--risk-low)', fontFamily: 'var(--font-mono)' }}>
+              ✓ {lastInferredTime}
+            </span>
+          )}
+          <button
+            onClick={handleReinfer}
+            disabled={isAnalyzing}
+            style={{
+              background: isAnalyzing ? 'var(--accent)' : 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              borderRadius: '5px',
+              padding: '4px 12px',
+              fontSize: '11px',
+              color: isAnalyzing ? '#000' : 'var(--text-primary)',
+              cursor: isAnalyzing ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: isAnalyzing ? 600 : 400,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {isAnalyzing ? (
+              <>
+                <span className="animate-spin" style={{ display: 'inline-block' }}>◌</span>
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <span>⚡</span>
+                Re-Infer
+              </>
+            )}
+          </button>
         </div>
       </div>
 

@@ -30,6 +30,7 @@ import { HealthyTipsPage } from '@/components/pages/HealthyTipsPage';
 import { SimLogsPage } from '@/components/pages/SimLogsPage';
 import { InfoPage } from '@/components/pages/InfoPage';
 import { HistoryPage } from '@/components/pages/HistoryPage';
+import { EchoNextArchitecturePage } from '@/components/pages/EchoNextArchitecturePage';
 import { MagneticButton } from '@/components/ui/magnetic-button';
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -264,6 +265,7 @@ export default function App() {
       {activeNav === 'profile' && <PatientProfilePage />}
       {activeNav === 'labreport' && <LabReportPage />}
       {activeNav === 'scenarios' && <ScenariosPage />}
+      {activeNav === 'echonext' && <EchoNextArchitecturePage />}
       {activeNav === 'riskengine' && <RiskEnginePage />}
       {activeNav === 'fusion' && <FusionLayersPage />}
       {activeNav === 'healthytip' && <HealthyTipsPage />}

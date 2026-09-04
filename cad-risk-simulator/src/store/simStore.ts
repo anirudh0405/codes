@@ -29,6 +29,11 @@ import {
   PatientProfileData,
   DEFAULT_PATIENT_PROFILE_DATA,
 } from '../components/Dashboard/PatientProfilePanel';
+import {
+  EchoNextInferenceResult,
+  runEchoNextInference,
+  generate12LeadECG,
+} from '../ml/echonextResNet34';
 
 const TREND_HISTORY_LENGTH = 60; // keep 60 seconds of history
 
@@ -88,7 +93,11 @@ export interface SimState {
   /** Severity label for the active scenario */
   activeSeverity: string | null;
 
+  // ── EchoNext 1D ResNet-34 Deep Learning Slice ─────────────────────────────
+  echonextResult: EchoNextInferenceResult;
+
   // ── Actions ───────────────────────────────────────────────────────────────
+  runEchoNext: () => void;
   setParams: (params: Partial<MockParams>) => void;
   applyProfile: (profileId: string) => void;
   setPatientProfile: (data: Partial<PatientProfileData>) => void;
@@ -280,6 +289,41 @@ export const useSimStore = create<SimState>((set, get) => ({
   activeMechanismSteps: null,
   activeSeverity: null,
 
+  // EchoNext 1D ResNet-34 Deep Learning Slice
+  echonextResult: runEchoNextInference(
+    generate12LeadECG({
+      heartRate: DEFAULT_PRESET.params.heartRate,
+      stElevation: DEFAULT_PRESET.params.stSegment,
+      rhythm: 'sinus',
+      qtInterval: DEFAULT_PRESET.params.qtInterval,
+      systolic: DEFAULT_PRESET.params.systolic,
+    }),
+    {
+      stElevation: DEFAULT_PRESET.params.stSegment,
+      rhythm: 'sinus',
+      qtInterval: DEFAULT_PRESET.params.qtInterval,
+      systolic: DEFAULT_PRESET.params.systolic,
+    }
+  ),
+
+  runEchoNext: () => {
+    const s = get();
+    const waveforms = generate12LeadECG({
+      heartRate: s.params.heartRate,
+      stElevation: s.params.stSegment,
+      rhythm: s.activeEcgRhythm,
+      qtInterval: s.params.qtInterval,
+      systolic: s.params.systolic,
+    });
+    const result = runEchoNextInference(waveforms, {
+      stElevation: s.params.stSegment,
+      rhythm: s.activeEcgRhythm,
+      qtInterval: s.params.qtInterval,
+      systolic: s.params.systolic,
+    });
+    set({ echonextResult: result });
+  },
+
   setParams: (newParams) => {
     set((s) => {
       const isBPModified = newParams.systolic !== undefined || newParams.diastolic !== undefined;
@@ -289,6 +333,7 @@ export const useSimStore = create<SimState>((set, get) => ({
         bpMode: isBPModified ? 'manual' : s.bpMode,
       };
     });
+    get().runEchoNext();
   },
 
   applyProfile: (profileId) => {
@@ -335,6 +380,7 @@ export const useSimStore = create<SimState>((set, get) => ({
         activeSeverity: profile.severity ?? null,
       };
     });
+    get().runEchoNext();
   },
 
   setPatientProfile: (data) => {
