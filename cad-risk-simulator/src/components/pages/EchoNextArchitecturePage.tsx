@@ -380,7 +380,7 @@ export function EchoNextArchitecturePage() {
 
         {/* ── Essential Items 3 & 4: Key Micro-Features & Territorial Ischemia ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-          {/* Essential Item 3: Key Micro-Features */}
+          {/* Essential Item 3: Key Micro-Features (Stage 01) */}
           <div
             style={{
               background: 'var(--surface)',
@@ -403,7 +403,7 @@ export function EchoNextArchitecturePage() {
                   color: 'var(--text-secondary)',
                 }}
               >
-                Key Signals
+                Ranges & Indications
               </span>
             </div>
             <h3 style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 12px 0' }}>
@@ -411,39 +411,57 @@ export function EchoNextArchitecturePage() {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>ST Segment Offset</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Acute Ischemia / STEMI Indicator</div>
+              {/* ST Segment Offset */}
+              <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>ST Segment Offset</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Normal Ref: <code>-0.05 to +0.05 mV</code></div>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: lowerFeatures.stSegmentElevationMv > 0.05 ? 'var(--risk-high)' : lowerFeatures.stSegmentElevationMv < -0.05 ? 'var(--risk-moderate)' : 'var(--text-primary)' }}>
+                    {lowerFeatures.stSegmentElevationMv > 0 ? `+${lowerFeatures.stSegmentElevationMv}` : lowerFeatures.stSegmentElevationMv} mV
+                  </span>
                 </div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: lowerFeatures.stSegmentElevationMv > 0.05 ? 'var(--risk-high)' : 'var(--text-primary)' }}>
-                  {lowerFeatures.stSegmentElevationMv > 0 ? `+${lowerFeatures.stSegmentElevationMv}` : lowerFeatures.stSegmentElevationMv} mV
-                </span>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: lowerFeatures.stSegmentElevationMv > 0.05 ? 'var(--risk-high)' : lowerFeatures.stSegmentElevationMv < -0.05 ? 'var(--risk-moderate)' : 'var(--risk-low)', background: 'var(--surface)', padding: '3px 6px', borderRadius: '3px', marginTop: '4px' }}>
+                  Indication: {lowerFeatures.stSegmentElevationMv > 0.05 ? '🚨 Acute STEMI (Elevation > +0.10 mV)' : lowerFeatures.stSegmentElevationMv < -0.05 ? '⚠️ Ischemia / Oxygen Deficit (Depression < -0.05 mV)' : '✓ Normal Isoelectric ST Segment'}
+                </div>
               </div>
 
-              <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>QRS Duration</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Ventricular Conduction Speed</div>
+              {/* QRS Duration */}
+              <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>QRS Duration</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Normal Ref: <code>80 to 100 ms</code></div>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: lowerFeatures.qrsDurationMs > 115 ? 'var(--risk-high)' : 'var(--text-primary)' }}>
+                    {lowerFeatures.qrsDurationMs} ms
+                  </span>
                 </div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700, color: lowerFeatures.qrsDurationMs > 115 ? 'var(--risk-high)' : 'var(--text-primary)' }}>
-                  {lowerFeatures.qrsDurationMs} ms
-                </span>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: lowerFeatures.qrsDurationMs > 115 ? 'var(--risk-high)' : 'var(--risk-low)', background: 'var(--surface)', padding: '3px 6px', borderRadius: '3px', marginTop: '4px' }}>
+                  Indication: {lowerFeatures.qrsDurationMs > 115 ? '⚡ Conduction Block / Bundle Branch Block (≥ 120 ms)' : '✓ Normal Ventricular Depolarization Speed'}
+                </div>
               </div>
 
-              <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>P-Wave Status</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Sinus vs Fibrillatory Baseline</div>
+              {/* P-Wave Status */}
+              <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>P-Wave Status</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Normal Ref: <code>Present (+0.10 to +0.25 mV)</code></div>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: lowerFeatures.pWaveDetected ? 'var(--risk-low)' : 'var(--risk-high)' }}>
+                    {lowerFeatures.pWaveDetected ? `Present (+${lowerFeatures.pWaveAmplitudeMv} mV)` : 'Absent (AFib)'}
+                  </span>
                 </div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, color: lowerFeatures.pWaveDetected ? 'var(--risk-low)' : 'var(--risk-high)' }}>
-                  {lowerFeatures.pWaveDetected ? `Present (+${lowerFeatures.pWaveAmplitudeMv} mV)` : 'Absent (AFib)'}
-                </span>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: lowerFeatures.pWaveDetected ? 'var(--risk-low)' : 'var(--risk-high)', background: 'var(--surface)', padding: '3px 6px', borderRadius: '3px', marginTop: '4px' }}>
+                  Indication: {lowerFeatures.pWaveDetected ? '✓ SA Node Pacemaker Sinus Rhythm' : '🚨 Atrial Fibrillation / Fibrillatory Baseline'}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Essential Item 4: Territorial Ischemia Location */}
+          {/* Essential Item 4: Territorial Ischemia Location (Stage 02) */}
           <div
             style={{
               background: 'var(--surface)',
@@ -466,7 +484,7 @@ export function EchoNextArchitecturePage() {
                   color: 'var(--text-secondary)',
                 }}
               >
-                Localization
+                Coronary Artery Mapping
               </span>
             </div>
             <h3 style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 12px 0' }}>
@@ -474,27 +492,41 @@ export function EchoNextArchitecturePage() {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Anterior Ischemia */}
               <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Anterior Ischemia (Leads V1–V4):</span>
+                  <div>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Anterior Ischemia (Leads V1–V4)</span>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Normal Ref: <code>&lt; 20%</code> · Cutoff: <code>≥ 30%</code></div>
+                  </div>
                   <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '13px', color: deeperPatterns.anteriorTerritorialIschemia > 0.3 ? 'var(--risk-high)' : 'var(--text-primary)' }}>
                     {(deeperPatterns.anteriorTerritorialIschemia * 100).toFixed(0)}%
                   </span>
                 </div>
-                <div style={{ height: '6px', background: 'var(--surface)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ height: '6px', background: 'var(--surface)', borderRadius: '3px', overflow: 'hidden', marginBottom: '6px' }}>
                   <div style={{ height: '100%', width: `${deeperPatterns.anteriorTerritorialIschemia * 100}%`, background: deeperPatterns.anteriorTerritorialIschemia > 0.3 ? 'var(--risk-high)' : 'var(--accent)', transition: 'width 0.3s ease' }} />
+                </div>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: deeperPatterns.anteriorTerritorialIschemia > 0.3 ? 'var(--risk-high)' : 'var(--text-secondary)', background: 'var(--surface)', padding: '3px 6px', borderRadius: '3px' }}>
+                  Indication: {deeperPatterns.anteriorTerritorialIschemia > 0.3 ? '🚨 Left Anterior Descending (LAD) Artery Occlusion ("Widowmaker")' : '✓ Unremarkable Anterior Wall Perfusion'}
                 </div>
               </div>
 
+              {/* Inferior Ischemia */}
               <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '6px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Inferior Ischemia (Leads II, III, aVF):</span>
+                  <div>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Inferior Ischemia (Leads II, III, aVF)</span>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Normal Ref: <code>&lt; 20%</code> · Cutoff: <code>≥ 30%</code></div>
+                  </div>
                   <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '13px', color: deeperPatterns.inferiorTerritorialIschemia > 0.3 ? 'var(--risk-high)' : 'var(--text-primary)' }}>
                     {(deeperPatterns.inferiorTerritorialIschemia * 100).toFixed(0)}%
                   </span>
                 </div>
-                <div style={{ height: '6px', background: 'var(--surface)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ height: '6px', background: 'var(--surface)', borderRadius: '3px', overflow: 'hidden', marginBottom: '6px' }}>
                   <div style={{ height: '100%', width: `${deeperPatterns.inferiorTerritorialIschemia * 100}%`, background: deeperPatterns.inferiorTerritorialIschemia > 0.3 ? 'var(--risk-high)' : 'var(--accent)', transition: 'width 0.3s ease' }} />
+                </div>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: deeperPatterns.inferiorTerritorialIschemia > 0.3 ? 'var(--risk-high)' : 'var(--text-secondary)', background: 'var(--surface)', padding: '3px 6px', borderRadius: '3px' }}>
+                  Indication: {deeperPatterns.inferiorTerritorialIschemia > 0.3 ? '🚨 Right Coronary Artery (RCA) / LCx Occlusion' : '✓ Unremarkable Inferior Wall Perfusion'}
                 </div>
               </div>
             </div>
