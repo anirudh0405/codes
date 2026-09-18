@@ -14,6 +14,7 @@ import { classifyBP } from '../../lib/bpRanges';
 import { CardiacReadouts } from '../layout/RightPanelContent';
 import { CVDInfoPanel } from './CVDInfoPanel';
 import { RangeIndicator } from '../RangeIndicator';
+import { FaiCard, CacCard } from './CtBiomarkerCards';
 
 // ── Risk helpers ─────────────────────────────────────────────────────────────
 
@@ -219,6 +220,19 @@ export function DashboardHome() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* ── CT Biomarker Readouts (FAI & CAC) ─────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 'var(--space-md)',
+          marginBottom: 'var(--space-md)',
+        }}
+      >
+        <FaiCard />
+        <CacCard />
       </div>
 
       {/* ── Cardiac Readouts ─────────────────────────────────────── */}
