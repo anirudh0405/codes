@@ -16,7 +16,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
-import { FaiCard, CacCard, getFaiStatus, getCacStatus } from '../Dashboard/CtBiomarkerCards';
 
 // ── Lab Field — manual (slider + input synced) ──────────────────────────────
 
@@ -228,15 +227,11 @@ function LabFieldAuto({
 // ── Main Page Component ──────────────────────────────────────────────────────
 
 export function LabReportPage() {
-  const { labInputs, setLabInputs, apoBPanel, fai, cac, setFai, setCac } = useSimStore(
+  const { labInputs, setLabInputs, apoBPanel } = useSimStore(
     useShallow(s => ({
       labInputs: s.labInputs,
       setLabInputs: s.setLabInputs,
       apoBPanel: s.apoBPanel,
-      fai: s.fai,
-      cac: s.cac,
-      setFai: s.setFai,
-      setCac: s.setCac,
     }))
   );
 
@@ -246,29 +241,12 @@ export function LabReportPage() {
   const apoA1 = labInputs.hdl * 2.0;
   const apoBApoa1Ratio = apoA1 > 0 ? (apoB / apoA1).toFixed(2) : '—';
 
-  const faiStatus = getFaiStatus(fai);
-  const cacStatus = getCacStatus(cac);
-  const cacWarning = cac > 1500 ? 'Very high burden — verify entry' : undefined;
-
   return (
     <div className="lr-page">
       {/* Header */}
       <div className="lr-page-header">
         <h1 className="lr-page-title">LAB REPORT VALUES</h1>
         <p className="lr-page-subtitle">Manual entry — overrides PPG estimates where available</p>
-      </div>
-
-      {/* Readout Summary Cards (FAI, CAC) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 'var(--space-md)',
-          marginBottom: 'var(--space-md)',
-        }}
-      >
-        <FaiCard />
-        <CacCard />
       </div>
 
       {/* Two-column grid */}
@@ -302,47 +280,6 @@ export function LabReportPage() {
             unit="mg/dL"
             refNote="Ref: 130 ± 71 mg/dL · Ashavaid et al."
             onChange={v => setLabInputs({ triglycerides: v }, true)}
-          />
-
-          {/* FIELD 1: Fat Attenuation Index (FAI) */}
-          <LabField
-            label="FAT ATTENUATION INDEX (FAI)"
-            subLabel="From CT report — pericoronary adipose tissue"
-            value={fai}
-            min={-190}
-            max={-30}
-            step={0.5}
-            unit="HU"
-            statusTag={{
-              text: faiStatus.text,
-              bg: faiStatus.bg,
-              color: faiStatus.color,
-              border: faiStatus.border,
-            }}
-            cutoffNote="-70.1 HU threshold · above = elevated pericoronary inflammation"
-            refNote="Source: Antonopoulos et al. Eur Heart J 2017; Radiology: Cardiothoracic Imaging 2021. CT-derived radiomic biomarker — cannot be estimated from wearable sensors."
-            onChange={v => setFai(v)}
-          />
-
-          {/* FIELD 2: Coronary Artery Calcium Score (CAC) */}
-          <LabField
-            label="CORONARY ARTERY CALCIUM SCORE (CAC)"
-            subLabel="Agatston score from CT scan"
-            value={cac}
-            min={0}
-            max={1500}
-            step={1}
-            unit="AU"
-            isLogSlider={true}
-            statusTag={{
-              text: cacStatus.text,
-              bg: cacStatus.bg,
-              color: cacStatus.color,
-              border: cacStatus.border,
-            }}
-            warningNote={cacWarning}
-            refNote="Agatston method. Source: National Lipid Association guidelines; MESA study cohort data."
-            onChange={v => setCac(v)}
           />
 
           <LabFieldAuto

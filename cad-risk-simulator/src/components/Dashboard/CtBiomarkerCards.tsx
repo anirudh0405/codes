@@ -90,7 +90,7 @@ export function FaiCard() {
   const status = getFaiStatus(fai);
 
   return (
-    <div id="readout-fai" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
+    <div id="readout-fai" className="panel-card flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
       {/* Header row */}
       <div className="flex items-center justify-between">
         <span className="eyebrow-label">Fat Attenuation Index (FAI)</span>
@@ -180,7 +180,7 @@ export function CacCard() {
   const status = getCacStatus(cac);
 
   return (
-    <div id="readout-cac" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
+    <div id="readout-cac" className="panel-card flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
       {/* Header row */}
       <div className="flex items-center justify-between">
         <span className="eyebrow-label">Calcium Score (CAC)</span>
