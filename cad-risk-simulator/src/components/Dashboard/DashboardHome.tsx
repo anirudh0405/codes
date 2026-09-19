@@ -210,8 +210,15 @@ export function DashboardHome() {
         </div>
       </div>
 
-      {/* ── CT Biomarker Readouts (FAI & CAC) ──────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-md)' }}>
+      {/* ── CT Biomarker Readouts (FAI & CAC) ─────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 'var(--space-md)',
+          marginBottom: 'var(--space-md)',
+        }}
+      >
         <FaiCard />
         <CacCard />
       </div>
