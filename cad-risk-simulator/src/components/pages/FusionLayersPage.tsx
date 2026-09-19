@@ -157,15 +157,15 @@ export function FusionLayersPage() {
           <div className="fl-card-body">
             <div className="fl-tier">
               <div className="fl-tier-header">
-                <span className="fl-tier-label">Tier 1 — PPG Vascular Index</span>
+                <span className="fl-tier-label">Tier 1 — Photoplethysmography (PPG) Vascular Index</span>
                 <span className="fl-tier-value">{ppgVI.toFixed(2)}</span>
               </div>
-              <span className="fl-tier-desc">(BP + Cholesterol + Triglycerides, PPG/PTT-derived)</span>
+              <span className="fl-tier-desc">(Blood Pressure + Cholesterol + Triglycerides, PPG / Pulse Transit Time [PTT]-derived)</span>
             </div>
 
             <div className="fl-tier">
               <div className="fl-tier-header">
-                <span className="fl-tier-label">Tier 2 — ApoB Implied Risk</span>
+                <span className="fl-tier-label">Tier 2 — Apolipoprotein B (ApoB) Implied Risk</span>
                 <span className="fl-tier-value">{apoBImpliedRisk.toFixed(2)}</span>
               </div>
               <span className="fl-tier-desc">(blood-report-derived, independent)</span>
@@ -189,7 +189,7 @@ export function FusionLayersPage() {
             </div>
 
             <div className="fl-composite">
-              <span className="fl-composite-label">compositeMetabolicScore</span>
+              <span className="fl-composite-label">Composite Metabolic Score</span>
               <span className="fl-composite-value">
                 {compositeMetabolicScore.toFixed(2)}
               </span>
@@ -200,7 +200,7 @@ export function FusionLayersPage() {
 
       {/* ── Design Note ──────────────────────────────────────────── */}
       <p className="fl-design-note">
-        Cardiac/Motion fusion uses Pearson correlation between ECG and accelerometer signals
+        Cardiac/Motion fusion uses Pearson correlation between Electrocardiogram (ECG) and accelerometer signals
         to classify whether cardiac events coincide with movement (artifact) or occur at rest
         (likely real). Metabolic-Vascular fusion is split into two independent tiers: Tier 1
         derives vascular stiffness from PPG/PTT optical signals, while Tier 2 uses

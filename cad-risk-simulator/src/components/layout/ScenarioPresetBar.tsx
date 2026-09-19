@@ -217,6 +217,22 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
           )}
         </div>
       </div>
+
+      {/* ── FIX 4: Active Scenario Display Pill ── */}
+      <div
+        className="active-scenario-pill flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
+        style={{
+          background: 'var(--surface-alt)',
+          border: '1px solid var(--border)',
+          whiteSpace: 'nowrap',
+        }}
+        title={`Active Scenario: ${activeProfile?.name ?? 'Healthy — Baseline'}`}
+      >
+        <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>Active scenario:</span>
+        <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '11px' }}>
+          {activeProfile?.name ?? 'Healthy — Baseline'}
+        </span>
+      </div>
     </div>
   );
 }

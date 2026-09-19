@@ -41,9 +41,9 @@ function ScenarioCard({
   const bpInfo = classifyBP(preset.params.systolic, preset.params.diastolic);
 
   const chips: { label: string; value: string }[] = [
-    { label: 'HR', value: `${preset.params.heartRate} bpm` },
-    { label: 'Fixed BP', value: `${preset.params.systolic}/${preset.params.diastolic} mmHg` },
-    { label: 'HRV', value: `${preset.params.hrv} ms` },
+    { label: 'Heart Rate', value: `${preset.params.heartRate} bpm` },
+    { label: 'Blood Pressure', value: `${preset.params.systolic}/${preset.params.diastolic} mmHg` },
+    { label: 'Heart Rate Variability', value: `${preset.params.hrv} ms` },
   ];
 
   // Add CVD-specific key parameter chips
@@ -82,11 +82,11 @@ function ScenarioCard({
       {/* BP Healthy vs Risk Range Banner */}
       <div className="my-2 p-2 rounded-lg bg-[var(--surface-alt)] border border-[var(--border)] text-[11px] flex flex-col gap-1">
         <div className="flex items-center justify-between font-semibold">
-          <span className="text-[var(--text-secondary)]">BP Status:</span>
+          <span className="text-[var(--text-secondary)]">Blood Pressure (BP) Status:</span>
           <span style={{ color: bpInfo.color }}>{bpInfo.label}</span>
         </div>
         <div className="text-[10px] text-[var(--text-tertiary)] flex items-center justify-between border-t border-[var(--border)] pt-1 mt-0.5">
-          <span style={{ color: 'var(--risk-low)' }}>Healthy: &lt;120/80</span>
+          <span style={{ color: 'var(--risk-low)' }}>Healthy: &lt;120/80 mmHg</span>
           <span style={{ color: bpInfo.category !== 'healthy' ? 'var(--risk-high)' : 'var(--text-tertiary)' }}>
             {bpInfo.riskRangeText}
           </span>
@@ -124,7 +124,7 @@ export function ScenariosPage() {
     [activeCat],
   );
 
-  const activePresetName = activeProfile?.name ?? 'None selected';
+  const activePresetName = activeProfile?.name ?? 'Healthy — Baseline';
 
   return (
     <div className="sc-page">
@@ -132,7 +132,10 @@ export function ScenariosPage() {
       <div className="sc-page-header">
         <div className="sc-page-title-row">
           <h1 className="sc-page-title">SCENARIOS</h1>
-          <span className="sc-active-name">{activePresetName}</span>
+          <div className="sc-active-scenario-pill flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface-alt)] border border-[var(--border)] text-xs">
+            <span style={{ color: 'var(--text-secondary)' }}>Active scenario:</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{activePresetName}</span>
+          </div>
         </div>
       </div>
 

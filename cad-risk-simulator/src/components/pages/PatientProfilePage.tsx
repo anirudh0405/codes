@@ -263,7 +263,7 @@ export function PatientProfilePage() {
 
         {/* BMI — auto-calculated */}
         <div className="pp-field-row">
-          <label className="pp-field-label">BMI (AUTO)</label>
+          <label className="pp-field-label">BODY MASS INDEX (BMI) (AUTO)</label>
           <span className="pp-bmi-value">{bmiDisplay}<span className="pp-bmi-unit"> kg/m²</span></span>
         </div>
         <p className="pp-ref-note">18.5–22.9 healthy · Regency Healthcare</p>
@@ -350,7 +350,7 @@ export function PatientProfilePage() {
           onChange={v => update('hypertensionHistory', v)}
         />
         <YesNoToggle
-          label="Family History of CAD"
+          label="Family History of Coronary Artery Disease (CAD)"
           checked={patientProfile.familyHistoryCAD}
           onChange={v => update('familyHistoryCAD', v)}
         />

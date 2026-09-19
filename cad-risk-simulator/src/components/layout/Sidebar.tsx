@@ -188,9 +188,9 @@ export function Sidebar({ activeNavId, onNavChange }: SidebarProps) {
     <aside className="sidebar" aria-label="Main navigation">
       {/* App Identity */}
       <div className="sidebar-identity">
-        <div className="sidebar-identity-name">
+        <div className="sidebar-identity-name" style={{ fontSize: '11px', lineHeight: '1.3' }}>
           {LogoMark}
-          CAD Monitor
+          <span>Precision Cardiovascular Risk Intelligence Platform</span>
         </div>
         <div className="sidebar-identity-version">v1.0 · SIMULATED</div>
       </div>

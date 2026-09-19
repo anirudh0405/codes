@@ -183,7 +183,7 @@ export function CacCard() {
     <div id="readout-cac" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
       {/* Header row */}
       <div className="flex items-center justify-between">
-        <span className="eyebrow-label">Calcium Score (CAC)</span>
+        <span className="eyebrow-label">Coronary Artery Calcium Score (CAC)</span>
         <span
           style={{
             fontSize: 9,

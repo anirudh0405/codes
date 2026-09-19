@@ -17,6 +17,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSimStore } from '../../store/simStore';
 import { useShallow } from 'zustand/react/shallow';
 import { FaiCard, CacCard, getFaiStatus, getCacStatus } from '../Dashboard/CtBiomarkerCards';
+import { ReportUploadZone } from '../ReportUpload/ReportUploadZone';
+import { ReportAppliedBadge } from '../ReportUpload/ReportAppliedBadge';
 
 // ── Lab Field — manual (slider + input synced) ──────────────────────────────
 
@@ -254,9 +256,15 @@ export function LabReportPage() {
     <div className="lr-page">
       {/* Header */}
       <div className="lr-page-header">
-        <h1 className="lr-page-title">LAB REPORT VALUES</h1>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <h1 className="lr-page-title">LAB REPORT VALUES</h1>
+          <ReportAppliedBadge />
+        </div>
         <p className="lr-page-subtitle">Manual entry — overrides PPG estimates where available</p>
       </div>
+
+      {/* Upload Zone */}
+      <ReportUploadZone />
 
       {/* Readout Summary Cards (FAI, CAC) */}
       <div
@@ -280,7 +288,7 @@ export function LabReportPage() {
           </div>
 
           <LabField
-            label="TOTAL CHOLESTEROL"
+            label="TOTAL CHOLESTEROL (TC)"
             value={labInputs.totalCholesterol}
             min={100} max={400} step={1}
             unit="mg/dL"
@@ -288,7 +296,7 @@ export function LabReportPage() {
             onChange={v => setLabInputs({ totalCholesterol: v })}
           />
           <LabField
-            label="HDL-C"
+            label="HDL CHOLESTEROL (HDL-C)"
             value={labInputs.hdl}
             min={20} max={100} step={1}
             unit="mg/dL"
@@ -296,7 +304,7 @@ export function LabReportPage() {
             onChange={v => setLabInputs({ hdl: v })}
           />
           <LabField
-            label="TRIGLYCERIDES"
+            label="TRIGLYCERIDES (TG)"
             value={labInputs.triglycerides}
             min={30} max={600} step={1}
             unit="mg/dL"
@@ -346,7 +354,7 @@ export function LabReportPage() {
           />
 
           <LabFieldAuto
-            label="APOA1 (PROXY)"
+            label="APOLIPOPROTEIN A1 (APOA1) (PROXY)"
             value={apoA1.toFixed(0)}
             unit="mg/dL"
             refNote="Proxy: HDL × 2.0 · Display only"
@@ -360,7 +368,7 @@ export function LabReportPage() {
           </div>
 
           <LabFieldAuto
-            label="LDL-C (FRIEDEWALD)"
+            label="LDL CHOLESTEROL (LDL-C) (FRIEDEWALD)"
             value={friedewaldValid ? ldl.toFixed(0) : 'N/A'}
             unit="mg/dL"
             refNote="LDL = TC − HDL − (TG/5) · Friedewald et al."
@@ -373,7 +381,7 @@ export function LabReportPage() {
             refNote="Non-HDL = TC − HDL · AHA secondary target"
           />
           <LabFieldAuto
-            label="APOB (ESTIMATED)"
+            label="APOLIPOPROTEIN B (APOB) (ESTIMATED)"
             value={apoB.toFixed(1)}
             unit="mg/dL"
             refNote="ApoB = 0.65 × Non-HDL + 6.3 · Sniderman et al."
@@ -385,7 +393,7 @@ export function LabReportPage() {
             refNote="Ref: < 0.80 desirable · INTERHEART"
           />
           <LabField
-            label="LP(A)"
+            label="LIPOPROTEIN(A) [LP(A)]"
             value={labInputs.lpa}
             min={0} max={200} step={0.1}
             unit="mg/dL"

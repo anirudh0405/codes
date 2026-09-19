@@ -243,7 +243,7 @@ export function LiveWaveforms() {
       {/* ── ECG Waveform Panel ─────────────────────────────────────── */}
       <div className="panel-card wf-panel">
         <div className="wf-header">
-          <span className="wf-sensor-name">ECG — LEAD II</span>
+          <span className="wf-sensor-name">ELECTROCARDIOGRAM (ECG) — LEAD II</span>
           <span className="wf-specs">25 mm/s · 10 mm/mV</span>
         </div>
         <div className="wf-canvas wf-canvas-ecg">
@@ -257,10 +257,10 @@ export function LiveWaveforms() {
           />
         </div>
         <div className="wf-chips-row">
-          <Chip label="HR" value={`${hr} BPM`} />
-          <Chip label="QTc" value={`${qtc} ms`} />
-          <Chip label="ST" value={`${st.toFixed(2)} mV`} />
-          <Chip label="PTT" value={`${ptt} ms`} />
+          <Chip label="Heart Rate (HR)" value={`${hr} BPM`} />
+          <Chip label="Corrected QT Interval (QTc)" value={`${qtc} ms`} />
+          <Chip label="ST Segment" value={`${st.toFixed(2)} mV`} />
+          <Chip label="Pulse Transit Time (PTT)" value={`${ptt} ms`} />
         </div>
         <div className="wf-detail-panel">
           <span className="wf-detail-label">Selected ECG path</span>
@@ -281,7 +281,7 @@ export function LiveWaveforms() {
       {/* ── PPG Waveform Panel ─────────────────────────────────────── */}
       <div className="panel-card wf-panel">
         <div className="wf-header">
-          <span className="wf-sensor-name">PPG — OPTICAL</span>
+          <span className="wf-sensor-name">PHOTOPLETHYSMOGRAPHY (PPG) — OPTICAL</span>
           <span className="wf-specs">100 Hz</span>
         </div>
         <div className="wf-canvas wf-canvas-ppg">
@@ -295,8 +295,8 @@ export function LiveWaveforms() {
           />
         </div>
         <div className="wf-chips-row">
-          <Chip label="HR" value={`${hr} BPM`} />
-          <Chip label="SpO₂" value="98%" />
+          <Chip label="Heart Rate (HR)" value={`${hr} BPM`} />
+          <Chip label="Blood Oxygen Saturation (SpO₂)" value="98%" />
           <Chip label="Perfusion" value="Normal" />
         </div>
         <div className="wf-detail-panel">
@@ -319,7 +319,7 @@ export function LiveWaveforms() {
       <div className="wf-readout-row">
         {/* Blood Pressure */}
         <div className="panel-card dash-stat-card">
-          <span className="dash-stat-label">Blood Pressure</span>
+          <span className="dash-stat-label">Blood Pressure (BP)</span>
           <span className="dash-stat-value" style={{ fontFamily: 'var(--font-mono)' }}>
             {sys}/{dia} <span className="dash-stat-unit">mmHg</span>
           </span>
@@ -336,7 +336,7 @@ export function LiveWaveforms() {
 
         {/* Stress Index */}
         <div className="panel-card dash-stat-card">
-          <span className="dash-stat-label">Stress Index</span>
+          <span className="dash-stat-label">Physiological Stress Index</span>
           <span className="dash-stat-value" style={{ fontFamily: 'var(--font-mono)' }}>
             {Math.round(stress)} <span className="dash-stat-unit">/ 100</span>
           </span>
@@ -347,7 +347,7 @@ export function LiveWaveforms() {
 
         {/* HRV RMSSD */}
         <div className="panel-card dash-stat-card">
-          <span className="dash-stat-label">HRV RMSSD</span>
+          <span className="dash-stat-label">Heart Rate Variability (RMSSD)</span>
           <span className="dash-stat-value" style={{ fontFamily: 'var(--font-mono)' }}>
             {Math.round(hrvVal)} <span className="dash-stat-unit">ms</span>
           </span>
@@ -359,22 +359,22 @@ export function LiveWaveforms() {
 
       {/* ── Lipid Estimates Strip ──────────────────────────────────── */}
       <div className="panel-card wf-lipid-strip">
-        <div className="dash-panel-header">LIPID ESTIMATES</div>
+        <div className="dash-panel-header">LIPID ESTIMATES (FROM PPG PULSE MORPHOLOGY)</div>
         <div className="wf-lipid-grid">
           {/* Left column */}
           <div className="wf-lipid-col">
             <div className="wf-lipid-item">
-              <span className="wf-lipid-label">TOTAL CHOLESTEROL (EST.)</span>
+              <span className="wf-lipid-label">TOTAL CHOLESTEROL (TC) (EST.)</span>
               <span className="wf-lipid-value">{Math.round(totalChol)}</span>
               <span className="wf-lipid-sub">
-                {lipidLowConf ? 'Low confidence — motion' : 'PPG est.'}
+                {lipidLowConf ? 'Low confidence — motion artifact' : 'PPG pulse wave estimate'}
               </span>
             </div>
             <div className="wf-lipid-item">
-              <span className="wf-lipid-label">TRIGLYCERIDES (EST.)</span>
+              <span className="wf-lipid-label">TRIGLYCERIDES (TG) (EST.)</span>
               <span className="wf-lipid-value">{Math.round(trigs)}</span>
               <span className="wf-lipid-sub">
-                {lipidLowConf ? 'Low confidence — motion' : 'PPG est.'}
+                {lipidLowConf ? 'Low confidence — motion artifact' : 'PPG pulse wave estimate'}
               </span>
             </div>
           </div>
@@ -382,24 +382,24 @@ export function LiveWaveforms() {
           {/* Right column */}
           <div className="wf-lipid-col">
             <div className="wf-lipid-item">
-              <span className="wf-lipid-label">APOB</span>
+              <span className="wf-lipid-label">APOLIPOPROTEIN B (APOB)</span>
               <span className="wf-lipid-value">{apoBPanel?.apoB?.toFixed(0) ?? '—'}</span>
-              <span className="wf-lipid-sub">Calculated</span>
+              <span className="wf-lipid-sub">Calculated from lab inputs</span>
             </div>
             <div className="wf-lipid-item">
-              <span className="wf-lipid-label">LDL</span>
+              <span className="wf-lipid-label">LDL CHOLESTEROL (LDL-C)</span>
               <span className="wf-lipid-value">{apoBPanel?.ldl?.toFixed(0) ?? '—'}</span>
-              <span className="wf-lipid-sub">Calculated</span>
+              <span className="wf-lipid-sub">Calculated via Friedewald</span>
             </div>
             <div className="wf-lipid-item">
-              <span className="wf-lipid-label">HDL</span>
+              <span className="wf-lipid-label">HDL CHOLESTEROL (HDL-C)</span>
               <span className="wf-lipid-value">{labInputs?.hdl?.toFixed(0) ?? '—'}</span>
-              <span className="wf-lipid-sub">Calculated</span>
+              <span className="wf-lipid-sub">Lab reported</span>
             </div>
             <div className="wf-lipid-item">
-              <span className="wf-lipid-label">NON-HDL</span>
+              <span className="wf-lipid-label">NON-HDL CHOLESTEROL</span>
               <span className="wf-lipid-value">{apoBPanel?.nonHDL?.toFixed(0) ?? '—'}</span>
-              <span className="wf-lipid-sub">Calculated</span>
+              <span className="wf-lipid-sub">Calculated secondary target</span>
             </div>
           </div>
         </div>

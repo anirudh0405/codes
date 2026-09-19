@@ -13,6 +13,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileTabBar } from './MobileTabBar';
 import { CadRiskTrendBar } from '../Dashboard/CadRiskTrendBar';
+import { ReportUploadZone } from '../ReportUpload/ReportUploadZone';
+import { ReportUploadPanel } from '../ReportUpload/ReportUploadPanel';
 
 // ── Live Clock ───────────────────────────────────────────────────────────────
 
@@ -115,6 +117,70 @@ function ThemeToggleButton() {
   );
 }
 
+// ── Arohan Logo Component ───────────────────────────────────────────────────
+
+function ArohanLogo() {
+  const [imgError, setImgError] = useState(false);
+
+  if (imgError) {
+    return (
+      <div className="arohan-logo-fallback" title="Arohan">
+        {/* Heart + wifi icon matching brand mark */}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            fill="var(--accent)"
+          />
+          <path
+            d="M16 4a4 4 0 0 1 4 4M14 6a2 2 0 0 1 2 2"
+            stroke="var(--accent)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '13px', letterSpacing: '-0.02em' }}>
+          Arohan
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src="/arohan-logo.png"
+      alt="Arohan Logo"
+      className="arohan-logo-img"
+      onError={() => setImgError(true)}
+    />
+  );
+}
+
+// ── TopBar Risk Status (Band color dot + band label, NO numeric score) ────────
+
+import { useSimStore } from '../../store/simStore';
+
+function TopBarRiskStatus() {
+  const riskResult = useSimStore(s => s.riskResult);
+  const band = riskResult?.band ?? 'Low';
+  const color = band === 'High' ? 'var(--risk-high)' : band === 'Moderate' ? 'var(--risk-moderate)' : 'var(--risk-low)';
+
+  return (
+    <div className="topbar-risk-status" title={`Current Status: ${band} Risk`}>
+      <span
+        style={{
+          width: '7px',
+          height: '7px',
+          borderRadius: '50%',
+          backgroundColor: color,
+          boxShadow: `0 0 6px ${color}`,
+          display: 'inline-block',
+        }}
+      />
+      <span>{band} Risk</span>
+    </div>
+  );
+}
+
 // ── Nav label map for breadcrumbs ────────────────────────────────────────────
 
 const NAV_LABELS: Record<string, { section: string; page: string }> = {
@@ -148,6 +214,7 @@ interface AppShellProps {
 
 export function AppShell({ children, rightPanelContent, topBarCenter, activeNav, onNavChange }: AppShellProps) {
   const navInfo = NAV_LABELS[activeNav] ?? { section: 'Monitor', page: 'Dashboard' };
+  const [reportPanelOpen, setReportPanelOpen] = useState(false);
 
   return (
     <div className="app-shell">
@@ -158,18 +225,29 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
       <div className="app-main">
         {/* ── TOP BAR (spans center + right columns) ──────────────── */}
         <header className="shell-topbar">
-          {/* Left: Current page label */}
-          <div className="shell-topbar-breadcrumb">
-            <span className="breadcrumb-current">{navInfo.page}</span>
+          {/* Left: Arohan Logo + Platform Title + Page Breadcrumb */}
+          <div className="shell-topbar-brand">
+            <ArohanLogo />
+            <div className="shell-topbar-title-wrap">
+              <span className="platform-title-full">Precision Cardiovascular Risk Intelligence Platform</span>
+              <span className="platform-title-compact">Precision CVR Intelligence</span>
+              <span className="platform-title-mobile">Precision CVR Platform</span>
+            </div>
+            <div className="shell-topbar-breadcrumb">
+              <span className="breadcrumb-separator">/</span>
+              <span className="breadcrumb-current">{navInfo.page}</span>
+            </div>
           </div>
 
-          {/* Center: Scenario preset pills (injected) */}
+          {/* Center: Scenario preset selector (injected) */}
           <div className="shell-topbar-pills">
             {topBarCenter}
           </div>
 
-          {/* Right: clock + settings */}
+          {/* Right: Risk status indicator + clock + settings */}
           <div className="shell-topbar-right">
+            <TopBarRiskStatus />
+            <ReportUploadZone compact onFileSelected={() => setReportPanelOpen(true)} />
             <ShellLiveClock />
             <ThemeToggleButton />
           </div>
@@ -194,7 +272,9 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
 
       {/* ── MOBILE: Bottom tab bar (visible < 768px only) ─────────── */}
       <MobileTabBar activeTabId={activeNav} onTabChange={onNavChange} />
+
+      {/* ── Report Upload Slide-in Panel (global overlay) ──────────────── */}
+      <ReportUploadPanel isOpen={reportPanelOpen} onClose={() => setReportPanelOpen(false)} />
     </div>
   );
 }
-

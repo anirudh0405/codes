@@ -95,16 +95,16 @@ function RiskArcGauge({ score, band }: { score: number; band: string }) {
 // ── Section 3: Contributions ─────────────────────────────────────────────────
 
 const CONTRIB_ROWS: { key: keyof import('../../riskEngine').RiskContributions; label: string; isComposite?: boolean }[] = [
-  { key: 'bloodPressure',    label: 'BP' },
-  { key: 'heartRate',        label: 'HR' },
-  { key: 'hrv',              label: 'HRV' },
-  { key: 'stress',           label: 'Stress' },
-  { key: 'qtInterval',       label: 'QTc' },
-  { key: 'stSegment',        label: 'ST-Seg' },
-  { key: 'apoB',             label: 'Metabolic-Vascular', isComposite: true },
+  { key: 'bloodPressure',    label: 'Blood Pressure (BP)' },
+  { key: 'heartRate',        label: 'Heart Rate (HR)' },
+  { key: 'hrv',              label: 'Heart Rate Variability (HRV)' },
+  { key: 'stress',           label: 'Physiological Stress' },
+  { key: 'qtInterval',       label: 'Corrected QT Interval (QTc)' },
+  { key: 'stSegment',        label: 'ST Segment' },
+  { key: 'apoB',             label: 'Metabolic-Vascular (ApoB)', isComposite: true },
   { key: 'smoking',          label: 'Smoking' },
-  { key: 'totalCholesterol', label: 'TC (est.)' },
-  { key: 'triglycerides',    label: 'TG (est.)' },
+  { key: 'totalCholesterol', label: 'Total Cholesterol (TC) (est.)' },
+  { key: 'triglycerides',    label: 'Triglycerides (TG) (est.)' },
 ];
 
 const CONTRIB_COLORS = [
@@ -238,19 +238,19 @@ export function CardiacReadouts() {
   const qtcLabel = snapshot.qtcBazett > 450 ? 'PROLONGED' : 'NORMAL';
   const qtcTagColor = snapshot.qtcBazett > 450 ? 'var(--risk-moderate)' : undefined;
 
-  const stLabel = Math.abs(snapshot.stSegment) > 0.1 ? 'DEVIATED' : 'ISOELECTRIC';
+  const stLabel = Math.abs(snapshot.stSegment) > 0.1 ? 'DEVIATED' : 'ISOELECTRIC (NORMAL)';
   const stTagColor = Math.abs(snapshot.stSegment) > 0.1 ? 'var(--risk-moderate)' : undefined;
 
   const bpInfo = classifyBP(snapshot.systolic, snapshot.diastolic);
 
   // Dynamic rhythm tag based on active ECG rhythm
-  let rhythmTag = 'NSR';
+  let rhythmTag = 'NORMAL SINUS RHYTHM (NSR)';
   let rhythmTagColor: string | undefined;
   if (activeEcgRhythm === 'afib') {
-    rhythmTag = 'AF';
+    rhythmTag = 'ATRIAL FIBRILLATION (AF)';
     rhythmTagColor = 'var(--risk-high)';
   } else if (activeEcgRhythm === 'sinus-tachycardia') {
-    rhythmTag = 'SINUS TACHY';
+    rhythmTag = 'SINUS TACHYCARDIA';
     rhythmTagColor = 'var(--risk-moderate)';
   }
 
@@ -274,19 +274,19 @@ export function CardiacReadouts() {
     valueColor?: string;
   }[] = [
     {
-      label: 'BLOOD PRESSURE',
+      label: 'BLOOD PRESSURE (BP)',
       value: `${snapshot.systolic}/${snapshot.diastolic} mmHg`,
       tag: bpInfo.shortLabel.toUpperCase(),
       tagColor: bpInfo.color,
     },
     {
-      label: 'HEART RATE',
+      label: 'HEART RATE (HR)',
       value: `${snapshot.heartRate} BPM`,
       tag: rhythmTag,
       tagColor: rhythmTagColor,
     },
     {
-      label: 'QTC BAZETT',
+      label: 'CORRECTED QT INTERVAL (QTC)',
       value: `${snapshot.qtcBazett} ms`,
       tag: qtcLabel,
       tagColor: qtcTagColor,
@@ -298,11 +298,11 @@ export function CardiacReadouts() {
       tagColor: stTagColor,
     },
     {
-      label: 'PULSE TRANSIT',
+      label: 'PULSE TRANSIT TIME (PTT)',
       value: `${snapshot.pulseTransitTime} ms`,
     },
     {
-      label: 'SPO₂ (OPTICAL)',
+      label: 'BLOOD OXYGEN SATURATION (SPO₂)',
       value: spo2Value,
       valueColor: spo2Color,
     },
@@ -339,8 +339,8 @@ export function CardiacReadouts() {
 
 export function MobileRiskBadge({ onTap }: { onTap: () => void }) {
   const riskResult = useSimStore(s => s.riskResult);
-  const score = riskResult?.score ?? 0;
   const band = riskResult?.band ?? 'Low';
+  const color = getRiskColor(band);
 
   return (
     <button
@@ -348,8 +348,19 @@ export function MobileRiskBadge({ onTap }: { onTap: () => void }) {
       className="rp-fab"
       onClick={onTap}
       aria-label="Open risk panel"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '6px 12px',
+        width: 'auto',
+        borderRadius: '9999px',
+        fontSize: '11px',
+        fontWeight: 600,
+      }}
     >
-      {score}
+      <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: color }} />
+      <span>{band} Risk</span>
     </button>
   );
 }

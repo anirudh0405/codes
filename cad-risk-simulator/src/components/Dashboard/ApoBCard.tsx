@@ -45,7 +45,7 @@ export function ApoBCard() {
     <div id="readout-apob" className="panel-card-alt flex flex-col justify-between" style={{ padding: 'var(--space-md)' }}>
       {/* Header row */}
       <div className="flex items-center justify-between">
-        <span className="eyebrow-label">ApoB (est.)</span>
+        <span className="eyebrow-label">Apolipoprotein B (ApoB) (est.)</span>
         <span
           style={{
             fontSize: 9,
@@ -93,7 +93,7 @@ export function ApoBCard() {
         {/* Non-HDL-C */}
         <div className="flex items-center justify-between">
           <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-            Non-HDL-C
+            Non-HDL Cholesterol (Non-HDL-C)
           </span>
           <span className="text-[11px] font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
             {nonHDL.toFixed(0)} mg/dL
@@ -103,7 +103,7 @@ export function ApoBCard() {
         {/* LDL-C (Friedewald) */}
         <div className="flex items-center justify-between">
           <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-            LDL-C (Friedewald)
+            LDL Cholesterol (LDL-C) (Friedewald)
           </span>
           <span
             className="text-[11px] font-medium tabular-nums"
@@ -118,7 +118,7 @@ export function ApoBCard() {
         {/* Inputs used */}
         <div className="flex items-center justify-between" style={{ marginTop: 2 }}>
           <span className="text-[9px]" style={{ color: 'var(--text-tertiary)' }}>
-            TC {labInputs.totalCholesterol} · HDL {labInputs.hdl} · TG {labInputs.triglycerides}
+            Total Cholesterol {labInputs.totalCholesterol} · HDL {labInputs.hdl} · Triglycerides {labInputs.triglycerides}
             {labInputs.trigsManuallySet ? ' (lab)' : ' (PPG est.)'}
           </span>
         </div>

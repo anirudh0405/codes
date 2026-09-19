@@ -47,10 +47,63 @@ export type BPMode = 'ptt' | 'manual';
 export const FAI_CLAMP = { min: -190, max: -30, default: -80 };
 export const CAC_CLAMP = { min: 0, default: 0 };
 
+export type PlaqueType = 'none' | 'non-calcified' | 'calcified' | 'mixed';
+export type StenosisSeverity = 'none' | '<50%' | '50-70%' | '>70%';
+
+export interface UploadedReport {
+  fileName: string;
+  timestamp: string;
+  fileUrl: string;
+  fileType: 'pdf' | 'image';
+  extractedFields?: ReportFields;
+  extractedCount?: number;
+  status?: 'analyzing' | 'applied' | 'error';
+  patientName?: string;
+  summaryNote?: string;
+  analysisProgress?: number;
+  analysisStatusText?: string;
+}
+
+export interface ReportFields {
+  totalCholesterol?: number;
+  hdl?: number;
+  ldl?: number;
+  triglycerides?: number;
+  apoB?: number;
+  apoBApoa1Ratio?: number;
+  lpa?: number;
+  hsCRP?: number;
+  hba1c?: number;
+  fastingGlucose?: number;
+  cac?: number;
+  fai?: number;
+  plaqueType?: PlaqueType;
+  plaqueLocation?: string[];
+  stenosisSeverity?: StenosisSeverity;
+  systolic?: number;
+  diastolic?: number;
+  heartRate?: number;
+  bmi?: number;
+  patientName?: string;
+  age?: number;
+  sex?: 'male' | 'female';
+}
+
+function ageToRange(age: number): string {
+  if (age < 30) return '<30';
+  if (age < 40) return '30-39';
+  if (age < 50) return '40-49';
+  if (age < 60) return '50-59';
+  if (age < 70) return '60-69';
+  if (age < 80) return '70-79';
+  return '80+';
+}
+
 export interface SimState {
   // ── Control Parameters (set by user via sliders / presets / randomize) ──────
   params: MockParams;
   activeProfile: ScenarioPreset | null;
+  lastActiveProfileId: string;
   patientProfile: PatientProfileData;
   selectedCategory: PresetCategory | null;
 
@@ -96,6 +149,15 @@ export interface SimState {
   // ── EchoNext 1D ResNet-34 Deep Learning Slice ─────────────────────────────
   echonextResult: EchoNextInferenceResult;
 
+  // ── Report Upload State ────────────────────────────────────────────────────
+  hsCRP: number;
+  hba1c: number;
+  fastingGlucose: number;
+  plaqueType: PlaqueType;
+  plaqueLocation: string[];
+  stenosisSeverity: StenosisSeverity;
+  uploadedReport: UploadedReport | null;
+
   // ── Actions ───────────────────────────────────────────────────────────────
   runEchoNext: () => void;
   setParams: (params: Partial<MockParams>) => void;
@@ -117,6 +179,9 @@ export interface SimState {
     ppgTriglycerides?: number,
     diseaseSubScores?: DiseaseSubScores
   ) => void;
+  setReportFields: (fields: ReportFields) => void;
+  setUploadedReport: (report: UploadedReport | null) => void;
+  clearReport: () => void;
 }
 
 // Physiologically plausible random values within a specific category or across all
@@ -266,6 +331,7 @@ let waveformTicker = 0;
 export const useSimStore = create<SimState>((set, get) => ({
   params: { ...DEFAULT_PRESET.params },
   activeProfile: DEFAULT_PRESET,
+  lastActiveProfileId: DEFAULT_PRESET.id,
   patientProfile: { ...DEFAULT_PRESET.patientProfile },
   selectedCategory: 'healthy',
   bpMode: 'ptt', // PTT-derived is default data source
@@ -288,6 +354,15 @@ export const useSimStore = create<SimState>((set, get) => ({
   activeEcgRhythm: 'sinus',
   activeMechanismSteps: null,
   activeSeverity: null,
+
+  // Report upload state
+  hsCRP: 0,
+  hba1c: 0,
+  fastingGlucose: 0,
+  plaqueType: 'none',
+  plaqueLocation: [],
+  stenosisSeverity: 'none',
+  uploadedReport: null,
 
   // EchoNext 1D ResNet-34 Deep Learning Slice
   echonextResult: runEchoNextInference(
@@ -368,6 +443,7 @@ export const useSimStore = create<SimState>((set, get) => ({
         params: newParams,
         patientProfile: { ...profile.patientProfile },
         activeProfile: profile,
+        lastActiveProfileId: profile.id,
         selectedCategory: profile.category,
         labInputs: newLabInputs,
         apoBPanel: calculateApoBPanel(newLabInputs),
@@ -545,5 +621,73 @@ export const useSimStore = create<SimState>((set, get) => ({
         diseaseSubScores: diseaseSubScores ?? s.diseaseSubScores,
       };
     });
+  },
+
+  setReportFields: (fields) => {
+    const s = get();
+    // Update lab inputs if any lipid fields provided
+    const labPatch: Partial<Omit<LabInputs, 'trigsManuallySet'>> = {};
+    if (fields.totalCholesterol !== undefined) labPatch.totalCholesterol = fields.totalCholesterol;
+    if (fields.hdl !== undefined) labPatch.hdl = fields.hdl;
+    if (fields.triglycerides !== undefined) labPatch.triglycerides = fields.triglycerides;
+    if (fields.lpa !== undefined) labPatch.lpa = fields.lpa;
+    if (Object.keys(labPatch).length > 0) {
+      s.setLabInputs(labPatch, fields.triglycerides !== undefined);
+    }
+    // Update FAI/CAC
+    if (fields.fai !== undefined) s.setFai(fields.fai);
+    if (fields.cac !== undefined) s.setCac(fields.cac);
+    // Update vitals via params
+    const paramPatch: Partial<MockParams> = {};
+    if (fields.systolic !== undefined) paramPatch.systolic = fields.systolic;
+    if (fields.diastolic !== undefined) paramPatch.diastolic = fields.diastolic;
+    if (fields.heartRate !== undefined) paramPatch.heartRate = fields.heartRate;
+    if (Object.keys(paramPatch).length > 0) s.setParams(paramPatch);
+
+    // Update patient profile demographics
+    const profilePatch: Partial<PatientProfileData> = {};
+    if (fields.patientName) profilePatch.name = fields.patientName;
+    if (fields.age !== undefined) profilePatch.ageRange = ageToRange(fields.age);
+    if (fields.sex) profilePatch.sex = fields.sex;
+    if (fields.bmi !== undefined) {
+      const heightM = (s.patientProfile.height || 170) / 100;
+      profilePatch.weight = Math.round(fields.bmi * heightM * heightM);
+    }
+    if (Object.keys(profilePatch).length > 0) {
+      s.setPatientProfile(profilePatch);
+    }
+
+    // Update report-specific fields
+    set({
+      ...(fields.hsCRP !== undefined ? { hsCRP: fields.hsCRP } : {}),
+      ...(fields.hba1c !== undefined ? { hba1c: fields.hba1c } : {}),
+      ...(fields.fastingGlucose !== undefined ? { fastingGlucose: fields.fastingGlucose } : {}),
+      ...(fields.plaqueType !== undefined ? { plaqueType: fields.plaqueType } : {}),
+      ...(fields.plaqueLocation !== undefined ? { plaqueLocation: fields.plaqueLocation } : {}),
+      ...(fields.stenosisSeverity !== undefined ? { stenosisSeverity: fields.stenosisSeverity } : {}),
+    });
+  },
+
+  setUploadedReport: (report) => {
+    set({ uploadedReport: report });
+  },
+
+  clearReport: () => {
+    const s = get();
+    const targetProfileId = s.lastActiveProfileId || SCENARIO_PRESETS[0].id;
+
+    // Reset report state
+    set({
+      hsCRP: 0,
+      hba1c: 0,
+      fastingGlucose: 0,
+      plaqueType: 'none',
+      plaqueLocation: [],
+      stenosisSeverity: 'none',
+      uploadedReport: null,
+    });
+
+    // Restore the scenario preset it was on
+    get().applyProfile(targetProfileId);
   },
 }));

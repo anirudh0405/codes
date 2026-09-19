@@ -9,7 +9,7 @@ import React from 'react';
 export function RightPanelHeader() {
   return (
     <div className="right-panel-header">
-      <div className="right-panel-header-label">CAD Risk Score</div>
+      <div className="right-panel-header-label">Coronary Artery Disease (CAD) Risk Score</div>
     </div>
   );
 }

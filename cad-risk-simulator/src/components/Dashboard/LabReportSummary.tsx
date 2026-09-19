@@ -255,19 +255,19 @@ export function LabReportSummary({ onClose }: LabReportSummaryProps) {
         <div style={{ overflowY: 'auto', flex: 1 }}>
           <HeaderRow />
 
-          <Row label="Total Cholesterol" value={snapshot?.totalCholesterol} formattedValue={snapshot ? `${Math.round(snapshot.totalCholesterol)} mg/dL` : '—'} rangeKey="totalCholesterol" />
-          <Row label="Triglycerides"     value={snapshot?.triglycerides}     formattedValue={snapshot ? `${Math.round(snapshot.triglycerides)} mg/dL` : '—'}     rangeKey="triglycerides" />
-          <Row label="ApoB (est.)"       value={apoB}                        formattedValue={`${apoB.toFixed(1)} mg/dL`}                                          rangeKey="apoB" />
-          <Row label="HDL-C"             value={labInputs.hdl}               formattedValue={`${labInputs.hdl} mg/dL`}                                            rangeKey="hdl" />
-          <Row label="LDL-C (Friedewald)" value={friedewaldValid ? ldl : undefined} formattedValue={friedewaldValid ? `${ldl.toFixed(0)} mg/dL` : 'N/A (TG>400)'}  rangeKey="ldl" />
-          <Row label="Lp(a)"             value={labInputs.lpa}               formattedValue={`${labInputs.lpa.toFixed(1)} mg/dL`}                                  rangeKey="lpA" />
-          <Row label="ApoB/ApoA1"        value={apoBApoa1Ratio}              formattedValue={`${apoBApoa1Ratio}`}                                                   rangeKey="apoBApoA1Ratio" />
-          <Row label="Systolic BP"       value={snapshot?.systolic}          formattedValue={snapshot ? `${snapshot.systolic} mmHg` : '—'}                         rangeKey="systolicBP" />
-          <Row label="Diastolic BP"      value={snapshot?.diastolic}         formattedValue={snapshot ? `${snapshot.diastolic} mmHg` : '—'}                        rangeKey="diastolicBP" />
-          <Row label="Heart Rate"        value={snapshot?.heartRate}         formattedValue={snapshot ? `${snapshot.heartRate} bpm` : '—'}                         rangeKey="heartRate" />
-          <Row label="HRV RMSSD"         value={snapshot ? Math.round(snapshot.hrv) : undefined}  formattedValue={snapshot ? `${Math.round(snapshot.hrv)} ms` : '—'}              rangeKey="hrv" />
-          <Row label="Stress Index"      value={snapshot ? Math.round(snapshot.stressScore) : undefined} formattedValue={snapshot ? `${Math.round(snapshot.stressScore)} / 100` : '—'} rangeKey="stressIndex" />
-          <Row label="BMI"               value={bmi}                         formattedValue={`${bmi} kg/m²`}                                                       rangeKey="bmi" isLast />
+          <Row label="Total Cholesterol (TC)" value={snapshot?.totalCholesterol} formattedValue={snapshot ? `${Math.round(snapshot.totalCholesterol)} mg/dL` : '—'} rangeKey="totalCholesterol" />
+          <Row label="Triglycerides (TG)"     value={snapshot?.triglycerides}     formattedValue={snapshot ? `${Math.round(snapshot.triglycerides)} mg/dL` : '—'}     rangeKey="triglycerides" />
+          <Row label="Apolipoprotein B (ApoB)" value={apoB}                       formattedValue={`${apoB.toFixed(1)} mg/dL`}                                          rangeKey="apoB" />
+          <Row label="HDL Cholesterol (HDL-C)" value={labInputs.hdl}              formattedValue={`${labInputs.hdl} mg/dL`}                                            rangeKey="hdl" />
+          <Row label="LDL Cholesterol (LDL-C)" value={friedewaldValid ? ldl : undefined} formattedValue={friedewaldValid ? `${ldl.toFixed(0)} mg/dL` : 'N/A (TG>400)'}  rangeKey="ldl" />
+          <Row label="Lipoprotein(a) [Lp(a)]"  value={labInputs.lpa}              formattedValue={`${labInputs.lpa.toFixed(1)} mg/dL`}                                  rangeKey="lpA" />
+          <Row label="ApoB / ApoA1 Ratio"     value={apoBApoa1Ratio}              formattedValue={`${apoBApoa1Ratio}`}                                                   rangeKey="apoBApoA1Ratio" />
+          <Row label="Systolic Blood Pressure (SBP)" value={snapshot?.systolic}   formattedValue={snapshot ? `${snapshot.systolic} mmHg` : '—'}                         rangeKey="systolicBP" />
+          <Row label="Diastolic Blood Pressure (DBP)" value={snapshot?.diastolic} formattedValue={snapshot ? `${snapshot.diastolic} mmHg` : '—'}                        rangeKey="diastolicBP" />
+          <Row label="Heart Rate (HR)"        value={snapshot?.heartRate}         formattedValue={snapshot ? `${snapshot.heartRate} bpm` : '—'}                         rangeKey="heartRate" />
+          <Row label="Heart Rate Variability (RMSSD)" value={snapshot ? Math.round(snapshot.hrv) : undefined}  formattedValue={snapshot ? `${Math.round(snapshot.hrv)} ms` : '—'}              rangeKey="hrv" />
+          <Row label="Physiological Stress Index" value={snapshot ? Math.round(snapshot.stressScore) : undefined} formattedValue={snapshot ? `${Math.round(snapshot.stressScore)} / 100` : '—'} rangeKey="stressIndex" />
+          <Row label="Body Mass Index (BMI)"  value={bmi}                         formattedValue={`${bmi} kg/m²`}                                                       rangeKey="bmi" isLast />
         </div>
 
         {/* Footer disclaimer */}

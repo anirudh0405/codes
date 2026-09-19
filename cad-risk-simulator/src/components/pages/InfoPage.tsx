@@ -17,7 +17,7 @@ interface SubTabOption {
 }
 
 const SUB_TABS: SubTabOption[] = [
-  { id: 'about',      label: 'About CAD' },
+  { id: 'about',      label: 'About Coronary Artery Disease (CAD)' },
   { id: 'parameters', label: 'Parameters' },
   { id: 'formulas',   label: 'Formulas' },
   { id: 'fusion',     label: 'Fusion Design' },
@@ -34,16 +34,16 @@ function AboutCADContent() {
   return (
     <div className="info-text-section">
       <div className="info-block">
-        <h2 className="info-heading">WHAT IS CAD?</h2>
+        <h2 className="info-heading">WHAT IS CORONARY ARTERY DISEASE (CAD)?</h2>
         <p className="info-paragraph">
-          <InfoKeyword>CAD</InfoKeyword> is <InfoKeyword>atherosclerotic narrowing</InfoKeyword> of the <InfoKeyword>coronary arteries</InfoKeyword>, reducing blood supply to the heart. It can lead to <InfoKeyword>angina</InfoKeyword>, <InfoKeyword>ischemia</InfoKeyword>, and <InfoKeyword>myocardial infarction</InfoKeyword>.
+          <InfoKeyword>Coronary Artery Disease (CAD)</InfoKeyword> is <InfoKeyword>atherosclerotic narrowing</InfoKeyword> of the <InfoKeyword>coronary arteries</InfoKeyword>, reducing blood supply to the heart. It can lead to <InfoKeyword>angina</InfoKeyword>, <InfoKeyword>ischemia</InfoKeyword>, and <InfoKeyword>myocardial infarction</InfoKeyword>.
         </p>
       </div>
 
       <div className="info-block">
         <h2 className="info-heading">WHY CONTINUOUS MONITORING?</h2>
         <p className="info-paragraph">
-          Clinic tests capture a snapshot. Continuous <InfoKeyword>ECG</InfoKeyword>, <InfoKeyword>PPG</InfoKeyword>, and <InfoKeyword>BP</InfoKeyword> monitoring helps detect early <InfoKeyword>risk drift</InfoKeyword> before a major event.
+          Clinic tests capture a snapshot. Continuous <InfoKeyword>Electrocardiogram (ECG)</InfoKeyword>, <InfoKeyword>Photoplethysmography (PPG)</InfoKeyword>, and <InfoKeyword>Blood Pressure (BP)</InfoKeyword> monitoring helps detect early <InfoKeyword>risk drift</InfoKeyword> before a major event.
         </p>
       </div>
 
@@ -53,7 +53,7 @@ function AboutCADContent() {
           The <InfoKeyword>INTERHEART</InfoKeyword> study shows that nine modifiable factors explain over <InfoKeyword>90%</InfoKeyword> of MI risk, especially in <InfoKeyword>South Asian</InfoKeyword> populations.
         </p>
         <ol className="info-ordered-list">
-          <li><InfoKeyword>ApoB/ApoA1</InfoKeyword> ratio</li>
+          <li><InfoKeyword>Apolipoprotein B (ApoB) / ApoA1</InfoKeyword> ratio</li>
           <li><InfoKeyword>Smoking</InfoKeyword></li>
           <li><InfoKeyword>Hypertension</InfoKeyword></li>
           <li><InfoKeyword>Diabetes</InfoKeyword></li>
@@ -73,7 +73,7 @@ function AboutCADContent() {
       </div>
 
       <div className="info-block">
-        <h2 className="info-heading">HOW THIS SIMULATOR WORKS</h2>
+        <h2 className="info-heading">HOW THIS PLATFORM WORKS</h2>
         <p className="info-paragraph">
           It fuses <InfoKeyword>5 signals</InfoKeyword> through a <InfoKeyword>7-layer pipeline</InfoKeyword> to generate a <InfoKeyword>0–100 CAD risk score</InfoKeyword>.
         </p>
@@ -102,13 +102,13 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
   {
     groupName: 'SENSOR-DERIVED (direct measurement)',
     rows: [
-      { name: 'Heart Rate', source: 'ECG/PPG', derivedFrom: 'Peak detection', normalRange: '60–100 bpm', cadRange: '—', citation: 'Asian Heart Institute' },
+      { name: 'Heart Rate (HR)', source: 'ECG/PPG', derivedFrom: 'Peak detection', normalRange: '60–100 bpm', cadRange: '—', citation: 'Asian Heart Institute' },
       { name: 'ST Segment', source: 'ECG', derivedFrom: 'Baseline offset', normalRange: '-0.05–0.05 mV', cadRange: '>0.1 mV elevation', citation: 'Thygesen et al. 2018' },
       { name: 'QT Interval (raw)', source: 'ECG', derivedFrom: 'R-wave to T-end', normalRange: '350–440 ms', cadRange: '>440 ms', citation: 'AHA guidelines' },
-      { name: 'HRV RMSSD', source: 'ECG/PPG', derivedFrom: 'Inter-beat timing', normalRange: '>50 ms (healthy)', cadRange: '<25 ms', citation: 'Published HRV norms' },
-      { name: 'Systolic BP', source: 'BP sensor / PTT', derivedFrom: 'Direct/PTT-derived', normalRange: '<120 mmHg', cadRange: '138.4±12.6 mmHg', citation: 'SVMC / Gadhwal et al.' },
-      { name: 'Diastolic BP', source: 'BP sensor / PTT', derivedFrom: 'Direct/PTT-derived', normalRange: '<80 mmHg', cadRange: '86.5±8.4 mmHg', citation: 'SVMC / Gadhwal et al.' },
-      { name: 'Stress Score', source: 'EDA/GSR proxy', derivedFrom: 'HRV + skin response', normalRange: '0–30 (low)', cadRange: '>60 (high)', citation: '—' },
+      { name: 'Heart Rate Variability (RMSSD)', source: 'ECG/PPG', derivedFrom: 'Inter-beat timing', normalRange: '>50 ms (healthy)', cadRange: '<25 ms', citation: 'Published HRV norms' },
+      { name: 'Systolic Blood Pressure (SBP)', source: 'BP sensor / PTT', derivedFrom: 'Direct/PTT-derived', normalRange: '<120 mmHg', cadRange: '138.4±12.6 mmHg', citation: 'SVMC / Gadhwal et al.' },
+      { name: 'Diastolic Blood Pressure (DBP)', source: 'BP sensor / PTT', derivedFrom: 'Direct/PTT-derived', normalRange: '<80 mmHg', cadRange: '86.5±8.4 mmHg', citation: 'SVMC / Gadhwal et al.' },
+      { name: 'Physiological Stress Score', source: 'EDA/GSR proxy', derivedFrom: 'HRV + skin response', normalRange: '0–30 (low)', cadRange: '>60 (high)', citation: '—' },
       { name: 'Motion Level', source: 'Accelerometer', derivedFrom: 'Raw accel signal', normalRange: 'Low baseline', cadRange: '—', citation: '—' },
     ],
   },
@@ -120,34 +120,34 @@ const PARAMETER_GROUPS: ParameterGroup[] = [
       { name: 'Augmentation Index (AIx)', source: 'PPG', derivedFrom: '(Diastolic−Notch)/Systolic', normalRange: '—', cadRange: '—', citation: 'Takazawa et al. 1998' },
       { name: 'Rise Time', source: 'PPG', derivedFrom: 'Systolic peak index/beat cycle', normalRange: '—', cadRange: '—', citation: 'PPG landmark analysis' },
       { name: 'Dicrotic Notch Position', source: 'PPG', derivedFrom: 'Notch index/beat cycle', normalRange: '—', cadRange: '—', citation: 'PPG landmark analysis' },
-      { name: 'Total Cholesterol (est.)', source: 'PPG morphology', derivedFrom: 'RI, SI, AIx formula', normalRange: '198±37 mg/dL', cadRange: '192–213 mg/dL', citation: 'Ashavaid et al. 2005 / Gadhwal et al.' },
-      { name: 'Triglycerides (est.)', source: 'PPG morphology', derivedFrom: 'RI, SI, AIx formula', normalRange: '119±53 mg/dL', cadRange: '176–178 mg/dL', citation: 'Ashavaid et al. 2005 / Gadhwal et al.' },
+      { name: 'Total Cholesterol (TC) (est.)', source: 'PPG morphology', derivedFrom: 'RI, SI, AIx formula', normalRange: '198±37 mg/dL', cadRange: '192–213 mg/dL', citation: 'Ashavaid et al. 2005 / Gadhwal et al.' },
+      { name: 'Triglycerides (TG) (est.)', source: 'PPG morphology', derivedFrom: 'RI, SI, AIx formula', normalRange: '119±53 mg/dL', cadRange: '176–178 mg/dL', citation: 'Ashavaid et al. 2005 / Gadhwal et al.' },
     ],
   },
   {
     groupName: 'CALCULATED FROM LAB INPUTS',
     rows: [
-      { name: 'HDL-C', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '47±11 mg/dL', cadRange: '38.6±8.2 mg/dL', citation: 'Ashavaid et al. 2005' },
-      { name: 'Non-HDL-C', source: 'Lab calculation', derivedFrom: 'TC − HDL', normalRange: '—', cadRange: '—', citation: 'Standard definition' },
-      { name: 'LDL-C', source: 'Lab calculation', derivedFrom: 'Friedewald equation', normalRange: '121±29 mg/dL', cadRange: '125–141 mg/dL', citation: 'Ashavaid et al. 2005' },
-      { name: 'ApoB', source: 'Lab calculation', derivedFrom: '0.65×non-HDL-C + 6.3', normalRange: '95±21 mg/dL', cadRange: '108.2±22.5 mg/dL', citation: 'Hermans et al. 2011' },
-      { name: 'ApoA1', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '—', cadRange: '—', citation: '—' },
-      { name: 'ApoB/ApoA1 Ratio', source: 'Lab calculation', derivedFrom: 'ApoB ÷ ApoA1', normalRange: '0.76±0.19', cadRange: '0.92±0.26', citation: 'Ashavaid et al. 2005' },
-      { name: 'Lp(a)', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '12.9 mg/dL (median)', cadRange: '44.5±19.8 mg/dL', citation: 'Ashavaid et al. 2005' },
+      { name: 'HDL Cholesterol (HDL-C)', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '47±11 mg/dL', cadRange: '38.6±8.2 mg/dL', citation: 'Ashavaid et al. 2005' },
+      { name: 'Non-HDL Cholesterol', source: 'Lab calculation', derivedFrom: 'TC − HDL', normalRange: '—', cadRange: '—', citation: 'Standard definition' },
+      { name: 'LDL Cholesterol (LDL-C)', source: 'Lab calculation', derivedFrom: 'Friedewald equation', normalRange: '121±29 mg/dL', cadRange: '125–141 mg/dL', citation: 'Ashavaid et al. 2005' },
+      { name: 'Apolipoprotein B (ApoB)', source: 'Lab calculation', derivedFrom: '0.65×non-HDL-C + 6.3', normalRange: '95±21 mg/dL', cadRange: '108.2±22.5 mg/dL', citation: 'Hermans et al. 2011' },
+      { name: 'Apolipoprotein A1 (ApoA1)', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '—', cadRange: '—', citation: '—' },
+      { name: 'ApoB / ApoA1 Ratio', source: 'Lab calculation', derivedFrom: 'ApoB ÷ ApoA1', normalRange: '0.76±0.19', cadRange: '0.92±0.26', citation: 'Ashavaid et al. 2005' },
+      { name: 'Lipoprotein(a) [Lp(a)]', source: 'Lab report (manual)', derivedFrom: 'Direct entry', normalRange: '12.9 mg/dL (median)', cadRange: '44.5±19.8 mg/dL', citation: 'Ashavaid et al. 2005' },
       { name: 'Fat Attenuation Index (FAI)', source: 'CT angiography (CCTA) — manual entry', derivedFrom: 'Pericoronary adipose tissue HU attenuation', normalRange: '≤ -70.1 HU (less inflammation)', cadRange: '> -70.1 HU (elevated pericoronary inflammation)', citation: 'Antonopoulos AS et al. Eur Heart J. 2017; Radiology: Cardiothoracic Imaging 2021' },
       { name: 'Coronary Artery Calcium Score (CAC)', source: 'CT scan — manual entry (Agatston method)', derivedFrom: 'Calcified plaque area × density in CT', normalRange: '0 AU (no detectable calcification)', cadRange: '> 100 AU (mild–moderate), > 400 AU (severe)', citation: 'Agatston AS et al. JACC 1990; NLA CAC Scoring Guidelines' },
-      { name: 'sdLDL (est.)', source: 'Lab calculation', derivedFrom: 'Sampson/modified equation', normalRange: '—', cadRange: '42.7±14.3 mg/dL', citation: 'Gadhwal et al.' },
-      { name: 'BMI', source: 'Patient profile', derivedFrom: 'Weight(kg)/Height(m)²', normalRange: '18.5–22.9 kg/m²', cadRange: '26.1–26.8 kg/m²', citation: 'Regency Healthcare / Gadhwal et al.' },
+      { name: 'Small Dense LDL (sdLDL) (est.)', source: 'Lab calculation', derivedFrom: 'Sampson/modified equation', normalRange: '—', cadRange: '42.7±14.3 mg/dL', citation: 'Gadhwal et al.' },
+      { name: 'Body Mass Index (BMI)', source: 'Patient profile', derivedFrom: 'Weight(kg)/Height(m)²', normalRange: '18.5–22.9 kg/m²', cadRange: '26.1–26.8 kg/m²', citation: 'Regency Healthcare / Gadhwal et al.' },
     ],
   },
   {
     groupName: 'ECG/PPG COMPOSITE',
     rows: [
-      { name: 'QTc (Bazett)', source: 'ECG', derivedFrom: 'QT/√RR', normalRange: '<440 ms', cadRange: '440–500 ms risk', citation: 'Bazett 1920' },
-      { name: 'MAP', source: 'BP', derivedFrom: 'DBP + (SBP−DBP)/3', normalRange: '70–100 mmHg', cadRange: '—', citation: 'Standard physiology' },
+      { name: 'Corrected QT Interval (QTc) (Bazett)', source: 'ECG', derivedFrom: 'QT/√RR', normalRange: '<440 ms', cadRange: '440–500 ms risk', citation: 'Bazett 1920' },
+      { name: 'Mean Arterial Pressure (MAP)', source: 'BP', derivedFrom: 'DBP + (SBP−DBP)/3', normalRange: '70–100 mmHg', cadRange: '—', citation: 'Standard physiology' },
       { name: 'Pulse Pressure', source: 'BP', derivedFrom: 'SBP − DBP', normalRange: '40 mmHg', cadRange: '—', citation: 'Standard physiology' },
-      { name: 'PTT', source: 'ECG + PPG', derivedFrom: 'R-wave to PPG foot', normalRange: '—', cadRange: '—', citation: 'Ding et al. IEEE TBME 2015' },
-      { name: 'SpO₂', source: 'PPG (optical)', derivedFrom: 'Light absorption ratio', normalRange: '95–100%', cadRange: '—', citation: 'Standard oximetry' },
+      { name: 'Pulse Transit Time (PTT)', source: 'ECG + PPG', derivedFrom: 'R-wave to PPG foot', normalRange: '—', cadRange: '—', citation: 'Ding et al. IEEE TBME 2015' },
+      { name: 'Blood Oxygen Saturation (SpO₂)', source: 'PPG (optical)', derivedFrom: 'Light absorption ratio', normalRange: '95–100%', cadRange: '—', citation: 'Standard oximetry' },
     ],
   },
 ];

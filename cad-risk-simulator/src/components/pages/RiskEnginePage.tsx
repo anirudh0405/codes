@@ -32,42 +32,42 @@ interface BreakdownRow {
 const BREAKDOWN_ROWS: BreakdownRow[] = [
   {
     key: 'heartRate',
-    label: 'HR',
+    label: 'Heart Rate (HR)',
     weightKey: 'heartRate',
     getValue: (s) => s ? `${s.heartRate} bpm` : '—',
     getNormalized: (r) => r?.rawContributions?.heartRate ?? 0,
   },
   {
     key: 'hrv',
-    label: 'HRV',
+    label: 'Heart Rate Variability (HRV)',
     weightKey: 'hrv',
     getValue: (s) => s ? `${s.hrv} ms` : '—',
     getNormalized: (r) => r?.rawContributions?.hrv ?? 0,
   },
   {
     key: 'stress',
-    label: 'Stress',
+    label: 'Physiological Stress Index',
     weightKey: 'stress',
     getValue: (s) => s ? `${Math.round(s.stressScore)}` : '—',
     getNormalized: (r) => r?.rawContributions?.stress ?? 0,
   },
   {
     key: 'qtInterval',
-    label: 'QTc',
+    label: 'Corrected QT Interval (QTc)',
     weightKey: 'qtInterval',
     getValue: (s) => s ? `${s.qtcBazett} ms` : '—',
     getNormalized: (r) => r?.rawContributions?.qtInterval ?? 0,
   },
   {
     key: 'stSegment',
-    label: 'ST-Segment',
+    label: 'ST Segment Deviation',
     weightKey: 'stSegment',
     getValue: (s) => s ? `${s.stSegment.toFixed(2)} mV` : '—',
     getNormalized: (r) => r?.rawContributions?.stSegment ?? 0,
   },
   {
     key: 'metabolicVascular',
-    label: 'Metabolic-Vascular ∑(BP+TG+Chol+ApoB)',
+    label: 'Metabolic-Vascular ∑(Blood Pressure + Triglycerides + Cholesterol + ApoB)',
     weightKey: 'apoB',
     getValue: (s) => {
       if (!s) return '—';
@@ -89,7 +89,7 @@ export function RiskEnginePage() {
     <div className="re-page">
       {/* ── Header ───────────────────────────────────────────────── */}
       <div className="re-page-header">
-        <h1 className="re-page-title">CAD RISK ENGINE</h1>
+        <h1 className="re-page-title">CORONARY ARTERY DISEASE (CAD) RISK ENGINE</h1>
         <p className="re-page-subtitle">
           Weighted composite model — rule-based, INTERHEART-referenced
         </p>
