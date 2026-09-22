@@ -107,27 +107,30 @@ html, body, #root {
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; transition: background 0.2s ease; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
 /* ── Card primitives ─────────────────────────────────────────────────────── */
 .panel-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.24), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 /* Derived / estimated data cards — slightly lighter than primary panels */
 .panel-card-alt {
   background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
 }
 
 /* ── Eyebrow label — uppercase only for small metadata labels ────────────── */
@@ -187,27 +190,22 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .sidebar-identity {
-  padding: var(--space-lg) var(--space-md) var(--space-md);
+  padding: 12px var(--space-md);
   border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sidebar-identity-name {
-  font-family: var(--font-mono);
-  font-variant: all-small-caps;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
 }
 
 .sidebar-identity-version {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-tertiary);
-  margin-top: var(--space-xs);
   letter-spacing: 0.04em;
 }
 
@@ -253,7 +251,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .sidebar-nav-item.active {
   background: var(--surface-alt);
-  border-left-color: transparent;
+  border-left-color: var(--accent);
   font-weight: 500;
 }
 
@@ -262,10 +260,11 @@ input[type=number]::-webkit-outer-spin-button {
   height: 16px;
   flex-shrink: 0;
   color: var(--text-secondary);
+  transition: color 0.15s ease;
 }
 
 .sidebar-nav-item.active svg {
-  color: var(--text-primary);
+  color: var(--accent);
 }
 
 .sidebar-footer {
@@ -314,6 +313,7 @@ input[type=number]::-webkit-outer-spin-button {
   padding: 0 var(--space-lg);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   gap: var(--space-md);
   z-index: 50;
   position: relative;
@@ -658,6 +658,7 @@ input[type=number]::-webkit-outer-spin-button {
   align-items: center;
   justify-content: center;
   margin: var(--space-xs) 0;
+  filter: drop-shadow(0 0 14px rgba(74, 157, 255, 0.1));
 }
 
 .rp-arc-svg {
@@ -681,12 +682,13 @@ input[type=number]::-webkit-outer-spin-button {
 
 .rp-arc-score {
   font-family: var(--font-mono);
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
   padding: 0;
   width: auto;
+  text-shadow: 0 0 24px rgba(74, 157, 255, 0.15);
 }
 
 .rp-arc-band-label {
@@ -780,7 +782,7 @@ input[type=number]::-webkit-outer-spin-button {
 .rp-contrib-legend {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .rp-contrib-legend-row {
@@ -788,6 +790,13 @@ input[type=number]::-webkit-outer-spin-button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
+  padding: 2px 0;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.rp-contrib-legend-row:hover {
+  background: rgba(255,255,255,0.03);
 }
 
 .rp-contrib-legend-item {
@@ -798,10 +807,11 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .rp-contrib-legend-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
 }
 
 .rp-contrib-label {
@@ -825,14 +835,14 @@ input[type=number]::-webkit-outer-spin-button {
 .rp-contrib-value {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .rp-contrib-value-inner {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .rp-contrib-bar-track {
@@ -868,9 +878,9 @@ input[type=number]::-webkit-outer-spin-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 0;
+  padding: 7px 0;
   min-height: unset;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border);
 }
 
 .rp-readout-row:last-child {
@@ -1021,10 +1031,31 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .dash-stat-card {
-  padding: var(--space-md);
+  padding: 14px var(--space-md) var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 6px;
+}
+
+/* Accent gradient bar on top of stat cards */
+.dash-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+  border-radius: 10px 10px 0 0;
+  opacity: 0.5;
+}
+
+/* Desktop hover micro-lift for stat cards */
+@media (hover: hover) {
+  .dash-stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.05) inset;
+    transform: translateY(-1px);
+  }
 }
 
 .dash-stat-label {
@@ -1038,7 +1069,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .dash-stat-value {
   font-family: var(--font-mono);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -4551,3 +4582,134 @@ html[data-theme='light'] .info-keyword {
   font-weight: 500;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   UI ENHANCEMENT — Visual Polish Layer (CSS-Only)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 8. EchoNext Status Dot — Pulsing Animation ─────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px currentColor; opacity: 1; }
+  50% { box-shadow: 0 0 16px currentColor; opacity: 0.6; }
+}
+
+/* Target the inline status dot in DashboardHome EchoNext card — pure CSS */
+.panel-card > div > div > div[style*="border-radius: 50%"][style*="box-shadow"] {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ── 9. Mobile Tab Bar — Active Dot Indicator ────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-tab-bar-item {
+    position: relative;
+  }
+
+  .mobile-tab-bar-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  .mobile-tab-bar-item.active svg {
+    color: var(--accent);
+  }
+}
+
+/* ── 10. CAD Risk Trend Sparkline — Glow ─────────────────────────────────── */
+.cad-risk-trend-svg path {
+  filter: drop-shadow(0 0 3px rgba(74, 157, 255, 0.3));
+}
+
+.cad-risk-trend-bar {
+  background: linear-gradient(180deg, var(--surface) 0%, rgba(17,17,19,0.95) 100%);
+}
+
+/* ── 12. FAB Button Enhancement (Mobile) ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .rp-fab {
+    box-shadow: 0 4px 20px rgba(74, 157, 255, 0.35), 0 2px 8px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .rp-fab:active {
+    transform: scale(0.93);
+    box-shadow: 0 2px 10px rgba(74, 157, 255, 0.25);
+  }
+}
+
+/* ── 13. Light Mode — Refined Shadows & Depth ────────────────────────────── */
+:root.light-mode .panel-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+:root.light-mode .panel-card-alt {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+@media (hover: hover) {
+  :root.light-mode .dash-stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06);
+  }
+}
+
+:root.light-mode .shell-topbar {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+:root.light-mode .rp-arc-gauge {
+  filter: drop-shadow(0 0 14px rgba(37, 99, 235, 0.08));
+}
+
+:root.light-mode .rp-arc-score {
+  text-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
+}
+
+:root.light-mode .rp-contrib-legend-row:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+:root.light-mode .rp-contrib-legend-dot {
+  box-shadow: 0 0 3px rgba(0,0,0,0.12);
+}
+
+:root.light-mode .rp-readout-row {
+  border-bottom-color: var(--border);
+}
+
+:root.light-mode .cad-risk-trend-bar {
+  background: linear-gradient(180deg, var(--surface) 0%, rgba(244,244,245,0.95) 100%);
+}
+
+:root.light-mode .cad-risk-trend-svg path {
+  filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.2));
+}
+
+@media (max-width: 768px) {
+  :root.light-mode .rp-fab {
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25), 0 2px 8px rgba(0,0,0,0.15);
+  }
+}
+
+/* ── Sidebar depth polish ────────────────────────────────────────────────── */
+.sidebar {
+  box-shadow: 1px 0 4px rgba(0,0,0,0.15);
+}
+
+:root.light-mode .sidebar {
+  box-shadow: 1px 0 3px rgba(0,0,0,0.06);
+}
+
+/* ── Right Panel depth polish ────────────────────────────────────────────── */
+.app-right-panel {
+  box-shadow: -1px 0 4px rgba(0,0,0,0.15);
+}
+
+:root.light-mode .app-right-panel {
+  box-shadow: -1px 0 3px rgba(0,0,0,0.06);
+}

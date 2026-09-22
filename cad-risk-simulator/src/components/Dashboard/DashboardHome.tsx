@@ -28,9 +28,123 @@ function hrvStatusLabel(hrv: number): { label: string; color: string } {
   return { label: 'Healthy', color: 'var(--risk-low)' };
 }
 
+// ── Lab Summary Card Component ───────────────────────────────────────────────
+
+function LabSummaryCard({ onOpenLabReport }: { onOpenLabReport?: () => void }) {
+  const snapshot = useSimStore(s => s.snapshot);
+  const labInputs = useSimStore(s => s.labInputs);
+  const apoBPanel = useSimStore(s => s.apoBPanel);
+
+  const tcVal = snapshot ? Math.round(snapshot.totalCholesterol) : labInputs.totalCholesterol;
+  const ldlVal = Math.round(apoBPanel.ldl);
+  const hdlVal = labInputs.hdl;
+  const tgVal = snapshot ? Math.round(snapshot.triglycerides) : labInputs.triglycerides;
+
+  return (
+    <div className="panel-card dash-cardiac-panel">
+      <div className="dash-panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span>LAB SUMMARY</span>
+        {onOpenLabReport && (
+          <button
+            type="button"
+            onClick={onOpenLabReport}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--accent)',
+              fontSize: '11px',
+              fontFamily: 'var(--font-ui)',
+              fontWeight: 500,
+              cursor: 'pointer',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            View Details →
+          </button>
+        )}
+      </div>
+      <div className="dash-cardiac-body" style={{ padding: '8px var(--space-md)' }}>
+        <div className="rp-cardiac-readouts">
+          <div className="rp-readout-row">
+            <span className="rp-readout-label">TOTAL CHOLESTEROL</span>
+            <div className="rp-readout-right">
+              <span className="rp-readout-value">{tcVal} mg/dL</span>
+              <span
+                className="rp-readout-tag"
+                style={{
+                  color: tcVal > 200 ? 'var(--alert-amber)' : 'var(--risk-low)',
+                  background: tcVal > 200 ? 'rgba(216, 161, 59, 0.12)' : 'rgba(52, 199, 89, 0.12)',
+                  borderColor: tcVal > 200 ? 'rgba(216, 161, 59, 0.25)' : 'rgba(52, 199, 89, 0.25)',
+                }}
+              >
+                {tcVal > 200 ? 'Borderline' : 'Normal'}
+              </span>
+            </div>
+          </div>
+          <div className="rp-readout-row">
+            <span className="rp-readout-label">LDL CHOLESTEROL</span>
+            <div className="rp-readout-right">
+              <span className="rp-readout-value">{ldlVal} mg/dL</span>
+              <span
+                className="rp-readout-tag"
+                style={{
+                  color: ldlVal > 100 ? 'var(--alert-amber)' : 'var(--risk-low)',
+                  background: ldlVal > 100 ? 'rgba(216, 161, 59, 0.12)' : 'rgba(52, 199, 89, 0.12)',
+                  borderColor: ldlVal > 100 ? 'rgba(216, 161, 59, 0.25)' : 'rgba(52, 199, 89, 0.25)',
+                }}
+              >
+                {ldlVal > 100 ? 'Borderline' : 'Normal'}
+              </span>
+            </div>
+          </div>
+          <div className="rp-readout-row">
+            <span className="rp-readout-label">HDL CHOLESTEROL</span>
+            <div className="rp-readout-right">
+              <span className="rp-readout-value">{hdlVal} mg/dL</span>
+              <span
+                className="rp-readout-tag"
+                style={{
+                  color: hdlVal < 40 ? 'var(--alert-amber)' : 'var(--risk-low)',
+                  background: hdlVal < 40 ? 'rgba(216, 161, 59, 0.12)' : 'rgba(52, 199, 89, 0.12)',
+                  borderColor: hdlVal < 40 ? 'rgba(216, 161, 59, 0.25)' : 'rgba(52, 199, 89, 0.25)',
+                }}
+              >
+                {hdlVal < 40 ? 'Low' : 'Normal'}
+              </span>
+            </div>
+          </div>
+          <div className="rp-readout-row">
+            <span className="rp-readout-label">TRIGLYCERIDES</span>
+            <div className="rp-readout-right">
+              <span className="rp-readout-value">{tgVal} mg/dL</span>
+              <span
+                className="rp-readout-tag"
+                style={{
+                  color: tgVal > 150 ? 'var(--alert-amber)' : 'var(--risk-low)',
+                  background: tgVal > 150 ? 'rgba(216, 161, 59, 0.12)' : 'rgba(52, 199, 89, 0.12)',
+                  borderColor: tgVal > 150 ? 'rgba(216, 161, 59, 0.25)' : 'rgba(52, 199, 89, 0.25)',
+                }}
+              >
+                {tgVal > 150 ? 'Borderline' : 'Normal'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function DashboardHome() {
+interface DashboardHomeProps {
+  onOpenLabReport?: () => void;
+}
+
+export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
   const snapshot = useSimStore(s => s.snapshot);
   const riskResult = useSimStore(s => s.riskResult);
   const patientProfile = useSimStore(s => s.patientProfile);
@@ -214,21 +328,30 @@ export function DashboardHome() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: 'var(--space-md)',
-          marginBottom: 'var(--space-md)',
         }}
       >
         <FaiCard />
         <CacCard />
       </div>
 
-      {/* ── Cardiac Readouts ─────────────────────────────────────── */}
-      <div className="panel-card dash-cardiac-panel">
-        <div className="dash-panel-header">CARDIAC READOUTS</div>
-        <div className="dash-cardiac-body">
-          <CardiacReadouts />
+      {/* ── Lower-Middle Area: Cardiac Readouts & Lab Summary Grid ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 'var(--space-md)',
+        }}
+      >
+        <div className="panel-card dash-cardiac-panel">
+          <div className="dash-panel-header">CARDIAC READOUTS</div>
+          <div className="dash-cardiac-body">
+            <CardiacReadouts />
+          </div>
         </div>
+
+        <LabSummaryCard onOpenLabReport={onOpenLabReport} />
       </div>
 
 

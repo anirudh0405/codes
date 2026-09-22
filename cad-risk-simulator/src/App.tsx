@@ -260,7 +260,7 @@ export default function App() {
       {labReportOpen && <LabReportSummary onClose={() => setLabReportOpen(false)} />}
 
       {/* CENTER CONTENT: Routed by activeNav */}
-      {activeNav === 'dashboard' && <DashboardHome />}
+      {activeNav === 'dashboard' && <DashboardHome onOpenLabReport={() => setLabReportOpen(true)} />}
       {activeNav === 'waveforms' && <LiveWaveforms />}
       {activeNav === 'profile' && <PatientProfilePage />}
       {activeNav === 'labreport' && <LabReportPage />}
