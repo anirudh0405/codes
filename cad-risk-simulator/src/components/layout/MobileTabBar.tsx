@@ -70,10 +70,19 @@ const IconHeart = (
   </svg>
 );
 
+const IconReport = (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 3H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z" />
+    <line x1="7" y1="7" x2="13" y2="7" />
+    <line x1="7" y1="11" x2="13" y2="11" />
+  </svg>
+);
+
 const TABS: TabItem[] = [
   { id: 'dashboard',  label: 'Dashboard',  icon: IconDashboard },
   { id: 'waveforms',  label: 'Waveforms',  icon: IconWaveform },
   { id: 'profile',    label: 'Patient',    icon: IconPatient },
+  { id: 'report',     label: 'Report',     icon: IconReport },
   { id: 'riskengine', label: 'Risk',       icon: IconRisk },
   { id: 'fusion',     label: 'Fusion',     icon: IconHeart },
   { id: 'healthytip', label: 'Healthy',    icon: IconHeart },

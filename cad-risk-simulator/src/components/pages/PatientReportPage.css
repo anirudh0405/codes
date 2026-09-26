@@ -1,0 +1,1081 @@
+/* ===========================================================================
+   PATIENT REPORT PAGE STYLESHEET
+   =========================================================================== */
+
+/* Ensure CSS variables for base/raised/line exist */
+:root {
+  --base: var(--bg);
+  --raised: var(--surface-alt);
+  --line: var(--border);
+}
+
+:root.light-mode {
+  --base: var(--bg);
+  --raised: var(--surface-alt);
+  --line: var(--border);
+}
+
+.patient-report-page {
+  width: 100%;
+  min-height: 100%;
+  background: var(--base);
+  color: var(--t1);
+  font-family: var(--font-ui);
+  padding: 32px 32px 60px 32px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.patient-report-container {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Arohan Header (top of report page) ─────────────────────────────────── */
+.pr-arohan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--line);
+}
+
+.pr-arohan-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pr-arohan-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.pr-arohan-logo-fallback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pr-arohan-brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.pr-company-subtitle {
+  font-size: 11px;
+  color: var(--t2);
+  letter-spacing: 0.02em;
+}
+
+.pr-header-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pr-platform-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.pr-generated-date {
+  font-size: 11px;
+  color: var(--t2);
+  font-family: var(--font-mono);
+}
+
+/* ── Cards & Section Wrappers ────────────────────────────────────────────── */
+.pr-card {
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.pr-card-large {
+  padding: 28px;
+}
+
+.pr-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pr-section-header-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+/* ── Section 1: Patient Summary ─────────────────────────────────────────── */
+.pr-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--raised);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.pr-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pr-summary-label {
+  font-size: 11px;
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pr-summary-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.pr-checklist-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.pr-sub-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pr-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pr-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.4;
+}
+
+.pr-check-icon {
+  color: var(--risk-low);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.pr-check-detail {
+  color: var(--t2);
+  font-weight: 400;
+}
+
+/* ── Section 2: AI Diagnosis Prediction ────────────────────────────────── */
+.pr-diag-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pr-diag-label {
+  font-size: 13px;
+  color: var(--t2);
+}
+
+.pr-diag-condition {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--t1);
+  letter-spacing: -0.01em;
+}
+
+.pr-diag-confidence {
+  font-size: 14px;
+  color: var(--accent);
+}
+
+/* ── Tables (Section 3, 4, 6, 7) ────────────────────────────────────────── */
+.pr-clean-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.pr-clean-table th {
+  background: var(--raised);
+  color: var(--t2);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--line);
+}
+
+.pr-clean-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--t1);
+  background: var(--base);
+}
+
+.pr-clean-table tr.pr-row-raised td {
+  background: var(--raised);
+}
+
+.pr-clean-table tr.pr-row-active td {
+  background: rgba(74, 157, 255, 0.1);
+  font-weight: 600;
+}
+
+.pr-table-compact th,
+.pr-table-compact td {
+  padding: 8px 12px;
+}
+
+.pr-healthy-badge {
+  font-size: 11px;
+  color: var(--t3);
+  margin-left: 6px;
+}
+
+/* ── Section 4: Precision CVD Risk Score ───────────────────────────────── */
+.pr-risk-score-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pr-risk-score-title {
+  font-size: 13px;
+  color: var(--t2);
+}
+
+.pr-risk-score-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pr-risk-max {
+  font-size: 18px;
+  color: var(--t3);
+  font-weight: 400;
+}
+
+.pr-risk-band-tag {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.pr-risk-category-tiers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pr-tier-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  text-align: center;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.pr-tier-item.active {
+  opacity: 1;
+  border-color: var(--accent);
+  background: rgba(74, 157, 255, 0.12);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.pr-tier-range {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--t1);
+}
+
+.pr-tier-label {
+  font-size: 10px;
+  color: var(--t2);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.pr-meaning-block {
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: var(--raised);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
+
+.pr-meaning-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: 4px;
+}
+
+.pr-meaning-text {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.pr-contributors-block {
+  margin-top: 14px;
+}
+
+.pr-bullet-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--t1);
+}
+
+.pr-check-symbol {
+  color: var(--accent);
+  margin-right: 8px;
+  font-weight: 700;
+}
+
+/* ── Section 6: Risk Trend ──────────────────────────────────────────────── */
+.pr-trend-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pr-trend-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+
+.pr-trend-ascending {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--risk-high);
+}
+
+.pr-trend-descending {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--risk-low);
+}
+
+.pr-trend-flat {
+  background: var(--raised);
+  color: var(--t2);
+}
+
+.pr-trend-summary-bar {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--t2);
+  padding: 8px 12px;
+  background: var(--raised);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.pr-trend-summary-bar strong {
+  color: var(--t1);
+  font-family: var(--font-mono);
+}
+
+.pr-chart-wrap {
+  background: var(--base);
+}
+
+.pr-trend-interpretation {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.5;
+  padding: 12px;
+  background: var(--raised);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+/* ── Section 7: Disease Progression Forecast ────────────────────────────── */
+.pr-stage-num {
+  font-size: 12px;
+  color: var(--t3);
+  font-weight: 600;
+  width: 18px;
+}
+
+.pr-na-text {
+  color: var(--t3);
+  font-style: italic;
+}
+
+/* ── Section 6: Disease Progression Forecast ────────────────────────────── */
+.pr-stage-ladder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.pr-stage-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--base);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pr-stage-step.pr-stage-active {
+  border-color: var(--accent);
+  background: rgba(74, 157, 255, 0.08);
+}
+
+.pr-stage-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t1);
+}
+
+.pr-current-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: auto;
+}
+
+.pr-stage-arrow {
+  font-size: 14px;
+  color: var(--t3);
+  margin-left: 24px;
+}
+
+.pr-prob-note {
+  font-size: 13px;
+  color: var(--t1);
+  margin-top: 12px;
+}
+
+/* ── Section 7: Explainable AI Section ──────────────────────────────────── */
+.pr-xai-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--t1);
+}
+
+.pr-param-explanation-text {
+  font-size: 12px;
+  color: var(--t2);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.pr-impact-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.pr-impact-very-high {
+  background: rgba(217, 83, 79, 0.15);
+  color: var(--risk-high);
+}
+
+.pr-impact-high {
+  background: rgba(216, 161, 59, 0.15);
+  color: var(--risk-moderate);
+}
+
+.pr-impact-moderate {
+  background: rgba(74, 157, 255, 0.15);
+  color: var(--accent);
+}
+
+.pr-impact-low {
+  background: var(--raised);
+  color: var(--t2);
+}
+
+.pr-relative-contrib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pr-contrib-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pr-contrib-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--t1);
+}
+
+.pr-bar-track {
+  width: 100%;
+  height: 6px;
+  background: var(--raised);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pr-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ── Section 8: Patient Storyline ───────────────────────────────────────── */
+.pr-story-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--t1);
+}
+
+.pr-story-body {
+  font-size: 13.5px;
+  color: var(--t1);
+  line-height: 1.6;
+}
+
+.pr-story-text p {
+  margin-bottom: 12px;
+}
+
+.pr-story-loading {
+  font-size: 13px;
+  color: var(--t2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.pr-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--t3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: pr-spin 0.8s linear infinite;
+}
+
+@keyframes pr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pr-encouraging-note {
+  font-size: 12.5px;
+  color: var(--t2);
+  font-style: italic;
+  margin-top: 10px;
+}
+
+/* ── Section 9: Recommended Actions ────────────────────────────────────── */
+.pr-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.pr-action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pr-action-card-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--t2);
+  text-transform: uppercase;
+}
+
+.pr-high-priority-header {
+  color: var(--risk-high);
+}
+
+.pr-action-list {
+  padding-left: 16px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.4;
+}
+
+/* ── Section 10: Executive Summary Card ────────────────────────────────── */
+.pr-exec-summary-card {
+  position: relative;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pr-exec-top-logo {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  opacity: 0.8;
+}
+
+.pr-exec-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 80%;
+}
+
+.pr-exec-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.pr-exec-label {
+  font-weight: 600;
+  color: var(--t2);
+  min-width: 140px;
+}
+
+.pr-exec-val {
+  color: var(--t1);
+}
+
+.pr-exec-recommendation .pr-exec-val {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.pr-exec-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pr-btn {
+  height: 40px;
+  padding: 0 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--t1);
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pr-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--base);
+}
+
+.pr-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pr-btn-primary {
+  background: var(--accent);
+  color: #FFFFFF !important;
+  border-color: var(--accent);
+}
+
+.pr-btn-primary:hover {
+  background: #3b82f6;
+  color: #FFFFFF !important;
+  border-color: #3b82f6;
+}
+
+.pr-btn-secondary {
+  background: var(--surface-alt);
+  color: var(--t1);
+  border-color: var(--line);
+}
+
+.pr-btn-secondary:hover {
+  background: var(--base);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Top Action Toolbar ── */
+.pr-top-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto 20px auto;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  gap: 16px;
+}
+
+.pr-top-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pr-top-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--t1);
+  white-space: nowrap;
+}
+
+.pr-top-badge {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.pr-top-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ── Download & Notice Toast ── */
+.pr-download-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: prToastSlide 0.25s ease-out;
+}
+
+@keyframes prToastSlide {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.pr-download-toast.info {
+  background: var(--surface-alt);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.pr-download-toast.success {
+  background: #0f2e1a;
+  color: #34C759;
+  border: 1px solid #34C759;
+}
+
+.pr-download-toast.error {
+  background: #331414;
+  color: #FF5A5F;
+  border: 1px solid #FF5A5F;
+}
+
+/* ── PDF Preview Modal ── */
+.pr-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: prModalFadeIn 0.2s ease-out;
+}
+
+@keyframes prModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pr-modal-container {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.pr-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+.pr-modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pr-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.pr-modal-subtitle {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--t2);
+  background: var(--base);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.pr-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pr-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--t2);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.pr-modal-close-btn:hover {
+  color: var(--t1);
+  background: var(--border);
+}
+
+.pr-modal-body {
+  flex: 1;
+  width: 100%;
+  background: #1f1f23;
+  position: relative;
+}
+
+.pr-modal-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.pr-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+/* ── PRINT STYLESHEET (@media print) ────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  /* Hide all navigation, top bars, buttons, right panel */
+  .sidebar,
+  .shell-topbar,
+  .mobile-tab-bar,
+  .app-right-panel,
+  .cad-risk-trend-bar,
+  .print-hide,
+  .pr-exec-actions,
+  button {
+    display: none !important;
+  }
+
+  /* Reset layout constraints */
+  .app-shell,
+  .app-main,
+  .app-content-body,
+  .app-center,
+  .app-center-scroll {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .patient-report-page {
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .patient-report-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    gap: 16px !important;
+  }
+
+  .pr-card {
+    border: 1px solid #cccccc !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    padding: 16px !important;
+    page-break-inside: avoid;
+  }
+
+  .pr-clean-table th {
+    background: #f2f2f2 !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #cccccc !important;
+  }
+
+  .pr-clean-table td {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+  }
+
+  .pr-clean-table tr.pr-row-raised td {
+    background: #f9f9f9 !important;
+  }
+
+  .pr-arohan-header {
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .pr-exec-summary-card {
+    background: #f8f9fa !important;
+    border: 1px solid #000000 !important;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .patient-report-page {
+    padding: 16px;
+  }
+
+  .pr-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pr-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pr-exec-content {
+    max-width: 100%;
+  }
+
+  .pr-exec-top-logo {
+    display: none;
+  }
+}

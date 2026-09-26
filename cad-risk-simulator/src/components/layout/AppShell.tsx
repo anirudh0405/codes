@@ -188,6 +188,7 @@ const NAV_LABELS: Record<string, { section: string; page: string }> = {
   waveforms:  { section: 'Monitor',   page: 'Live Waveforms' },
   profile:    { section: 'Patient',   page: 'Patient Profile' },
   labreport:  { section: 'Patient',   page: 'Lab Report' },
+  report:     { section: 'Patient',   page: 'Patient Report' },
   scenarios:  { section: 'Patient',   page: 'Scenarios' },
   riskengine: { section: 'Analysis',  page: 'Risk Engine' },
   fusion:     { section: 'Analysis',  page: 'Fusion Layers' },

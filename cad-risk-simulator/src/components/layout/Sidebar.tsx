@@ -108,6 +108,15 @@ const IconInfo = (
   </svg>
 );
 
+const IconReport = (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 2H5a1.5 1.5 0 0 0-1.5 1.5v9A1.5 1.5 0 0 0 5 14h6a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 11 2z" />
+    <line x1="6" y1="5" x2="10" y2="5" />
+    <line x1="6" y1="8" x2="10" y2="8" />
+    <line x1="6" y1="11" x2="8" y2="11" />
+  </svg>
+);
+
 const IconBrain = (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="8" cy="8" r="2.5" />
@@ -159,6 +168,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'profile',   label: 'Patient Profile',  icon: IconPerson },
       { id: 'labreport',  label: 'Lab Report',       icon: IconFlask },
+      { id: 'report',     label: 'Patient Report',   icon: IconReport },
       { id: 'scenarios', label: 'Scenarios',         icon: IconGrid },
     ],
   },

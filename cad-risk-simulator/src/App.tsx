@@ -23,6 +23,7 @@ import { LiveWaveforms } from '@/components/Dashboard/LiveWaveforms';
 import { RightPanelContent, RightPanelMobileWrapper } from '@/components/layout/RightPanelContent';
 import { PatientProfilePage } from '@/components/pages/PatientProfilePage';
 import { LabReportPage } from '@/components/pages/LabReportPage';
+import { PatientReportPage } from '@/components/pages/PatientReportPage';
 import { ScenariosPage } from '@/components/pages/ScenariosPage';
 import { RiskEnginePage } from '@/components/pages/RiskEnginePage';
 import { FusionLayersPage } from '@/components/pages/FusionLayersPage';
@@ -248,34 +249,35 @@ export default function App() {
 
   return (
     <>
-    <AppShell
-      activeNav={activeNav}
-      onNavChange={handleNavChange}
-      topBarCenter={
-        <ScenarioPresetBar onLabReport={() => setLabReportOpen(true)} />
-      }
-      rightPanelContent={<RightPanelContent />}
-    >
-      {/* Lab Report Summary Modal */}
-      {labReportOpen && <LabReportSummary onClose={() => setLabReportOpen(false)} />}
+      <AppShell
+        activeNav={activeNav}
+        onNavChange={handleNavChange}
+        topBarCenter={
+          <ScenarioPresetBar onLabReport={() => setLabReportOpen(true)} />
+        }
+        rightPanelContent={<RightPanelContent />}
+      >
+        {/* Lab Report Summary Modal */}
+        {labReportOpen && <LabReportSummary onClose={() => setLabReportOpen(false)} />}
 
-      {/* CENTER CONTENT: Routed by activeNav */}
-      {activeNav === 'dashboard' && <DashboardHome onOpenLabReport={() => setLabReportOpen(true)} />}
-      {activeNav === 'waveforms' && <LiveWaveforms />}
-      {activeNav === 'profile' && <PatientProfilePage />}
-      {activeNav === 'labreport' && <LabReportPage />}
-      {activeNav === 'scenarios' && <ScenariosPage />}
-      {activeNav === 'echonext' && <EchoNextArchitecturePage />}
-      {activeNav === 'riskengine' && <RiskEnginePage />}
-      {activeNav === 'fusion' && <FusionLayersPage />}
-      {activeNav === 'healthytip' && <HealthyTipsPage />}
-      {activeNav === 'simlogs' && <SimLogsPage />}
-      {activeNav === 'history' && <HistoryPage />}
-      {activeNav === 'info' && <InfoPage />}
+        {/* CENTER CONTENT: Routed by activeNav */}
+        {activeNav === 'dashboard' && <DashboardHome onOpenLabReport={() => setLabReportOpen(true)} />}
+        {activeNav === 'waveforms' && <LiveWaveforms />}
+        {activeNav === 'profile' && <PatientProfilePage />}
+        {activeNav === 'labreport' && <LabReportPage />}
+        {activeNav === 'report' && <PatientReportPage />}
+        {activeNav === 'scenarios' && <ScenariosPage />}
+        {activeNav === 'echonext' && <EchoNextArchitecturePage />}
+        {activeNav === 'riskengine' && <RiskEnginePage />}
+        {activeNav === 'fusion' && <FusionLayersPage />}
+        {activeNav === 'healthytip' && <HealthyTipsPage />}
+        {activeNav === 'simlogs' && <SimLogsPage />}
+        {activeNav === 'history' && <HistoryPage />}
+        {activeNav === 'info' && <InfoPage />}
 
 
-    </AppShell>
-    <RightPanelMobileWrapper />
+      </AppShell>
+      <RightPanelMobileWrapper />
     </>
   );
 }

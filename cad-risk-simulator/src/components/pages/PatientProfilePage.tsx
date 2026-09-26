@@ -357,7 +357,7 @@ export function PatientProfilePage() {
         <YesNoToggle
           label="Abdominal Obesity"
           checked={parseFloat(bmiDisplay) >= 25}
-          onChange={() => {/* derived from BMI — visual only */}}
+          onChange={() => {/* derived from BMI — visual only */ }}
         />
       </CollapsibleSection>
 
@@ -393,7 +393,7 @@ export function PatientProfilePage() {
               { value: 'typical' as const, label: 'High' },
             ]}
             value={patientProfile.chestPain}
-            onChange={() => {/* Stress is visual-only mapping */}}
+            onChange={() => {/* Stress is visual-only mapping */ }}
           />
         </div>
       </CollapsibleSection>
