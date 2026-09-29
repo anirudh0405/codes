@@ -220,7 +220,7 @@ function ContributionsSection() {
       </div>
 
       <div className="rp-contrib-footnote">
-        * Weighted contribution points toward 0–100 CAD Risk Score
+        * Weighted contribution points toward 0–100 Coronary Artery Disease (CAD) Risk Score
       </div>
     </div>
   );
@@ -482,7 +482,7 @@ function DiseaseSpecificRiskSection() {
       <span
         className="rp-section-label"
         style={{
-          fontSize: 9,
+          fontSize: 10,
           textTransform: 'uppercase',
           color: 'var(--text-tertiary)',
           letterSpacing: '0.08em',
@@ -583,7 +583,7 @@ function DiseaseSpecificRiskSection() {
       {/* Footnote below all 5 rows: 9px --t4 */}
       <div
         style={{
-          fontSize: 9,
+          fontSize: 10,
           color: 'var(--text-tertiary)',
           marginTop: 10,
           lineHeight: 1.4,
@@ -609,11 +609,42 @@ export function RightPanelContent() {
     <div className="rp-content">
       {/* ── Section 1: CAD Risk Score ──────────────────────────────── */}
       <section className="rp-section rp-section-gauge">
-        <span className="rp-section-label">CAD RISK SCORE</span>
+        <span className="rp-section-label">CORONARY ARTERY DISEASE (CAD) RISK SCORE</span>
         <RiskArcGauge score={score} band={band} />
         <span className="rp-confidence tabular-nums">
           Confidence: {Math.round(lipidConf * 100)}%
         </span>
+        {/* Risk Score Meaning Summary */}
+        <div
+          style={{
+            marginTop: '10px',
+            padding: '10px 12px',
+            background: 'var(--surface-alt)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            fontSize: '11px',
+            lineHeight: '1.5',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '6px' }}>
+            What This Means
+          </div>
+          <div style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>
+            {band === 'Low'
+              ? 'Based on the current simulator inputs, the calculated score falls within the Low Risk category. Current cardiovascular risk indicators are generally within the normal range.'
+              : band === 'Moderate'
+                ? 'The calculated score indicates Moderate Risk. Some contributing factors are elevated and may warrant closer monitoring or lifestyle modifications.'
+                : 'The calculated score indicates High Risk. Multiple contributing factors are significantly elevated. Urgent clinical evaluation is recommended.'}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>0–20</span><span>Very Low</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>21–40</span><span>Low</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>41–60</span><span>Moderate</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>61–80</span><span>High</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>81–100</span><span>Critical</span></div>
+          </div>
+        </div>
       </section>
 
       {/* ── Section 1b: Disease-Specific Risk ──────────────────────── */}

@@ -534,12 +534,12 @@ export function buildPatientReportData(state?: SimState): PatientReportData {
       category: currentScore <= 20
         ? 'Very Low Risk'
         : currentScore <= 40
-        ? 'Low Risk'
-        : currentScore <= 60
-        ? 'Moderate Risk'
-        : currentScore <= 80
-        ? 'High Risk'
-        : 'Critical Risk',
+          ? 'Low Risk'
+          : currentScore <= 60
+            ? 'Moderate Risk'
+            : currentScore <= 80
+              ? 'High Risk'
+              : 'Critical Risk',
       confidence: riskConfidence,
       meaning,
       whoRiskBand: s.riskResult?.whoRiskBand?.band,

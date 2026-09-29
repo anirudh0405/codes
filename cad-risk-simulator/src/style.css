@@ -28,12 +28,12 @@
   /* Text scale & Legibility Tokens (Fix 3) */
   --t1: #F4F4F5;
   --t2: #A1A1AA;
-  --t3: #71717A;
-  --t4: #27272A;
+  --t3: #8A8A95;
+  --t4: #52525B;
 
   --text-primary: #F4F4F5;
   --text-secondary: #A1A1AA;
-  --text-tertiary: #71717A;
+  --text-tertiary: #8A8A95;
 
   /* Typography */
   --font-ui: Inter, -apple-system, sans-serif;
@@ -526,12 +526,12 @@ input[type=number]::-webkit-outer-spin-button {
   overflow-x: hidden;
 }
 
-/* ── CAD Risk Trend Persistent Bottom Bar ───────────────────────────────── */
+/* ── 7-Day Cardiovascular Risk Trend Persistent Bottom Bar ──────────────── */
 .cad-risk-trend-bar {
   display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: 8px var(--space-md);
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px var(--space-md) 8px;
   background: var(--surface);
   border-top: 1px solid var(--border);
   width: 100%;
@@ -572,7 +572,8 @@ input[type=number]::-webkit-outer-spin-button {
 
 .cad-risk-trend-chart {
   flex: 1;
-  height: 24px;
+  height: 60px;
+  min-height: 60px;
   position: relative;
   display: flex;
   align-items: center;
@@ -588,8 +589,8 @@ input[type=number]::-webkit-outer-spin-button {
 
 @media (max-width: 768px) {
   .cad-risk-trend-bar {
-    padding: 6px 12px;
-    gap: 8px;
+    padding: 8px 12px 6px;
+    gap: 4px;
   }
 
   .cad-risk-trend-title {
@@ -606,7 +607,8 @@ input[type=number]::-webkit-outer-spin-button {
   }
 
   .cad-risk-trend-chart {
-    height: 20px;
+    height: 48px;
+    min-height: 48px;
   }
 }
 
@@ -1129,10 +1131,11 @@ input[type=number]::-webkit-outer-spin-button {
 .dash-cardiac-panel {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .dash-cardiac-body {
-  padding: 8px var(--space-md);
+  padding: 6px var(--space-md) 8px;
 }
 
 .dash-panel-header {
@@ -1142,7 +1145,7 @@ input[type=number]::-webkit-outer-spin-button {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  padding: var(--space-sm) var(--space-md);
+  padding: 8px var(--space-md);
   border-bottom: 1px solid var(--border);
 }
 

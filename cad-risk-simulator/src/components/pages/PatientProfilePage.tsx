@@ -50,7 +50,7 @@ function PillToggleGroup<T extends string>({
     <div className="pp-pill-group">
       {options.map(opt => (
         <button
-          key={opt.value}
+          key={`${opt.value}-${opt.label}`}
           type="button"
           className={`pp-pill-btn${value === opt.value ? ' pp-pill-active' : ''}`}
           onClick={() => onChange(opt.value)}

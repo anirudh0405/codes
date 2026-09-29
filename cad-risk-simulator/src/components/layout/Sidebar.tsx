@@ -175,7 +175,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Analysis',
     items: [
-      { id: 'echonext',   label: 'EchoNext CNN',    icon: IconBrain },
+      { id: 'echonext',   label: 'EchoNext CNN',     icon: IconBrain },
       { id: 'riskengine', label: 'Risk Engine',     icon: IconGauge },
       { id: 'fusion',     label: 'Fusion Layers',   icon: IconLayers },
       { id: 'healthytip', label: 'Healthy Tip',     icon: IconHeart },
@@ -198,9 +198,7 @@ export function Sidebar({ activeNavId, onNavChange }: SidebarProps) {
     <aside className="sidebar" aria-label="Main navigation">
       {/* App Identity */}
       <div className="sidebar-identity">
-        <div className="sidebar-identity-name">
-          {LogoMark}
-        </div>
+        <div className="sidebar-identity-name" />
         <div className="sidebar-identity-version">v1.0 · SIMULATED</div>
       </div>
 

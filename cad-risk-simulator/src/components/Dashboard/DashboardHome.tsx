@@ -180,14 +180,18 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
 
       {/* ── Top Row: 4 Stat Cards ──────────────────────────────────── */}
       <div className="dash-stat-grid">
-        {/* Card 1: Current Risk Score */}
+        {/* Card 1: Risk Summary (replaces duplicate risk score — score is in right panel gauge) */}
         <div className="panel-card dash-stat-card">
-          <span className="dash-stat-label">Coronary Artery Disease (CAD) Risk Score</span>
-          <span className="dash-stat-value" style={{ fontFamily: 'var(--font-mono)' }}>
-            {Math.round(score)}
-          </span>
-          <span className="dash-stat-sub" style={{ color: getRiskColor(band) }}>
+          <span className="dash-stat-label">Risk Summary</span>
+          <span className="dash-stat-value" style={{ color: getRiskColor(band), fontSize: '18px' }}>
             {band} Risk
+          </span>
+          <span className="dash-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '11px', lineHeight: '1.45', maxWidth: '200px' }}>
+            {band === 'Low'
+              ? 'Current cardiovascular risk indicators are generally within the low-risk range.'
+              : band === 'Moderate'
+                ? 'Some risk factors are elevated. Close monitoring and lifestyle adjustments are recommended.'
+                : 'Multiple risk factors are significantly elevated. Urgent clinical review is recommended.'}
           </span>
         </div>
 
@@ -281,7 +285,7 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>SHD Index: </span>
+            <span style={{ color: 'var(--text-secondary)' }}>Structural Heart Disease (SHD) Index: </span>
             <strong style={{ color: echonextResult.predictions.SHD >= 0.3 ? 'var(--risk-high)' : 'var(--accent)' }}>
               {(echonextResult.predictions.SHD * 100).toFixed(0)}%
             </strong>
