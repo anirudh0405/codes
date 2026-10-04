@@ -41,14 +41,15 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
   })));
 
   const [openCategory, setOpenCategory] = useState<PresetCategory | 'scenario' | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click or ESC key
   useEffect(() => {
     if (!openCategory) return;
 
     const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (e instanceof MouseEvent && e.button !== 0) return;
+      if (dropdownRef.current && e.target instanceof Node && !dropdownRef.current.contains(e.target)) {
         setOpenCategory(null);
       }
     };
@@ -70,8 +71,8 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
     };
   }, [openCategory]);
 
-  const toggleCategory = (catId: PresetCategory | 'scenario') => {
-    setOpenCategory(prev => (prev === catId ? null : catId));
+  const toggleDropdown = () => {
+    setOpenCategory(prev => (prev !== null ? null : 'scenario'));
   };
 
   const handleSelectScenarioCategory = (catId: PresetCategory) => {
@@ -81,8 +82,10 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
 
   const handleSelectScenario = (preset: ScenarioPreset) => {
     applyProfile(preset.id);
-    setOpenCategory('scenario');
+    setOpenCategory(null);
   };
+
+  const isDropdownOpen = openCategory !== null;
 
   const currentActiveCategory = activeProfile?.category ?? selectedCategory ?? 'healthy';
   const activeCategoryPresets = openCategory && openCategory !== 'scenario'
@@ -91,7 +94,6 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
 
   return (
     <div
-      ref={containerRef}
       className="scenario-preset-bar-root flex items-center gap-3 py-1"
     >
       <div
@@ -102,34 +104,34 @@ export function ScenarioPresetBar({ onLabReport }: ScenarioPresetBarProps) {
           position: 'relative',
         }}
       >
-        <div className="relative category-dropdown-container">
+        <div ref={dropdownRef} className="relative category-dropdown-container">
           <MagneticButton distance={0.15}>
             <button
               type="button"
               id="scenario-dropdown-trigger"
-              onClick={() => toggleCategory('scenario')}
+              onClick={toggleDropdown}
               aria-haspopup="true"
-              aria-expanded={openCategory === 'scenario'}
+              aria-expanded={isDropdownOpen}
               className={`scenario-category-btn px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer outline-none flex items-center gap-2 ${
                 currentActiveCategory
                   ? 'bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] font-semibold'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] border border-transparent'
               }`}
               style={{
-                boxShadow: openCategory === 'scenario' ? '0 0 0 1px var(--border)' : undefined,
+                boxShadow: isDropdownOpen ? '0 0 0 1px var(--border)' : undefined,
               }}
             >
               <span>Scenario</span>
               <span
                 className="text-[10px] opacity-80 shrink-0 transition-transform duration-200"
-                style={{ transform: openCategory === 'scenario' ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
               >
                 ▼
               </span>
             </button>
           </MagneticButton>
 
-          {(openCategory === 'scenario' || PRESET_CATEGORIES.some(cat => cat.id === openCategory)) && (
+          {isDropdownOpen && (
             <div
               role="menu"
               aria-label="Scenario categories"

@@ -165,11 +165,11 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
     }, 350);
   };
 
-  const band  = riskResult?.band ?? 'Low';
+  const band = riskResult?.band ?? 'Low';
   const score = riskResult?.score ?? 0;
-  const hr    = snapshot?.heartRate ?? 0;
-  const sys   = snapshot?.systolic ?? 120;
-  const dia   = snapshot?.diastolic ?? 80;
+  const hr = snapshot?.heartRate ?? 0;
+  const sys = snapshot?.systolic ?? 120;
+  const dia = snapshot?.diastolic ?? 80;
   const hrvVal = snapshot?.hrv ?? 0;
 
   const bpInfo = classifyBP(sys, dia);

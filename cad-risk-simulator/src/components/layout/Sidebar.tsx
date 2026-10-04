@@ -159,29 +159,29 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Monitor',
     items: [
-      { id: 'dashboard',  label: 'Dashboard',      icon: IconDashboard },
-      { id: 'waveforms',  label: 'Live Waveforms',  icon: IconWaveform },
+      { id: 'dashboard', label: 'Dashboard', icon: IconDashboard },
+      { id: 'waveforms', label: 'Live Waveforms', icon: IconWaveform },
     ],
   },
   {
     label: 'Patient',
     items: [
-      { id: 'profile',   label: 'Patient Profile',  icon: IconPerson },
-      { id: 'labreport',  label: 'Lab Report',       icon: IconFlask },
-      { id: 'report',     label: 'Patient Report',   icon: IconReport },
-      { id: 'scenarios', label: 'Scenarios',         icon: IconGrid },
+      { id: 'profile', label: 'Patient Profile', icon: IconPerson },
+      { id: 'labreport', label: 'Lab Report', icon: IconFlask },
+      { id: 'report', label: 'Patient Report', icon: IconReport },
+      { id: 'scenarios', label: 'Scenarios', icon: IconGrid },
     ],
   },
   {
     label: 'Analysis',
     items: [
-      { id: 'echonext',   label: 'EchoNext CNN',     icon: IconBrain },
-      { id: 'riskengine', label: 'Risk Engine',     icon: IconGauge },
-      { id: 'fusion',     label: 'Fusion Layers',   icon: IconLayers },
-      { id: 'healthytip', label: 'Healthy Tip',     icon: IconHeart },
-      { id: 'simlogs',    label: 'Sim Logs',        icon: IconList },
-      { id: 'history',    label: 'History',         icon: IconClock },
-      { id: 'info',       label: 'Info',            icon: IconInfo },
+      { id: 'echonext', label: 'EchoNext CNN', icon: IconBrain },
+      { id: 'riskengine', label: 'Risk Engine', icon: IconGauge },
+      { id: 'fusion', label: 'Fusion Layers', icon: IconLayers },
+      { id: 'healthytip', label: 'Healthy Tip', icon: IconHeart },
+      { id: 'simlogs', label: 'Sim Logs', icon: IconList },
+      { id: 'history', label: 'History', icon: IconClock },
+      { id: 'info', label: 'Info', icon: IconInfo },
     ],
   },
 ];

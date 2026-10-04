@@ -95,16 +95,16 @@ function RiskArcGauge({ score, band }: { score: number; band: string }) {
 // ── Section 3: Contributions ─────────────────────────────────────────────────
 
 const CONTRIB_ROWS: { key: keyof import('../../riskEngine').RiskContributions; label: string; isComposite?: boolean }[] = [
-  { key: 'bloodPressure',    label: 'Blood Pressure (BP)' },
-  { key: 'heartRate',        label: 'Heart Rate (HR)' },
-  { key: 'hrv',              label: 'Heart Rate Variability (HRV)' },
-  { key: 'stress',           label: 'Physiological Stress' },
-  { key: 'qtInterval',       label: 'Corrected QT Interval (QTc)' },
-  { key: 'stSegment',        label: 'ST Segment' },
-  { key: 'apoB',             label: 'Metabolic-Vascular (ApoB)', isComposite: true },
-  { key: 'smoking',          label: 'Smoking' },
+  { key: 'bloodPressure', label: 'Blood Pressure (BP)' },
+  { key: 'heartRate', label: 'Heart Rate (HR)' },
+  { key: 'hrv', label: 'Heart Rate Variability (HRV)' },
+  { key: 'stress', label: 'Physiological Stress' },
+  { key: 'qtInterval', label: 'Corrected QT Interval (QTc)' },
+  { key: 'stSegment', label: 'ST Segment' },
+  { key: 'apoB', label: 'Metabolic-Vascular (ApoB)', isComposite: true },
+  { key: 'smoking', label: 'Smoking' },
   { key: 'totalCholesterol', label: 'Total Cholesterol (TC) (est.)' },
-  { key: 'triglycerides',    label: 'Triglycerides (TG) (est.)' },
+  { key: 'triglycerides', label: 'Triglycerides (TG) (est.)' },
 ];
 
 const CONTRIB_COLORS = [
@@ -273,40 +273,40 @@ export function CardiacReadouts() {
     tagColor?: string;
     valueColor?: string;
   }[] = [
-    {
-      label: 'BLOOD PRESSURE (BP)',
-      value: `${snapshot.systolic}/${snapshot.diastolic} mmHg`,
-      tag: bpInfo.shortLabel.toUpperCase(),
-      tagColor: bpInfo.color,
-    },
-    {
-      label: 'HEART RATE (HR)',
-      value: `${snapshot.heartRate} BPM`,
-      tag: rhythmTag,
-      tagColor: rhythmTagColor,
-    },
-    {
-      label: 'CORRECTED QT INTERVAL (QTC)',
-      value: `${snapshot.qtcBazett} ms`,
-      tag: qtcLabel,
-      tagColor: qtcTagColor,
-    },
-    {
-      label: 'ST SEGMENT',
-      value: `${snapshot.stSegment.toFixed(2)} mV`,
-      tag: stLabel,
-      tagColor: stTagColor,
-    },
-    {
-      label: 'PULSE TRANSIT TIME (PTT)',
-      value: `${snapshot.pulseTransitTime} ms`,
-    },
-    {
-      label: 'BLOOD OXYGEN SATURATION (SPO₂)',
-      value: spo2Value,
-      valueColor: spo2Color,
-    },
-  ];
+      {
+        label: 'BLOOD PRESSURE (BP)',
+        value: `${snapshot.systolic}/${snapshot.diastolic} mmHg`,
+        tag: bpInfo.shortLabel.toUpperCase(),
+        tagColor: bpInfo.color,
+      },
+      {
+        label: 'HEART RATE (HR)',
+        value: `${snapshot.heartRate} BPM`,
+        tag: rhythmTag,
+        tagColor: rhythmTagColor,
+      },
+      {
+        label: 'CORRECTED QT INTERVAL (QTC)',
+        value: `${snapshot.qtcBazett} ms`,
+        tag: qtcLabel,
+        tagColor: qtcTagColor,
+      },
+      {
+        label: 'ST SEGMENT',
+        value: `${snapshot.stSegment.toFixed(2)} mV`,
+        tag: stLabel,
+        tagColor: stTagColor,
+      },
+      {
+        label: 'PULSE TRANSIT TIME (PTT)',
+        value: `${snapshot.pulseTransitTime} ms`,
+      },
+      {
+        label: 'BLOOD OXYGEN SATURATION (SPO₂)',
+        value: spo2Value,
+        valueColor: spo2Color,
+      },
+    ];
 
   return (
     <div className="rp-cardiac-readouts">
