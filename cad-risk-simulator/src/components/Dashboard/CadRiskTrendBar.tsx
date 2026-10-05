@@ -31,35 +31,18 @@ export function CadRiskTrendBar() {
   const dayData = useMemo(() => {
     if (!riskTrend || riskTrend.length === 0) return [];
 
-    // Group trend entries into 7 buckets (simulated days)
     const totalEntries = riskTrend.length;
     if (totalEntries < 2) {
-      return [{ day: 'Day 1', score: riskTrend[0].score }];
+      return [{ day: 'D1', score: Math.round(riskTrend[0].score) }];
     }
 
-    const dayLabels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
-    const numDays = Math.min(7, totalEntries);
-    const result: { day: string; score: number }[] = [];
+    const recent = riskTrend.slice(-7);
+    const dayLabels = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
 
-    if (totalEntries <= 7) {
-      // If we have 7 or fewer data points, map 1-to-1
-      for (let i = 0; i < totalEntries; i++) {
-        result.push({
-          day: dayLabels[i],
-          score: Math.round(riskTrend[i].score),
-        });
-      }
-    } else {
-      // Sample 7 evenly spaced points from the history
-      for (let d = 0; d < 7; d++) {
-        const idx = Math.round((d / 6) * (totalEntries - 1));
-        result.push({
-          day: dayLabels[d],
-          score: Math.round(riskTrend[idx].score),
-        });
-      }
-    }
-    return result;
+    return recent.map((item, idx) => ({
+      day: dayLabels[idx] ?? `D${idx + 1}`,
+      score: Math.round(item.score),
+    }));
   }, [riskTrend]);
 
   const hasHistory = dayData.length >= 2;
@@ -134,14 +117,18 @@ export function CadRiskTrendBar() {
         {!hasHistory ? (
           <div style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             height: '100%',
-            fontSize: '11px',
-            color: 'var(--text-tertiary)',
-            fontStyle: 'italic',
+            gap: '3px',
           }}>
-            Insufficient history — monitoring will begin as data accumulates
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Insufficient historical data
+            </span>
+            <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              Risk trend will appear as simulation history is collected.
+            </span>
           </div>
         ) : (
           <svg
@@ -185,7 +172,7 @@ export function CadRiskTrendBar() {
                   <circle
                     cx={x}
                     cy={y}
-                    r="3"
+                    r="3.5"
                     fill={bandColor}
                     stroke="var(--surface)"
                     strokeWidth="1.5"
@@ -195,26 +182,24 @@ export function CadRiskTrendBar() {
                     x={x}
                     y={svgHeight - 1}
                     textAnchor="middle"
-                    fontSize="7"
+                    fontSize="7.5"
                     fill="var(--text-tertiary)"
                     fontFamily="var(--font-ui)"
                   >
-                    {d.day.replace('Day ', 'D')}
+                    {d.day}
                   </text>
                   {/* Score label above point */}
-                  {(idx === 0 || idx === dayData.length - 1) && (
-                    <text
-                      x={x}
-                      y={y - 6}
-                      textAnchor="middle"
-                      fontSize="8"
-                      fontWeight="600"
-                      fill="var(--text-primary)"
-                      fontFamily="var(--font-mono)"
-                    >
-                      {d.score}
-                    </text>
-                  )}
+                  <text
+                    x={x}
+                    y={Math.max(7, y - 5)}
+                    textAnchor="middle"
+                    fontSize="8"
+                    fontWeight="600"
+                    fill="var(--text-primary)"
+                    fontFamily="var(--font-mono)"
+                  >
+                    {d.score}
+                  </text>
                 </g>
               );
             })}

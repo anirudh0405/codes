@@ -35,11 +35,40 @@ import {
   generate12LeadECG,
 } from '../ml/echonextResNet34';
 
-const TREND_HISTORY_LENGTH = 60; // keep 60 seconds of history
-
 export interface WaveformPoint {
   t: number;
   v: number;
+}
+
+export interface RiskTrendPoint {
+  t: number;
+  score: number;
+  band: string;
+  scenarioId?: string;
+}
+
+const STORAGE_KEY_RISK_TREND = 'arohan_cad_risk_trend_history';
+const MAX_TREND_HISTORY = 20;
+
+function loadStoredRiskTrend(): RiskTrendPoint[] {
+  if (typeof window === 'undefined' || !window.sessionStorage) return [];
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY_RISK_TREND);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredRiskTrend(trend: RiskTrendPoint[]) {
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY_RISK_TREND, JSON.stringify(trend));
+  } catch {
+    // ignore
+  }
 }
 
 export type BPMode = 'ptt' | 'manual';
@@ -120,8 +149,9 @@ export interface SimState {
   ecgBuffer: WaveformPoint[];
   ppgBuffer: WaveformPoint[];
 
-  // ── Trend History (last 60 samples) ───────────────────────────────────────
-  riskTrend: { t: number; score: number; band: string }[];
+  // ── Trend History (recorded historical evaluations) ──────────────────────
+  riskTrend: RiskTrendPoint[];
+  clearRiskTrend: () => void;
 
   // ── Lab Report Values (manual entry) ─────────────────────────────────────
   labInputs: LabInputs;
@@ -341,7 +371,7 @@ export const useSimStore = create<SimState>((set, get) => ({
   sensorStatus: { ecg: 'simulated', ppg: 'simulated', bp: 'simulated', stress: 'simulated' },
   ecgBuffer: [],
   ppgBuffer: [],
-  riskTrend: [],
+  riskTrend: loadStoredRiskTrend(),
 
   labInputs: { ...DEFAULT_LAB_INPUTS },
   apoBPanel: calculateApoBPanel(DEFAULT_LAB_INPUTS),
@@ -477,6 +507,11 @@ export const useSimStore = create<SimState>((set, get) => ({
     set({ pttDerivedBP: result });
   },
 
+  clearRiskTrend: () => {
+    saveStoredRiskTrend([]);
+    set({ riskTrend: [] });
+  },
+
   randomize: () => {
     const { selectedCategory, patientProfile, labInputs } = get();
     const { params, profilePatch, labPatch, fai: randFai, cac: randCac } = randomizeParamsForCategory(selectedCategory);
@@ -606,16 +641,93 @@ export const useSimStore = create<SimState>((set, get) => ({
         apoBPanel = calculateApoBPanel(labInputs);
       }
 
+      // Update risk history responsibly (no duplicate spamming, real scenario changes, waiting intervals)
+      const currentScore = Math.round(risk.score);
+      const currentScenarioId = s.activeProfile?.id ?? (s.activeProfile ? 'preset' : 'custom');
+      const currentTrend = s.riskTrend;
+      let nextTrend = currentTrend;
+
+      if (currentTrend.length === 0) {
+        nextTrend = [{
+          t: now,
+          score: currentScore,
+          band: risk.band,
+          scenarioId: currentScenarioId,
+        }];
+        saveStoredRiskTrend(nextTrend);
+      } else {
+        const lastPoint = currentTrend[currentTrend.length - 1];
+        const scenarioChanged = lastPoint.scenarioId !== undefined && lastPoint.scenarioId !== currentScenarioId;
+        const scoreDiff = Math.abs(currentScore - Math.round(lastPoint.score));
+        const scoreChanged = scoreDiff >= 1;
+        const timeSinceLastPoint = now - lastPoint.t;
+
+        if (scenarioChanged) {
+          nextTrend = [
+            ...currentTrend,
+            { t: now, score: currentScore, band: risk.band, scenarioId: currentScenarioId },
+          ].slice(-MAX_TREND_HISTORY);
+          saveStoredRiskTrend(nextTrend);
+        } else if (scoreChanged) {
+          if (timeSinceLastPoint < 2500) {
+            nextTrend = [...currentTrend];
+            nextTrend[nextTrend.length - 1] = {
+              ...lastPoint,
+              score: currentScore,
+              band: risk.band,
+              scenarioId: currentScenarioId,
+              t: now,
+            };
+          } else {
+            nextTrend = [
+              ...currentTrend,
+              { t: now, score: currentScore, band: risk.band, scenarioId: currentScenarioId },
+            ].slice(-MAX_TREND_HISTORY);
+          }
+          saveStoredRiskTrend(nextTrend);
+        } else if (timeSinceLastPoint >= 6000) {
+          if (currentTrend.length < 7) {
+            nextTrend = [
+              ...currentTrend,
+              { t: now, score: currentScore, band: risk.band, scenarioId: currentScenarioId },
+            ].slice(-MAX_TREND_HISTORY);
+            saveStoredRiskTrend(nextTrend);
+          } else {
+            let trailingIdenticalCount = 0;
+            for (let i = currentTrend.length - 1; i >= 0; i--) {
+              if (
+                Math.round(currentTrend[i].score) === currentScore &&
+                currentTrend[i].scenarioId === currentScenarioId
+              ) {
+                trailingIdenticalCount++;
+              } else {
+                break;
+              }
+            }
+            if (trailingIdenticalCount < 2) {
+              nextTrend = [
+                ...currentTrend,
+                { t: now, score: currentScore, band: risk.band, scenarioId: currentScenarioId },
+              ].slice(-MAX_TREND_HISTORY);
+              saveStoredRiskTrend(nextTrend);
+            } else {
+              nextTrend = [...currentTrend];
+              nextTrend[nextTrend.length - 1] = {
+                ...lastPoint,
+                t: now,
+              };
+            }
+          }
+        }
+      }
+
       return {
         snapshot,
         riskResult: risk,
         sensorStatus: status,
         ecgBuffer: [...s.ecgBuffer, ...newECG].slice(-300),
         ppgBuffer: [...s.ppgBuffer, ...newPPG].slice(-150),
-        riskTrend: [
-          ...s.riskTrend,
-          { t: now, score: risk.score, band: risk.band },
-        ].slice(-TREND_HISTORY_LENGTH),
+        riskTrend: nextTrend,
         labInputs,
         apoBPanel,
         diseaseSubScores: diseaseSubScores ?? s.diseaseSubScores,

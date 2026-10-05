@@ -1,0 +1,843 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/Dashboard/DashboardHome.tsx");const React = __vite__cjsImport0_react; const useState = __vite__cjsImport0_react["useState"];const _jsxDEV = __vite__cjsImport7_react_jsxDevRuntime["jsxDEV"]; const _Fragment = __vite__cjsImport7_react_jsxDevRuntime["Fragment"];/**
+* DashboardHome — Default Landing View
+* ======================================
+* Top row: 4 stat cards (Risk Score, Heart Rate, Blood Pressure, HRV RMSSD)
+* Below: INTERHEART Weights panel
+*
+* UI PASS ONLY — no logic, reads from store.
+*/
+import __vite__cjsImport0_react from "/node_modules/.vite/deps/react.js?v=0c965f8b";
+import { useSimStore } from "/src/store/simStore.ts";
+import { classifyBP } from "/src/lib/bpRanges.ts";
+import { CardiacReadouts } from "/src/components/layout/RightPanelContent.tsx";
+import { CVDInfoPanel } from "/src/components/Dashboard/CVDInfoPanel.tsx";
+import { RangeIndicator } from "/src/components/RangeIndicator/index.tsx";
+import { FaiCard, CacCard } from "/src/components/Dashboard/CtBiomarkerCards.tsx";
+var _jsxFileName = "D:/internship/codes/cad-risk-simulator/src/components/Dashboard/DashboardHome.tsx";
+import __vite__cjsImport7_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=0c965f8b";
+var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+// ── Risk helpers ─────────────────────────────────────────────────────────────
+function getRiskColor(band) {
+	if (band === "High") return "var(--risk-high)";
+	if (band === "Moderate") return "var(--risk-moderate)";
+	return "var(--risk-low)";
+}
+function hrvStatusLabel(hrv) {
+	if (hrv < 20) return {
+		label: "Low",
+		color: "var(--risk-moderate)"
+	};
+	return {
+		label: "Healthy",
+		color: "var(--risk-low)"
+	};
+}
+// ── Lab Summary Card Component ───────────────────────────────────────────────
+function LabSummaryCard({ onOpenLabReport }) {
+	_s();
+	const snapshot = useSimStore((s) => s.snapshot);
+	const labInputs = useSimStore((s) => s.labInputs);
+	const apoBPanel = useSimStore((s) => s.apoBPanel);
+	const tcVal = snapshot ? Math.round(snapshot.totalCholesterol) : labInputs.totalCholesterol;
+	const ldlVal = Math.round(apoBPanel.ldl);
+	const hdlVal = labInputs.hdl;
+	const tgVal = snapshot ? Math.round(snapshot.triglycerides) : labInputs.triglycerides;
+	return /* @__PURE__ */ _jsxDEV("div", {
+		className: "panel-card dash-cardiac-panel",
+		children: [/* @__PURE__ */ _jsxDEV("div", {
+			className: "dash-panel-header",
+			style: {
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between"
+			},
+			children: [/* @__PURE__ */ _jsxDEV("span", { children: "LAB SUMMARY" }, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 46,
+				columnNumber: 9
+			}, this), onOpenLabReport && /* @__PURE__ */ _jsxDEV("button", {
+				type: "button",
+				onClick: onOpenLabReport,
+				style: {
+					background: "none",
+					border: "none",
+					color: "var(--accent)",
+					fontSize: "11px",
+					fontFamily: "var(--font-ui)",
+					fontWeight: 500,
+					cursor: "pointer",
+					padding: 0,
+					display: "flex",
+					alignItems: "center",
+					gap: "4px"
+				},
+				children: "View Details →"
+			}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 48,
+				columnNumber: 11
+			}, this)]
+		}, void 0, true, {
+			fileName: _jsxFileName,
+			lineNumber: 45,
+			columnNumber: 7
+		}, this), /* @__PURE__ */ _jsxDEV("div", {
+			className: "dash-cardiac-body",
+			style: { padding: "8px var(--space-md)" },
+			children: /* @__PURE__ */ _jsxDEV("div", {
+				className: "rp-cardiac-readouts",
+				children: [
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "rp-readout-row",
+						children: [/* @__PURE__ */ _jsxDEV("span", {
+							className: "rp-readout-label",
+							children: "TOTAL CHOLESTEROL"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 72,
+							columnNumber: 13
+						}, this), /* @__PURE__ */ _jsxDEV("div", {
+							className: "rp-readout-right",
+							children: [/* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-value",
+								children: [tcVal, " mg/dL"]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 74,
+								columnNumber: 15
+							}, this), /* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-tag",
+								style: {
+									color: tcVal > 200 ? "var(--alert-amber)" : "var(--risk-low)",
+									background: tcVal > 200 ? "rgba(216, 161, 59, 0.12)" : "rgba(52, 199, 89, 0.12)",
+									borderColor: tcVal > 200 ? "rgba(216, 161, 59, 0.25)" : "rgba(52, 199, 89, 0.25)"
+								},
+								children: tcVal > 200 ? "Borderline" : "Normal"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 75,
+								columnNumber: 15
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 73,
+							columnNumber: 13
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 71,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "rp-readout-row",
+						children: [/* @__PURE__ */ _jsxDEV("span", {
+							className: "rp-readout-label",
+							children: "LDL CHOLESTEROL"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 88,
+							columnNumber: 13
+						}, this), /* @__PURE__ */ _jsxDEV("div", {
+							className: "rp-readout-right",
+							children: [/* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-value",
+								children: [ldlVal, " mg/dL"]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 90,
+								columnNumber: 15
+							}, this), /* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-tag",
+								style: {
+									color: ldlVal > 100 ? "var(--alert-amber)" : "var(--risk-low)",
+									background: ldlVal > 100 ? "rgba(216, 161, 59, 0.12)" : "rgba(52, 199, 89, 0.12)",
+									borderColor: ldlVal > 100 ? "rgba(216, 161, 59, 0.25)" : "rgba(52, 199, 89, 0.25)"
+								},
+								children: ldlVal > 100 ? "Borderline" : "Normal"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 91,
+								columnNumber: 15
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 89,
+							columnNumber: 13
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 87,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "rp-readout-row",
+						children: [/* @__PURE__ */ _jsxDEV("span", {
+							className: "rp-readout-label",
+							children: "HDL CHOLESTEROL"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 104,
+							columnNumber: 13
+						}, this), /* @__PURE__ */ _jsxDEV("div", {
+							className: "rp-readout-right",
+							children: [/* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-value",
+								children: [hdlVal, " mg/dL"]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 106,
+								columnNumber: 15
+							}, this), /* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-tag",
+								style: {
+									color: hdlVal < 40 ? "var(--alert-amber)" : "var(--risk-low)",
+									background: hdlVal < 40 ? "rgba(216, 161, 59, 0.12)" : "rgba(52, 199, 89, 0.12)",
+									borderColor: hdlVal < 40 ? "rgba(216, 161, 59, 0.25)" : "rgba(52, 199, 89, 0.25)"
+								},
+								children: hdlVal < 40 ? "Low" : "Normal"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 107,
+								columnNumber: 15
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 105,
+							columnNumber: 13
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 103,
+						columnNumber: 11
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "rp-readout-row",
+						children: [/* @__PURE__ */ _jsxDEV("span", {
+							className: "rp-readout-label",
+							children: "TRIGLYCERIDES"
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 120,
+							columnNumber: 13
+						}, this), /* @__PURE__ */ _jsxDEV("div", {
+							className: "rp-readout-right",
+							children: [/* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-value",
+								children: [tgVal, " mg/dL"]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 122,
+								columnNumber: 15
+							}, this), /* @__PURE__ */ _jsxDEV("span", {
+								className: "rp-readout-tag",
+								style: {
+									color: tgVal > 150 ? "var(--alert-amber)" : "var(--risk-low)",
+									background: tgVal > 150 ? "rgba(216, 161, 59, 0.12)" : "rgba(52, 199, 89, 0.12)",
+									borderColor: tgVal > 150 ? "rgba(216, 161, 59, 0.25)" : "rgba(52, 199, 89, 0.25)"
+								},
+								children: tgVal > 150 ? "Borderline" : "Normal"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 123,
+								columnNumber: 15
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 121,
+							columnNumber: 13
+						}, this)]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 119,
+						columnNumber: 11
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 70,
+				columnNumber: 9
+			}, this)
+		}, void 0, false, {
+			fileName: _jsxFileName,
+			lineNumber: 69,
+			columnNumber: 7
+		}, this)]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 44,
+		columnNumber: 5
+	}, this);
+}
+_s(LabSummaryCard, "nLJOz4WCApRCibJp5ihjxG596HA=", false, function() {
+	return [
+		useSimStore,
+		useSimStore,
+		useSimStore
+	];
+});
+_c = LabSummaryCard;
+export function DashboardHome({ onOpenLabReport }) {
+	_s2();
+	const snapshot = useSimStore((s) => s.snapshot);
+	const riskResult = useSimStore((s) => s.riskResult);
+	const patientProfile = useSimStore((s) => s.patientProfile);
+	const activeProfile = useSimStore((s) => s.activeProfile);
+	const echonextResult = useSimStore((s) => s.echonextResult);
+	const runEchoNext = useSimStore((s) => s.runEchoNext);
+	const [isAnalyzing, setIsAnalyzing] = useState(false);
+	const [lastInferredTime, setLastInferredTime] = useState(null);
+	const handleReinfer = () => {
+		setIsAnalyzing(true);
+		setTimeout(() => {
+			runEchoNext();
+			setIsAnalyzing(false);
+			const now = new Date();
+			setLastInferredTime(now.toLocaleTimeString([], {
+				hour: "2-digit",
+				minute: "2-digit",
+				second: "2-digit"
+			}));
+		}, 350);
+	};
+	const band = riskResult?.band ?? "Low";
+	const score = riskResult?.score ?? 0;
+	const hr = snapshot?.heartRate ?? 0;
+	const sys = snapshot?.systolic ?? 120;
+	const dia = snapshot?.diastolic ?? 80;
+	const hrvVal = snapshot?.hrv ?? 0;
+	const bpInfo = classifyBP(sys, dia);
+	const hrv = hrvStatusLabel(hrvVal);
+	return /* @__PURE__ */ _jsxDEV("div", {
+		className: "dashboard-home",
+		children: [
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "dash-stat-grid",
+				children: [
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "panel-card dash-stat-card",
+						children: [
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-label",
+								children: "Risk Summary"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 185,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-value",
+								style: {
+									color: getRiskColor(band),
+									fontSize: "18px"
+								},
+								children: [band, " Risk"]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 186,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-sub",
+								style: {
+									color: "var(--text-secondary)",
+									fontSize: "11px",
+									lineHeight: "1.45",
+									maxWidth: "200px"
+								},
+								children: band === "Low" ? "Current cardiovascular risk indicators are generally within the low-risk range." : band === "Moderate" ? "Some risk factors are elevated. Close monitoring and lifestyle adjustments are recommended." : "Multiple risk factors are significantly elevated. Urgent clinical review is recommended."
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 189,
+								columnNumber: 11
+							}, this)
+						]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 184,
+						columnNumber: 9
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "panel-card dash-stat-card",
+						children: [
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-label",
+								children: "Heart Rate (HR)"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 200,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-value",
+								style: { fontFamily: "var(--font-mono)" },
+								children: [
+									hr,
+									" ",
+									/* @__PURE__ */ _jsxDEV("span", {
+										className: "dash-stat-unit",
+										children: "BPM"
+									}, void 0, false, {
+										fileName: _jsxFileName,
+										lineNumber: 202,
+										columnNumber: 18
+									}, this)
+								]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 201,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-sub",
+								style: { color: "var(--text-secondary)" },
+								children: "Normal Sinus Rhythm (NSR)"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 204,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV(RangeIndicator, {
+								rangeKey: "heartRate",
+								value: hr
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 207,
+								columnNumber: 11
+							}, this)
+						]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 199,
+						columnNumber: 9
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "panel-card dash-stat-card",
+						children: [
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-label",
+								children: "Blood Pressure (BP)"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 212,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-value",
+								style: { fontFamily: "var(--font-mono)" },
+								children: [
+									sys,
+									"/",
+									dia,
+									" ",
+									/* @__PURE__ */ _jsxDEV("span", {
+										className: "dash-stat-unit",
+										children: "mmHg"
+									}, void 0, false, {
+										fileName: _jsxFileName,
+										lineNumber: 214,
+										columnNumber: 25
+									}, this)
+								]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 213,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-sub",
+								style: { color: bpInfo.color },
+								children: [
+									bpInfo.label,
+									" (",
+									bpInfo.shortLabel,
+									")"
+								]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 216,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("div", {
+								style: {
+									marginTop: "var(--space-xs)",
+									display: "flex",
+									flexDirection: "column",
+									gap: "var(--space-xs)"
+								},
+								children: [/* @__PURE__ */ _jsxDEV(RangeIndicator, {
+									rangeKey: "systolicBP",
+									value: sys
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 220,
+									columnNumber: 13
+								}, this), /* @__PURE__ */ _jsxDEV(RangeIndicator, {
+									rangeKey: "diastolicBP",
+									value: dia
+								}, void 0, false, {
+									fileName: _jsxFileName,
+									lineNumber: 221,
+									columnNumber: 13
+								}, this)]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 219,
+								columnNumber: 11
+							}, this)
+						]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 211,
+						columnNumber: 9
+					}, this),
+					/* @__PURE__ */ _jsxDEV("div", {
+						className: "panel-card dash-stat-card",
+						children: [
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-label",
+								children: "Heart Rate Variability (RMSSD)"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 227,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-value",
+								style: { fontFamily: "var(--font-mono)" },
+								children: [
+									Math.round(hrvVal),
+									" ",
+									/* @__PURE__ */ _jsxDEV("span", {
+										className: "dash-stat-unit",
+										children: "ms"
+									}, void 0, false, {
+										fileName: _jsxFileName,
+										lineNumber: 229,
+										columnNumber: 34
+									}, this)
+								]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 228,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV("span", {
+								className: "dash-stat-sub",
+								style: { color: hrv.color },
+								children: hrv.label
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 231,
+								columnNumber: 11
+							}, this),
+							/* @__PURE__ */ _jsxDEV(RangeIndicator, {
+								rangeKey: "hrv",
+								value: hrvVal
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 234,
+								columnNumber: 11
+							}, this)
+						]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 226,
+						columnNumber: 9
+					}, this)
+				]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 182,
+				columnNumber: 7
+			}, this),
+			/* @__PURE__ */ _jsxDEV("div", {
+				className: "panel-card",
+				style: {
+					padding: "12px 16px",
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					flexWrap: "wrap",
+					gap: "10px"
+				},
+				children: [/* @__PURE__ */ _jsxDEV("div", {
+					style: {
+						display: "flex",
+						alignItems: "center",
+						gap: "10px"
+					},
+					children: [/* @__PURE__ */ _jsxDEV("div", { style: {
+						width: "9px",
+						height: "9px",
+						borderRadius: "50%",
+						background: echonextResult.detectedClasses.includes("NORM") ? "var(--risk-low)" : "var(--risk-high)",
+						boxShadow: echonextResult.detectedClasses.includes("NORM") ? "0 0 8px var(--risk-low)" : "0 0 8px var(--risk-high)"
+					} }, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 251,
+						columnNumber: 11
+					}, this), /* @__PURE__ */ _jsxDEV("div", { children: [/* @__PURE__ */ _jsxDEV("div", {
+						style: {
+							fontSize: "10px",
+							fontFamily: "var(--font-mono)",
+							color: "var(--text-secondary)",
+							letterSpacing: "0.05em"
+						},
+						children: "ECHONEXT 1D RESNET-34 DEEP LEARNING (IN-APP)"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 261,
+						columnNumber: 13
+					}, this), /* @__PURE__ */ _jsxDEV("div", {
+						style: {
+							fontSize: "13px",
+							fontWeight: 600,
+							color: "var(--text-primary)",
+							marginTop: "2px",
+							display: "flex",
+							alignItems: "center",
+							gap: "6px"
+						},
+						children: [/* @__PURE__ */ _jsxDEV("span", { children: "Classified:" }, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 265,
+							columnNumber: 15
+						}, this), echonextResult.detectedClasses.map((cls) => /* @__PURE__ */ _jsxDEV("span", {
+							style: {
+								background: cls === "NORM" ? "rgba(52, 199, 89, 0.2)" : "rgba(217, 83, 79, 0.2)",
+								color: cls === "NORM" ? "var(--risk-low)" : "var(--risk-high)",
+								fontSize: "11px",
+								fontFamily: "var(--font-mono)",
+								padding: "1px 6px",
+								borderRadius: "3px",
+								fontWeight: 700
+							},
+							children: cls
+						}, cls, false, {
+							fileName: _jsxFileName,
+							lineNumber: 267,
+							columnNumber: 17
+						}, this))]
+					}, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 264,
+						columnNumber: 13
+					}, this)] }, void 0, true, {
+						fileName: _jsxFileName,
+						lineNumber: 260,
+						columnNumber: 11
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 250,
+					columnNumber: 9
+				}, this), /* @__PURE__ */ _jsxDEV("div", {
+					style: {
+						display: "flex",
+						alignItems: "center",
+						gap: "10px"
+					},
+					children: [
+						/* @__PURE__ */ _jsxDEV("div", {
+							style: {
+								textAlign: "right",
+								fontFamily: "var(--font-mono)",
+								fontSize: "11px"
+							},
+							children: [/* @__PURE__ */ _jsxDEV("span", {
+								style: { color: "var(--text-secondary)" },
+								children: "Structural Heart Disease (SHD) Index: "
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 288,
+								columnNumber: 13
+							}, this), /* @__PURE__ */ _jsxDEV("strong", {
+								style: { color: echonextResult.predictions.SHD >= .3 ? "var(--risk-high)" : "var(--accent)" },
+								children: [(echonextResult.predictions.SHD * 100).toFixed(0), "%"]
+							}, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 289,
+								columnNumber: 13
+							}, this)]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 287,
+							columnNumber: 11
+						}, this),
+						lastInferredTime && /* @__PURE__ */ _jsxDEV("span", {
+							style: {
+								fontSize: "10px",
+								color: "var(--risk-low)",
+								fontFamily: "var(--font-mono)"
+							},
+							children: ["✓ ", lastInferredTime]
+						}, void 0, true, {
+							fileName: _jsxFileName,
+							lineNumber: 294,
+							columnNumber: 13
+						}, this),
+						/* @__PURE__ */ _jsxDEV("button", {
+							onClick: handleReinfer,
+							disabled: isAnalyzing,
+							style: {
+								background: isAnalyzing ? "var(--accent)" : "var(--surface-alt)",
+								border: "1px solid var(--border)",
+								borderRadius: "5px",
+								padding: "4px 12px",
+								fontSize: "11px",
+								color: isAnalyzing ? "#000" : "var(--text-primary)",
+								cursor: isAnalyzing ? "wait" : "pointer",
+								display: "flex",
+								alignItems: "center",
+								gap: "6px",
+								fontWeight: isAnalyzing ? 600 : 400,
+								transition: "all 0.2s ease"
+							},
+							children: isAnalyzing ? /* @__PURE__ */ _jsxDEV(_Fragment, { children: [/* @__PURE__ */ _jsxDEV("span", {
+								className: "animate-spin",
+								style: { display: "inline-block" },
+								children: "◌"
+							}, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 318,
+								columnNumber: 17
+							}, this), "Analyzing..."] }, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 317,
+								columnNumber: 15
+							}, this) : /* @__PURE__ */ _jsxDEV(_Fragment, { children: [/* @__PURE__ */ _jsxDEV("span", { children: "⚡" }, void 0, false, {
+								fileName: _jsxFileName,
+								lineNumber: 323,
+								columnNumber: 17
+							}, this), "Re-Infer"] }, void 0, true, {
+								fileName: _jsxFileName,
+								lineNumber: 322,
+								columnNumber: 15
+							}, this)
+						}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 298,
+							columnNumber: 11
+						}, this)
+					]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 286,
+					columnNumber: 9
+				}, this)]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 239,
+				columnNumber: 7
+			}, this),
+			/* @__PURE__ */ _jsxDEV("div", {
+				style: {
+					display: "grid",
+					gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+					gap: "var(--space-md)"
+				},
+				children: [/* @__PURE__ */ _jsxDEV(FaiCard, {}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 339,
+					columnNumber: 9
+				}, this), /* @__PURE__ */ _jsxDEV(CacCard, {}, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 340,
+					columnNumber: 9
+				}, this)]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 332,
+				columnNumber: 7
+			}, this),
+			/* @__PURE__ */ _jsxDEV("div", {
+				style: {
+					display: "grid",
+					gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+					gap: "var(--space-md)"
+				},
+				children: [/* @__PURE__ */ _jsxDEV("div", {
+					className: "panel-card dash-cardiac-panel",
+					children: [/* @__PURE__ */ _jsxDEV("div", {
+						className: "dash-panel-header",
+						children: "CARDIAC READOUTS"
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 352,
+						columnNumber: 11
+					}, this), /* @__PURE__ */ _jsxDEV("div", {
+						className: "dash-cardiac-body",
+						children: /* @__PURE__ */ _jsxDEV(CardiacReadouts, {}, void 0, false, {
+							fileName: _jsxFileName,
+							lineNumber: 354,
+							columnNumber: 13
+						}, this)
+					}, void 0, false, {
+						fileName: _jsxFileName,
+						lineNumber: 353,
+						columnNumber: 11
+					}, this)]
+				}, void 0, true, {
+					fileName: _jsxFileName,
+					lineNumber: 351,
+					columnNumber: 9
+				}, this), /* @__PURE__ */ _jsxDEV(LabSummaryCard, { onOpenLabReport }, void 0, false, {
+					fileName: _jsxFileName,
+					lineNumber: 358,
+					columnNumber: 9
+				}, this)]
+			}, void 0, true, {
+				fileName: _jsxFileName,
+				lineNumber: 344,
+				columnNumber: 7
+			}, this),
+			/* @__PURE__ */ _jsxDEV(CVDInfoPanel, {}, void 0, false, {
+				fileName: _jsxFileName,
+				lineNumber: 363,
+				columnNumber: 7
+			}, this)
+		]
+	}, void 0, true, {
+		fileName: _jsxFileName,
+		lineNumber: 179,
+		columnNumber: 5
+	}, this);
+}
+_s2(DashboardHome, "QOf908AvD/NiSmaQ6ZoUVdE0las=", false, function() {
+	return [
+		useSimStore,
+		useSimStore,
+		useSimStore,
+		useSimStore,
+		useSimStore,
+		useSimStore
+	];
+});
+_c2 = DashboardHome;
+var _c, _c2;
+$RefreshReg$(_c, "LabSummaryCard");
+$RefreshReg$(_c2, "DashboardHome");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+import * as __vite_react_currentExports from "/src/components/Dashboard/DashboardHome.tsx?t=1791189824908";
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+
+  const currentExports = __vite_react_currentExports;
+  queueMicrotask(() => {
+    RefreshRuntime.registerExportsForReactRefresh("D:/internship/codes/cad-risk-simulator/src/components/Dashboard/DashboardHome.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("D:/internship/codes/cad-risk-simulator/src/components/Dashboard/DashboardHome.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) { return RefreshRuntime.register(type, "D:/internship/codes/cad-risk-simulator/src/components/Dashboard/DashboardHome.tsx" + ' ' + id); }
+function $RefreshSig$() { return RefreshRuntime.createSignatureFunctionForTransform(); }
+
+//# sourceMappingURL=data:application/json;base64,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LEVBQUUsU0FBUyxlQUFlO2tCQUFHO09BQU87Ozs7aUJBQUMsY0FFM0U7Ozs7a0JBRUYsZ0RBQ0Usd0JBQUMsUUFBRCxZQUFNLElBQU87Ozs7aUJBQUMsVUFFZDs7Ozs7TUFFRTs7Ozs7S0FDTDs7Ozs7WUFDRjs7Ozs7O0dBR0wsd0JBQUMsT0FBRDtJQUNFLE9BQU87S0FDTCxTQUFTO0tBQ1QscUJBQXFCO0tBQ3JCLEtBQUs7SUFDUDtjQUxGLENBT0Usd0JBQUMsU0FBRCxDQUFVOzs7O2NBQ1Ysd0JBQUMsU0FBRCxDQUFVOzs7O1lBQ1A7Ozs7OztHQUdMLHdCQUFDLE9BQUQ7SUFDRSxPQUFPO0tBQ0wsU0FBUztLQUNULHFCQUFxQjtLQUNyQixLQUFLO0lBQ1A7Y0FMRixDQU9FLHdCQUFDLE9BQUQ7S0FBSyxXQUFVO2VBQWYsQ0FDRSx3QkFBQyxPQUFEO01BQUssV0FBVTtnQkFBb0I7S0FBcUI7Ozs7ZUFDeEQsd0JBQUMsT0FBRDtNQUFLLFdBQVU7Z0JBQ2Isd0JBQUMsaUJBQUQsQ0FBa0I7Ozs7O0tBQ2Y7Ozs7YUFDRjs7Ozs7Y0FFTCx3QkFBQyxnQkFBRCxFQUFpQyxnQkFBa0I7Ozs7WUFDaEQ7Ozs7OztHQUlMLHdCQUFDLGNBQUQsQ0FBZTs7Ozs7RUFDWjs7Ozs7O0FBRVQiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiRGFzaGJvYXJkSG9tZS50c3giXSwidmVyc2lvbiI6Mywic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBEYXNoYm9hcmRIb21lIOKAlCBEZWZhdWx0IExhbmRpbmcgVmlld1xuICogPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbiAqIFRvcCByb3c6IDQgc3RhdCBjYXJkcyAoUmlzayBTY29yZSwgSGVhcnQgUmF0ZSwgQmxvb2QgUHJlc3N1cmUsIEhSViBSTVNTRClcbiAqIEJlbG93OiBJTlRFUkhFQVJUIFdlaWdodHMgcGFuZWxcbiAqXG4gKiBVSSBQQVNTIE9OTFkg4oCUIG5vIGxvZ2ljLCByZWFkcyBmcm9tIHN0b3JlLlxuICovXG5cbmltcG9ydCBSZWFjdCwgeyB1c2VTdGF0ZSB9IGZyb20gJ3JlYWN0JztcbmltcG9ydCB7IHVzZVNpbVN0b3JlIH0gZnJvbSAnLi4vLi4vc3RvcmUvc2ltU3RvcmUnO1xuaW1wb3J0IHsgY2xhc3NpZnlCUCB9IGZyb20gJy4uLy4uL2xpYi9icFJhbmdlcyc7XG5pbXBvcnQgeyBDYXJkaWFjUmVhZG91dHMgfSBmcm9tICcuLi9sYXlvdXQvUmlnaHRQYW5lbENvbnRlbnQnO1xuaW1wb3J0IHsgQ1ZESW5mb1BhbmVsIH0gZnJvbSAnLi9DVkRJbmZvUGFuZWwnO1xuaW1wb3J0IHsgUmFuZ2VJbmRpY2F0b3IgfSBmcm9tICcuLi9SYW5nZUluZGljYXRvcic7XG5pbXBvcnQgeyBGYWlDYXJkLCBDYWNDYXJkIH0gZnJvbSAnLi9DdEJpb21hcmtlckNhcmRzJztcblxuLy8g4pSA4pSAIFJpc2sgaGVscGVycyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcblxuZnVuY3Rpb24gZ2V0Umlza0NvbG9yKGJhbmQ6IHN0cmluZyk6IHN0cmluZyB7XG4gIGlmIChiYW5kID09PSAnSGlnaCcpIHJldHVybiAndmFyKC0tcmlzay1oaWdoKSc7XG4gIGlmIChiYW5kID09PSAnTW9kZXJhdGUnKSByZXR1cm4gJ3ZhcigtLXJpc2stbW9kZXJhdGUpJztcbiAgcmV0dXJuICd2YXIoLS1yaXNrLWxvdyknO1xufVxuXG5mdW5jdGlvbiBocnZTdGF0dXNMYWJlbChocnY6IG51bWJlcik6IHsgbGFiZWw6IHN0cmluZzsgY29sb3I6IHN0cmluZyB9IHtcbiAgaWYgKGhydiA8IDIwKSByZXR1cm4geyBsYWJlbDogJ0xvdycsIGNvbG9yOiAndmFyKC0tcmlzay1tb2RlcmF0ZSknIH07XG4gIHJldHVybiB7IGxhYmVsOiAnSGVhbHRoeScsIGNvbG9yOiAndmFyKC0tcmlzay1sb3cpJyB9O1xufVxuXG4vLyDilIDilIAgTGFiIFN1bW1hcnkgQ2FyZCBDb21wb25lbnQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAXG5cbmZ1bmN0aW9uIExhYlN1bW1hcnlDYXJkKHsgb25PcGVuTGFiUmVwb3J0IH06IHsgb25PcGVuTGFiUmVwb3J0PzogKCkgPT4gdm9pZCB9KSB7XG4gIGNvbnN0IHNuYXBzaG90ID0gdXNlU2ltU3RvcmUocyA9PiBzLnNuYXBzaG90KTtcbiAgY29uc3QgbGFiSW5wdXRzID0gdXNlU2ltU3RvcmUocyA9PiBzLmxhYklucHV0cyk7XG4gIGNvbnN0IGFwb0JQYW5lbCA9IHVzZVNpbVN0b3JlKHMgPT4gcy5hcG9CUGFuZWwpO1xuXG4gIGNvbnN0IHRjVmFsID0gc25hcHNob3QgPyBNYXRoLnJvdW5kKHNuYXBzaG90LnRvdGFsQ2hvbGVzdGVyb2wpIDogbGFiSW5wdXRzLnRvdGFsQ2hvbGVzdGVyb2w7XG4gIGNvbnN0IGxkbFZhbCA9IE1hdGgucm91bmQoYXBvQlBhbmVsLmxkbCk7XG4gIGNvbnN0IGhkbFZhbCA9IGxhYklucHV0cy5oZGw7XG4gIGNvbnN0IHRnVmFsID0gc25hcHNob3QgPyBNYXRoLnJvdW5kKHNuYXBzaG90LnRyaWdseWNlcmlkZXMpIDogbGFiSW5wdXRzLnRyaWdseWNlcmlkZXM7XG5cbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT1cInBhbmVsLWNhcmQgZGFzaC1jYXJkaWFjLXBhbmVsXCI+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImRhc2gtcGFuZWwtaGVhZGVyXCIgc3R5bGU9e3sgZGlzcGxheTogJ2ZsZXgnLCBhbGlnbkl0ZW1zOiAnY2VudGVyJywganVzdGlmeUNvbnRlbnQ6ICdzcGFjZS1iZXR3ZWVuJyB9fT5cbiAgICAgICAgPHNwYW4+TEFCIFNVTU1BUlk8L3NwYW4+XG4gICAgICAgIHtvbk9wZW5MYWJSZXBvcnQgJiYgKFxuICAgICAgICAgIDxidXR0b25cbiAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxuICAgICAgICAgICAgb25DbGljaz17b25PcGVuTGFiUmVwb3J0fVxuICAgICAgICAgICAgc3R5bGU9e3tcbiAgICAgICAgICAgICAgYmFja2dyb3VuZDogJ25vbmUnLFxuICAgICAgICAgICAgICBib3JkZXI6ICdub25lJyxcbiAgICAgICAgICAgICAgY29sb3I6ICd2YXIoLS1hY2NlbnQpJyxcbiAgICAgICAgICAgICAgZm9udFNpemU6ICcxMXB4JyxcbiAgICAgICAgICAgICAgZm9udEZhbWlseTogJ3ZhcigtLWZvbnQtdWkpJyxcbiAgICAgICAgICAgICAgZm9udFdlaWdodDogNTAwLFxuICAgICAgICAgICAgICBjdXJzb3I6ICdwb2ludGVyJyxcbiAgICAgICAgICAgICAgcGFkZGluZzogMCxcbiAgICAgICAgICAgICAgZGlzcGxheTogJ2ZsZXgnLFxuICAgICAgICAgICAgICBhbGlnbkl0ZW1zOiAnY2VudGVyJyxcbiAgICAgICAgICAgICAgZ2FwOiAnNHB4JyxcbiAgICAgICAgICAgIH19XG4gICAgICAgICAgPlxuICAgICAgICAgICAgVmlldyBEZXRhaWxzIOKGklxuICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICApfVxuICAgICAgPC9kaXY+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImRhc2gtY2FyZGlhYy1ib2R5XCIgc3R5bGU9e3sgcGFkZGluZzogJzhweCB2YXIoLS1zcGFjZS1tZCknIH19PlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJwLWNhcmRpYWMtcmVhZG91dHNcIj5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtcm93XCI+XG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJycC1yZWFkb3V0LWxhYmVsXCI+VE9UQUwgQ0hPTEVTVEVST0w8L3NwYW4+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtcmlnaHRcIj5cbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwicnAtcmVhZG91dC12YWx1ZVwiPnt0Y1ZhbH0gbWcvZEw8L3NwYW4+XG4gICAgICAgICAgICAgIDxzcGFuXG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicnAtcmVhZG91dC10YWdcIlxuICAgICAgICAgICAgICAgIHN0eWxlPXt7XG4gICAgICAgICAgICAgICAgICBjb2xvcjogdGNWYWwgPiAyMDAgPyAndmFyKC0tYWxlcnQtYW1iZXIpJyA6ICd2YXIoLS1yaXNrLWxvdyknLFxuICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZDogdGNWYWwgPiAyMDAgPyAncmdiYSgyMTYsIDE2MSwgNTksIDAuMTIpJyA6ICdyZ2JhKDUyLCAxOTksIDg5LCAwLjEyKScsXG4gICAgICAgICAgICAgICAgICBib3JkZXJDb2xvcjogdGNWYWwgPiAyMDAgPyAncmdiYSgyMTYsIDE2MSwgNTksIDAuMjUpJyA6ICdyZ2JhKDUyLCAxOTksIDg5LCAwLjI1KScsXG4gICAgICAgICAgICAgICAgfX1cbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIHt0Y1ZhbCA+IDIwMCA/ICdCb3JkZXJsaW5lJyA6ICdOb3JtYWwnfVxuICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtcm93XCI+XG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJycC1yZWFkb3V0LWxhYmVsXCI+TERMIENIT0xFU1RFUk9MPC9zcGFuPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJycC1yZWFkb3V0LXJpZ2h0XCI+XG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtdmFsdWVcIj57bGRsVmFsfSBtZy9kTDwvc3Bhbj5cbiAgICAgICAgICAgICAgPHNwYW5cbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJycC1yZWFkb3V0LXRhZ1wiXG4gICAgICAgICAgICAgICAgc3R5bGU9e3tcbiAgICAgICAgICAgICAgICAgIGNvbG9yOiBsZGxWYWwgPiAxMDAgPyAndmFyKC0tYWxlcnQtYW1iZXIpJyA6ICd2YXIoLS1yaXNrLWxvdyknLFxuICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZDogbGRsVmFsID4gMTAwID8gJ3JnYmEoMjE2LCAxNjEsIDU5LCAwLjEyKScgOiAncmdiYSg1MiwgMTk5LCA4OSwgMC4xMiknLFxuICAgICAgICAgICAgICAgICAgYm9yZGVyQ29sb3I6IGxkbFZhbCA+IDEwMCA/ICdyZ2JhKDIxNiwgMTYxLCA1OSwgMC4yNSknIDogJ3JnYmEoNTIsIDE5OSwgODksIDAuMjUpJyxcbiAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAge2xkbFZhbCA+IDEwMCA/ICdCb3JkZXJsaW5lJyA6ICdOb3JtYWwnfVxuICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtcm93XCI+XG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJycC1yZWFkb3V0LWxhYmVsXCI+SERMIENIT0xFU1RFUk9MPC9zcGFuPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJycC1yZWFkb3V0LXJpZ2h0XCI+XG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtdmFsdWVcIj57aGRsVmFsfSBtZy9kTDwvc3Bhbj5cbiAgICAgICAgICAgICAgPHNwYW5cbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJycC1yZWFkb3V0LXRhZ1wiXG4gICAgICAgICAgICAgICAgc3R5bGU9e3tcbiAgICAgICAgICAgICAgICAgIGNvbG9yOiBoZGxWYWwgPCA0MCA/ICd2YXIoLS1hbGVydC1hbWJlciknIDogJ3ZhcigtLXJpc2stbG93KScsXG4gICAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kOiBoZGxWYWwgPCA0MCA/ICdyZ2JhKDIxNiwgMTYxLCA1OSwgMC4xMiknIDogJ3JnYmEoNTIsIDE5OSwgODksIDAuMTIpJyxcbiAgICAgICAgICAgICAgICAgIGJvcmRlckNvbG9yOiBoZGxWYWwgPCA0MCA/ICdyZ2JhKDIxNiwgMTYxLCA1OSwgMC4yNSknIDogJ3JnYmEoNTIsIDE5OSwgODksIDAuMjUpJyxcbiAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAge2hkbFZhbCA8IDQwID8gJ0xvdycgOiAnTm9ybWFsJ31cbiAgICAgICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJycC1yZWFkb3V0LXJvd1wiPlxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwicnAtcmVhZG91dC1sYWJlbFwiPlRSSUdMWUNFUklERVM8L3NwYW4+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJwLXJlYWRvdXQtcmlnaHRcIj5cbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwicnAtcmVhZG91dC12YWx1ZVwiPnt0Z1ZhbH0gbWcvZEw8L3NwYW4+XG4gICAgICAgICAgICAgIDxzcGFuXG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicnAtcmVhZG91dC10YWdcIlxuICAgICAgICAgICAgICAgIHN0eWxlPXt7XG4gICAgICAgICAgICAgICAgICBjb2xvcjogdGdWYWwgPiAxNTAgPyAndmFyKC0tYWxlcnQtYW1iZXIpJyA6ICd2YXIoLS1yaXNrLWxvdyknLFxuICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZDogdGdWYWwgPiAxNTAgPyAncmdiYSgyMTYsIDE2MSwgNTksIDAuMTIpJyA6ICdyZ2JhKDUyLCAxOTksIDg5LCAwLjEyKScsXG4gICAgICAgICAgICAgICAgICBib3JkZXJDb2xvcjogdGdWYWwgPiAxNTAgPyAncmdiYSgyMTYsIDE2MSwgNTksIDAuMjUpJyA6ICdyZ2JhKDUyLCAxOTksIDg5LCAwLjI1KScsXG4gICAgICAgICAgICAgICAgfX1cbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIHt0Z1ZhbCA+IDE1MCA/ICdCb3JkZXJsaW5lJyA6ICdOb3JtYWwnfVxuICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgPC9kaXY+XG4gICAgICA8L2Rpdj5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cblxuLy8g4pSA4pSAIENvbXBvbmVudCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcblxuaW50ZXJmYWNlIERhc2hib2FyZEhvbWVQcm9wcyB7XG4gIG9uT3BlbkxhYlJlcG9ydD86ICgpID0+IHZvaWQ7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBEYXNoYm9hcmRIb21lKHsgb25PcGVuTGFiUmVwb3J0IH06IERhc2hib2FyZEhvbWVQcm9wcykge1xuICBjb25zdCBzbmFwc2hvdCA9IHVzZVNpbVN0b3JlKHMgPT4gcy5zbmFwc2hvdCk7XG4gIGNvbnN0IHJpc2tSZXN1bHQgPSB1c2VTaW1TdG9yZShzID0+IHMucmlza1Jlc3VsdCk7XG4gIGNvbnN0IHBhdGllbnRQcm9maWxlID0gdXNlU2ltU3RvcmUocyA9PiBzLnBhdGllbnRQcm9maWxlKTtcbiAgY29uc3QgYWN0aXZlUHJvZmlsZSA9IHVzZVNpbVN0b3JlKHMgPT4gcy5hY3RpdmVQcm9maWxlKTtcbiAgY29uc3QgZWNob25leHRSZXN1bHQgPSB1c2VTaW1TdG9yZShzID0+IHMuZWNob25leHRSZXN1bHQpO1xuICBjb25zdCBydW5FY2hvTmV4dCA9IHVzZVNpbVN0b3JlKHMgPT4gcy5ydW5FY2hvTmV4dCk7XG5cbiAgY29uc3QgW2lzQW5hbHl6aW5nLCBzZXRJc0FuYWx5emluZ10gPSB1c2VTdGF0ZShmYWxzZSk7XG4gIGNvbnN0IFtsYXN0SW5mZXJyZWRUaW1lLCBzZXRMYXN0SW5mZXJyZWRUaW1lXSA9IHVzZVN0YXRlPHN0cmluZyB8IG51bGw+KG51bGwpO1xuXG4gIGNvbnN0IGhhbmRsZVJlaW5mZXIgPSAoKSA9PiB7XG4gICAgc2V0SXNBbmFseXppbmcodHJ1ZSk7XG4gICAgc2V0VGltZW91dCgoKSA9PiB7XG4gICAgICBydW5FY2hvTmV4dCgpO1xuICAgICAgc2V0SXNBbmFseXppbmcoZmFsc2UpO1xuICAgICAgY29uc3Qgbm93ID0gbmV3IERhdGUoKTtcbiAgICAgIHNldExhc3RJbmZlcnJlZFRpbWUobm93LnRvTG9jYWxlVGltZVN0cmluZyhbXSwgeyBob3VyOiAnMi1kaWdpdCcsIG1pbnV0ZTogJzItZGlnaXQnLCBzZWNvbmQ6ICcyLWRpZ2l0JyB9KSk7XG4gICAgfSwgMzUwKTtcbiAgfTtcblxuICBjb25zdCBiYW5kID0gcmlza1Jlc3VsdD8uYmFuZCA/PyAnTG93JztcbiAgY29uc3Qgc2NvcmUgPSByaXNrUmVzdWx0Py5zY29yZSA/PyAwO1xuICBjb25zdCBociA9IHNuYXBzaG90Py5oZWFydFJhdGUgPz8gMDtcbiAgY29uc3Qgc3lzID0gc25hcHNob3Q/LnN5c3RvbGljID8/IDEyMDtcbiAgY29uc3QgZGlhID0gc25hcHNob3Q/LmRpYXN0b2xpYyA/PyA4MDtcbiAgY29uc3QgaHJ2VmFsID0gc25hcHNob3Q/LmhydiA/PyAwO1xuXG4gIGNvbnN0IGJwSW5mbyA9IGNsYXNzaWZ5QlAoc3lzLCBkaWEpO1xuICBjb25zdCBocnYgPSBocnZTdGF0dXNMYWJlbChocnZWYWwpO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9XCJkYXNoYm9hcmQtaG9tZVwiPlxuXG4gICAgICB7Lyog4pSA4pSAIFRvcCBSb3c6IDQgU3RhdCBDYXJkcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImRhc2gtc3RhdC1ncmlkXCI+XG4gICAgICAgIHsvKiBDYXJkIDE6IFJpc2sgU3VtbWFyeSAocmVwbGFjZXMgZHVwbGljYXRlIHJpc2sgc2NvcmUg4oCUIHNjb3JlIGlzIGluIHJpZ2h0IHBhbmVsIGdhdWdlKSAqL31cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwYW5lbC1jYXJkIGRhc2gtc3RhdC1jYXJkXCI+XG4gICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZGFzaC1zdGF0LWxhYmVsXCI+UmlzayBTdW1tYXJ5PC9zcGFuPlxuICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImRhc2gtc3RhdC12YWx1ZVwiIHN0eWxlPXt7IGNvbG9yOiBnZXRSaXNrQ29sb3IoYmFuZCksIGZvbnRTaXplOiAnMThweCcgfX0+XG4gICAgICAgICAgICB7YmFuZH0gUmlza1xuICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtc3ViXCIgc3R5bGU9e3sgY29sb3I6ICd2YXIoLS10ZXh0LXNlY29uZGFyeSknLCBmb250U2l6ZTogJzExcHgnLCBsaW5lSGVpZ2h0OiAnMS40NScsIG1heFdpZHRoOiAnMjAwcHgnIH19PlxuICAgICAgICAgICAge2JhbmQgPT09ICdMb3cnXG4gICAgICAgICAgICAgID8gJ0N1cnJlbnQgY2FyZGlvdmFzY3VsYXIgcmlzayBpbmRpY2F0b3JzIGFyZSBnZW5lcmFsbHkgd2l0aGluIHRoZSBsb3ctcmlzayByYW5nZS4nXG4gICAgICAgICAgICAgIDogYmFuZCA9PT0gJ01vZGVyYXRlJ1xuICAgICAgICAgICAgICAgID8gJ1NvbWUgcmlzayBmYWN0b3JzIGFyZSBlbGV2YXRlZC4gQ2xvc2UgbW9uaXRvcmluZyBhbmQgbGlmZXN0eWxlIGFkanVzdG1lbnRzIGFyZSByZWNvbW1lbmRlZC4nXG4gICAgICAgICAgICAgICAgOiAnTXVsdGlwbGUgcmlzayBmYWN0b3JzIGFyZSBzaWduaWZpY2FudGx5IGVsZXZhdGVkLiBVcmdlbnQgY2xpbmljYWwgcmV2aWV3IGlzIHJlY29tbWVuZGVkLid9XG4gICAgICAgICAgPC9zcGFuPlxuICAgICAgICA8L2Rpdj5cblxuICAgICAgICB7LyogQ2FyZCAyOiBIZWFydCBSYXRlICovfVxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInBhbmVsLWNhcmQgZGFzaC1zdGF0LWNhcmRcIj5cbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtbGFiZWxcIj5IZWFydCBSYXRlIChIUik8L3NwYW4+XG4gICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZGFzaC1zdGF0LXZhbHVlXCIgc3R5bGU9e3sgZm9udEZhbWlseTogJ3ZhcigtLWZvbnQtbW9ubyknIH19PlxuICAgICAgICAgICAge2hyfSA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtdW5pdFwiPkJQTTwvc3Bhbj5cbiAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZGFzaC1zdGF0LXN1YlwiIHN0eWxlPXt7IGNvbG9yOiAndmFyKC0tdGV4dC1zZWNvbmRhcnkpJyB9fT5cbiAgICAgICAgICAgIE5vcm1hbCBTaW51cyBSaHl0aG0gKE5TUilcbiAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgPFJhbmdlSW5kaWNhdG9yIHJhbmdlS2V5PVwiaGVhcnRSYXRlXCIgdmFsdWU9e2hyfSAvPlxuICAgICAgICA8L2Rpdj5cblxuICAgICAgICB7LyogQ2FyZCAzOiBCbG9vZCBQcmVzc3VyZSAqL31cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwYW5lbC1jYXJkIGRhc2gtc3RhdC1jYXJkXCI+XG4gICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZGFzaC1zdGF0LWxhYmVsXCI+Qmxvb2QgUHJlc3N1cmUgKEJQKTwvc3Bhbj5cbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtdmFsdWVcIiBzdHlsZT17eyBmb250RmFtaWx5OiAndmFyKC0tZm9udC1tb25vKScgfX0+XG4gICAgICAgICAgICB7c3lzfS97ZGlhfSA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtdW5pdFwiPm1tSGc8L3NwYW4+XG4gICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImRhc2gtc3RhdC1zdWJcIiBzdHlsZT17eyBjb2xvcjogYnBJbmZvLmNvbG9yIH19PlxuICAgICAgICAgICAge2JwSW5mby5sYWJlbH0gKHticEluZm8uc2hvcnRMYWJlbH0pXG4gICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgIDxkaXYgc3R5bGU9e3sgbWFyZ2luVG9wOiAndmFyKC0tc3BhY2UteHMpJywgZGlzcGxheTogJ2ZsZXgnLCBmbGV4RGlyZWN0aW9uOiAnY29sdW1uJywgZ2FwOiAndmFyKC0tc3BhY2UteHMpJyB9fT5cbiAgICAgICAgICAgIDxSYW5nZUluZGljYXRvciByYW5nZUtleT1cInN5c3RvbGljQlBcIiB2YWx1ZT17c3lzfSAvPlxuICAgICAgICAgICAgPFJhbmdlSW5kaWNhdG9yIHJhbmdlS2V5PVwiZGlhc3RvbGljQlBcIiB2YWx1ZT17ZGlhfSAvPlxuICAgICAgICAgIDwvZGl2PlxuICAgICAgICA8L2Rpdj5cblxuICAgICAgICB7LyogQ2FyZCA0OiBIUlYgUk1TU0QgKi99XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicGFuZWwtY2FyZCBkYXNoLXN0YXQtY2FyZFwiPlxuICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImRhc2gtc3RhdC1sYWJlbFwiPkhlYXJ0IFJhdGUgVmFyaWFiaWxpdHkgKFJNU1NEKTwvc3Bhbj5cbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtdmFsdWVcIiBzdHlsZT17eyBmb250RmFtaWx5OiAndmFyKC0tZm9udC1tb25vKScgfX0+XG4gICAgICAgICAgICB7TWF0aC5yb3VuZChocnZWYWwpfSA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtdW5pdFwiPm1zPC9zcGFuPlxuICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJkYXNoLXN0YXQtc3ViXCIgc3R5bGU9e3sgY29sb3I6IGhydi5jb2xvciB9fT5cbiAgICAgICAgICAgIHtocnYubGFiZWx9XG4gICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgIDxSYW5nZUluZGljYXRvciByYW5nZUtleT1cImhydlwiIHZhbHVlPXtocnZWYWx9IC8+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG5cbiAgICAgIHsvKiDilIDilIAgRWNob05leHQgMUQgUmVzTmV0LTM0IERpYWdub3N0aWMgQ2FyZCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XG4gICAgICA8ZGl2XG4gICAgICAgIGNsYXNzTmFtZT1cInBhbmVsLWNhcmRcIlxuICAgICAgICBzdHlsZT17e1xuICAgICAgICAgIHBhZGRpbmc6ICcxMnB4IDE2cHgnLFxuICAgICAgICAgIGRpc3BsYXk6ICdmbGV4JyxcbiAgICAgICAgICBqdXN0aWZ5Q29udGVudDogJ3NwYWNlLWJldHdlZW4nLFxuICAgICAgICAgIGFsaWduSXRlbXM6ICdjZW50ZXInLFxuICAgICAgICAgIGZsZXhXcmFwOiAnd3JhcCcsXG4gICAgICAgICAgZ2FwOiAnMTBweCcsXG4gICAgICAgIH19XG4gICAgICA+XG4gICAgICAgIDxkaXYgc3R5bGU9e3sgZGlzcGxheTogJ2ZsZXgnLCBhbGlnbkl0ZW1zOiAnY2VudGVyJywgZ2FwOiAnMTBweCcgfX0+XG4gICAgICAgICAgPGRpdlxuICAgICAgICAgICAgc3R5bGU9e3tcbiAgICAgICAgICAgICAgd2lkdGg6ICc5cHgnLFxuICAgICAgICAgICAgICBoZWlnaHQ6ICc5cHgnLFxuICAgICAgICAgICAgICBib3JkZXJSYWRpdXM6ICc1MCUnLFxuICAgICAgICAgICAgICBiYWNrZ3JvdW5kOiBlY2hvbmV4dFJlc3VsdC5kZXRlY3RlZENsYXNzZXMuaW5jbHVkZXMoJ05PUk0nKSA/ICd2YXIoLS1yaXNrLWxvdyknIDogJ3ZhcigtLXJpc2staGlnaCknLFxuICAgICAgICAgICAgICBib3hTaGFkb3c6IGVjaG9uZXh0UmVzdWx0LmRldGVjdGVkQ2xhc3Nlcy5pbmNsdWRlcygnTk9STScpID8gJzAgMCA4cHggdmFyKC0tcmlzay1sb3cpJyA6ICcwIDAgOHB4IHZhcigtLXJpc2staGlnaCknLFxuICAgICAgICAgICAgfX1cbiAgICAgICAgICAvPlxuICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICA8ZGl2IHN0eWxlPXt7IGZvbnRTaXplOiAnMTBweCcsIGZvbnRGYW1pbHk6ICd2YXIoLS1mb250LW1vbm8pJywgY29sb3I6ICd2YXIoLS10ZXh0LXNlY29uZGFyeSknLCBsZXR0ZXJTcGFjaW5nOiAnMC4wNWVtJyB9fT5cbiAgICAgICAgICAgICAgRUNIT05FWFQgMUQgUkVTTkVULTM0IERFRVAgTEVBUk5JTkcgKElOLUFQUClcbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBmb250U2l6ZTogJzEzcHgnLCBmb250V2VpZ2h0OiA2MDAsIGNvbG9yOiAndmFyKC0tdGV4dC1wcmltYXJ5KScsIG1hcmdpblRvcDogJzJweCcsIGRpc3BsYXk6ICdmbGV4JywgYWxpZ25JdGVtczogJ2NlbnRlcicsIGdhcDogJzZweCcgfX0+XG4gICAgICAgICAgICAgIDxzcGFuPkNsYXNzaWZpZWQ6PC9zcGFuPlxuICAgICAgICAgICAgICB7ZWNob25leHRSZXN1bHQuZGV0ZWN0ZWRDbGFzc2VzLm1hcChjbHMgPT4gKFxuICAgICAgICAgICAgICAgIDxzcGFuXG4gICAgICAgICAgICAgICAgICBrZXk9e2Nsc31cbiAgICAgICAgICAgICAgICAgIHN0eWxlPXt7XG4gICAgICAgICAgICAgICAgICAgIGJhY2tncm91bmQ6IGNscyA9PT0gJ05PUk0nID8gJ3JnYmEoNTIsIDE5OSwgODksIDAuMiknIDogJ3JnYmEoMjE3LCA4MywgNzksIDAuMiknLFxuICAgICAgICAgICAgICAgICAgICBjb2xvcjogY2xzID09PSAnTk9STScgPyAndmFyKC0tcmlzay1sb3cpJyA6ICd2YXIoLS1yaXNrLWhpZ2gpJyxcbiAgICAgICAgICAgICAgICAgICAgZm9udFNpemU6ICcxMXB4JyxcbiAgICAgICAgICAgICAgICAgICAgZm9udEZhbWlseTogJ3ZhcigtLWZvbnQtbW9ubyknLFxuICAgICAgICAgICAgICAgICAgICBwYWRkaW5nOiAnMXB4IDZweCcsXG4gICAgICAgICAgICAgICAgICAgIGJvcmRlclJhZGl1czogJzNweCcsXG4gICAgICAgICAgICAgICAgICAgIGZvbnRXZWlnaHQ6IDcwMCxcbiAgICAgICAgICAgICAgICAgIH19XG4gICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAge2Nsc31cbiAgICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICAgICkpfVxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuXG4gICAgICAgIDxkaXYgc3R5bGU9e3sgZGlzcGxheTogJ2ZsZXgnLCBhbGlnbkl0ZW1zOiAnY2VudGVyJywgZ2FwOiAnMTBweCcgfX0+XG4gICAgICAgICAgPGRpdiBzdHlsZT17eyB0ZXh0QWxpZ246ICdyaWdodCcsIGZvbnRGYW1pbHk6ICd2YXIoLS1mb250LW1vbm8pJywgZm9udFNpemU6ICcxMXB4JyB9fT5cbiAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7IGNvbG9yOiAndmFyKC0tdGV4dC1zZWNvbmRhcnkpJyB9fT5TdHJ1Y3R1cmFsIEhlYXJ0IERpc2Vhc2UgKFNIRCkgSW5kZXg6IDwvc3Bhbj5cbiAgICAgICAgICAgIDxzdHJvbmcgc3R5bGU9e3sgY29sb3I6IGVjaG9uZXh0UmVzdWx0LnByZWRpY3Rpb25zLlNIRCA+PSAwLjMgPyAndmFyKC0tcmlzay1oaWdoKScgOiAndmFyKC0tYWNjZW50KScgfX0+XG4gICAgICAgICAgICAgIHsoZWNob25leHRSZXN1bHQucHJlZGljdGlvbnMuU0hEICogMTAwKS50b0ZpeGVkKDApfSVcbiAgICAgICAgICAgIDwvc3Ryb25nPlxuICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgIHtsYXN0SW5mZXJyZWRUaW1lICYmIChcbiAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7IGZvbnRTaXplOiAnMTBweCcsIGNvbG9yOiAndmFyKC0tcmlzay1sb3cpJywgZm9udEZhbWlseTogJ3ZhcigtLWZvbnQtbW9ubyknIH19PlxuICAgICAgICAgICAgICDinJMge2xhc3RJbmZlcnJlZFRpbWV9XG4gICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgKX1cbiAgICAgICAgICA8YnV0dG9uXG4gICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVSZWluZmVyfVxuICAgICAgICAgICAgZGlzYWJsZWQ9e2lzQW5hbHl6aW5nfVxuICAgICAgICAgICAgc3R5bGU9e3tcbiAgICAgICAgICAgICAgYmFja2dyb3VuZDogaXNBbmFseXppbmcgPyAndmFyKC0tYWNjZW50KScgOiAndmFyKC0tc3VyZmFjZS1hbHQpJyxcbiAgICAgICAgICAgICAgYm9yZGVyOiAnMXB4IHNvbGlkIHZhcigtLWJvcmRlciknLFxuICAgICAgICAgICAgICBib3JkZXJSYWRpdXM6ICc1cHgnLFxuICAgICAgICAgICAgICBwYWRkaW5nOiAnNHB4IDEycHgnLFxuICAgICAgICAgICAgICBmb250U2l6ZTogJzExcHgnLFxuICAgICAgICAgICAgICBjb2xvcjogaXNBbmFseXppbmcgPyAnIzAwMCcgOiAndmFyKC0tdGV4dC1wcmltYXJ5KScsXG4gICAgICAgICAgICAgIGN1cnNvcjogaXNBbmFseXppbmcgPyAnd2FpdCcgOiAncG9pbnRlcicsXG4gICAgICAgICAgICAgIGRpc3BsYXk6ICdmbGV4JyxcbiAgICAgICAgICAgICAgYWxpZ25JdGVtczogJ2NlbnRlcicsXG4gICAgICAgICAgICAgIGdhcDogJzZweCcsXG4gICAgICAgICAgICAgIGZvbnRXZWlnaHQ6IGlzQW5hbHl6aW5nID8gNjAwIDogNDAwLFxuICAgICAgICAgICAgICB0cmFuc2l0aW9uOiAnYWxsIDAuMnMgZWFzZScsXG4gICAgICAgICAgICB9fVxuICAgICAgICAgID5cbiAgICAgICAgICAgIHtpc0FuYWx5emluZyA/IChcbiAgICAgICAgICAgICAgPD5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJhbmltYXRlLXNwaW5cIiBzdHlsZT17eyBkaXNwbGF5OiAnaW5saW5lLWJsb2NrJyB9fT7il4w8L3NwYW4+XG4gICAgICAgICAgICAgICAgQW5hbHl6aW5nLi4uXG4gICAgICAgICAgICAgIDwvPlxuICAgICAgICAgICAgKSA6IChcbiAgICAgICAgICAgICAgPD5cbiAgICAgICAgICAgICAgICA8c3Bhbj7imqE8L3NwYW4+XG4gICAgICAgICAgICAgICAgUmUtSW5mZXJcbiAgICAgICAgICAgICAgPC8+XG4gICAgICAgICAgICApfVxuICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuXG4gICAgICB7Lyog4pSA4pSAIENUIEJpb21hcmtlciBSZWFkb3V0cyAoRkFJICYgQ0FDKSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgKi99XG4gICAgICA8ZGl2XG4gICAgICAgIHN0eWxlPXt7XG4gICAgICAgICAgZGlzcGxheTogJ2dyaWQnLFxuICAgICAgICAgIGdyaWRUZW1wbGF0ZUNvbHVtbnM6ICdyZXBlYXQoYXV0by1maXQsIG1pbm1heCgyODBweCwgMWZyKSknLFxuICAgICAgICAgIGdhcDogJ3ZhcigtLXNwYWNlLW1kKScsXG4gICAgICAgIH19XG4gICAgICA+XG4gICAgICAgIDxGYWlDYXJkIC8+XG4gICAgICAgIDxDYWNDYXJkIC8+XG4gICAgICA8L2Rpdj5cblxuICAgICAgey8qIOKUgOKUgCBMb3dlci1NaWRkbGUgQXJlYTogQ2FyZGlhYyBSZWFkb3V0cyAmIExhYiBTdW1tYXJ5IEdyaWQg4pSA4pSAICovfVxuICAgICAgPGRpdlxuICAgICAgICBzdHlsZT17e1xuICAgICAgICAgIGRpc3BsYXk6ICdncmlkJyxcbiAgICAgICAgICBncmlkVGVtcGxhdGVDb2x1bW5zOiAncmVwZWF0KGF1dG8tZml0LCBtaW5tYXgoMjgwcHgsIDFmcikpJyxcbiAgICAgICAgICBnYXA6ICd2YXIoLS1zcGFjZS1tZCknLFxuICAgICAgICB9fVxuICAgICAgPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInBhbmVsLWNhcmQgZGFzaC1jYXJkaWFjLXBhbmVsXCI+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJkYXNoLXBhbmVsLWhlYWRlclwiPkNBUkRJQUMgUkVBRE9VVFM8L2Rpdj5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImRhc2gtY2FyZGlhYy1ib2R5XCI+XG4gICAgICAgICAgICA8Q2FyZGlhY1JlYWRvdXRzIC8+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuXG4gICAgICAgIDxMYWJTdW1tYXJ5Q2FyZCBvbk9wZW5MYWJSZXBvcnQ9e29uT3BlbkxhYlJlcG9ydH0gLz5cbiAgICAgIDwvZGl2PlxuXG5cbiAgICAgIHsvKiDilIDilIAgQ1ZEIERpc2Vhc2UgSW5mbyBQYW5lbCAob25seSByZW5kZXJzIHdoZW4gQ1ZEIHNjZW5hcmlvIGlzIGFjdGl2ZSkg4pSA4pSAICovfVxuICAgICAgPENWREluZm9QYW5lbCAvPlxuICAgIDwvZGl2PlxuICApO1xufVxuIl19

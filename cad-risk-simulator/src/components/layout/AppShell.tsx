@@ -124,34 +124,37 @@ function ArohanLogo() {
 
   if (imgError) {
     return (
-      <div className="arohan-logo-fallback" title="Arohan">
-        {/* Heart + wifi icon matching brand mark */}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-            fill="var(--accent)"
-          />
-          <path
-            d="M16 4a4 4 0 0 1 4 4M14 6a2 2 0 0 1 2 2"
-            stroke="var(--accent)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '13px', letterSpacing: '-0.02em' }}>
-          Arohan
-        </span>
+      <div className="arohan-brand-badge mobile-only-logo" title="Arohan Healthcare Solutions">
+        <div className="arohan-logo-fallback">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+              fill="#0d1b3e"
+            />
+            <path
+              d="M16 4a4 4 0 0 1 4 4M14 6a2 2 0 0 1 2 2"
+              stroke="#0d1b3e"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span style={{ color: '#0d1b3e', fontWeight: 700, fontSize: '12px', letterSpacing: '-0.01em' }}>
+            Arohan
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <img
-      src="/arohan-logo.png"
-      alt="Arohan Logo"
-      className="arohan-logo-img"
-      onError={() => setImgError(true)}
-    />
+    <div className="arohan-brand-badge mobile-only-logo" title="Arohan Healthcare Solutions">
+      <img
+        src="/arohan-logo.png"
+        alt="Arohan Healthcare Solutions Logo"
+        className="arohan-logo-img"
+        onError={() => setImgError(true)}
+      />
+    </div>
   );
 }
 
@@ -184,18 +187,18 @@ function TopBarRiskStatus() {
 // ── Nav label map for breadcrumbs ────────────────────────────────────────────
 
 const NAV_LABELS: Record<string, { section: string; page: string }> = {
-  dashboard:  { section: 'Monitor',   page: 'Dashboard' },
-  waveforms:  { section: 'Monitor',   page: 'Live Waveforms' },
-  profile:    { section: 'Patient',   page: 'Patient Profile' },
-  labreport:  { section: 'Patient',   page: 'Lab Report' },
-  report:     { section: 'Patient',   page: 'Patient Report' },
-  scenarios:  { section: 'Patient',   page: 'Scenarios' },
-  riskengine: { section: 'Analysis',  page: 'Risk Engine' },
-  fusion:     { section: 'Analysis',  page: 'Fusion Layers' },
-  healthytip: { section: 'Analysis',  page: 'Healthy Tips' },
-  simlogs:    { section: 'Analysis',  page: 'Sim Logs' },
-  history:    { section: 'Analysis',  page: 'History' },
-  info:       { section: 'Analysis',  page: 'Info Reference' },
+  dashboard: { section: 'Monitor', page: 'Dashboard' },
+  waveforms: { section: 'Monitor', page: 'Live Waveforms' },
+  profile: { section: 'Patient', page: 'Patient Profile' },
+  labreport: { section: 'Patient', page: 'Lab Report' },
+  report: { section: 'Patient', page: 'Patient Report' },
+  scenarios: { section: 'Patient', page: 'Scenarios' },
+  riskengine: { section: 'Analysis', page: 'Risk Engine' },
+  fusion: { section: 'Analysis', page: 'Fusion Layers' },
+  healthytip: { section: 'Analysis', page: 'Healthy Tips' },
+  simlogs: { section: 'Analysis', page: 'Sim Logs' },
+  history: { section: 'Analysis', page: 'History' },
+  info: { section: 'Analysis', page: 'Info Reference' },
 };
 
 // ── AppShell Component ───────────────────────────────────────────────────────
@@ -231,11 +234,11 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
             <ArohanLogo />
             <div className="shell-topbar-title-wrap">
               <span className="platform-title-full">Precision Cardiovascular Risk Intelligence Platform</span>
-              <span className="platform-title-compact">Precision CVR Intelligence</span>
-              <span className="platform-title-mobile">Precision CVR Platform</span>
+              <span className="platform-title-compact">Precision Cardiovascular Risk Intelligence</span>
+              <span className="platform-title-mobile">Precision Cardiovascular Risk</span>
             </div>
-            <div className="shell-topbar-breadcrumb">
-              <span className="breadcrumb-separator">/</span>
+            <div className="shell-topbar-breadcrumb" aria-label="Breadcrumb">
+              <span className="breadcrumb-separator" aria-hidden="true">/</span>
               <span className="breadcrumb-current">{navInfo.page}</span>
             </div>
           </div>

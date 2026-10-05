@@ -5,7 +5,7 @@
  * and footer. Desktop only — hidden on mobile (replaced by MobileTabBar).
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 // ── Nav item type ────────────────────────────────────────────────────────────
 
@@ -137,21 +137,6 @@ const IconGithub = (
   </svg>
 );
 
-// ── Logo mark (heart/monitor icon) ───────────────────────────────────────────
-
-const LogoMark = (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <rect width="20" height="20" rx="4" fill="var(--accent)" fillOpacity="0.12" />
-    <polyline
-      points="3,10 6,10 8,5 10,15 12,7 14,10 17,10"
-      fill="none"
-      stroke="var(--accent)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 // ── Navigation data ──────────────────────────────────────────────────────────
 
@@ -194,47 +179,101 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeNavId, onNavChange }: SidebarProps) {
+  const [isEnlarged, setIsEnlarged] = useState(false);
+
+  useEffect(() => {
+    if (!isEnlarged) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsEnlarged(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isEnlarged]);
+
   return (
-    <aside className="sidebar" aria-label="Main navigation">
-      {/* App Identity */}
-      <div className="sidebar-identity">
-        <div className="sidebar-identity-name" />
-        <div className="sidebar-identity-version">v1.0 · SIMULATED</div>
-      </div>
+    <>
+      <aside className="sidebar" aria-label="Main navigation">
+        {/* App Identity: Passport-size Arohan logo (clickable to enlarge, no box/background) */}
+        <div className="sidebar-identity">
+          <button
+            type="button"
+            className="sidebar-logo-trigger"
+            onClick={() => setIsEnlarged(true)}
+            aria-label="View Arohan logo"
+            title="View Arohan logo"
+          >
+            <img
+              src="/arohan-logo.png"
+              alt="Arohan Healthcare Solutions Logo"
+              className="sidebar-passport-logo"
+            />
+          </button>
+        </div>
 
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        {NAV_GROUPS.map(group => (
-          <div key={group.label}>
-            <div className="sidebar-group-label">{group.label}</div>
-            {group.items.map(item => (
-              <button
-                key={item.id}
-                type="button"
-                className={`sidebar-nav-item${activeNavId === item.id ? ' active' : ''}`}
-                onClick={() => onNavChange(item.id)}
-                aria-current={activeNavId === item.id ? 'page' : undefined}
-              >
-                {item.icon}
-                {item.label}
-              </button>
-            ))}
-          </div>
-        ))}
-      </nav>
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          {NAV_GROUPS.map(group => (
+            <div key={group.label}>
+              <div className="sidebar-group-label">{group.label}</div>
+              {group.items.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`sidebar-nav-item${activeNavId === item.id ? ' active' : ''}`}
+                  onClick={() => onNavChange(item.id)}
+                  aria-current={activeNavId === item.id ? 'page' : undefined}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
 
-      {/* Footer */}
-      <div className="sidebar-footer">
-        <a
-          href="https://github.com/anirudh0405/codes"
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* Footer */}
+        <div className="sidebar-footer">
+          <a
+            href="https://github.com/anirudh0405/codes"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {IconGithub}
+            Docs
+          </a>
+          <span>v1.0.0</span>
+        </div>
+      </aside>
+
+      {/* Enlarged Logo Preview Modal */}
+      {isEnlarged && (
+        <div
+          className="logo-modal-backdrop"
+          onClick={() => setIsEnlarged(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enlarged Arohan Logo"
         >
-          {IconGithub}
-          Docs
-        </a>
-        <span>v1.0.0</span>
-      </div>
-    </aside>
+          <div className="logo-modal-card" onClick={e => e.stopPropagation()}>
+            <button
+              type="button"
+              className="logo-modal-close"
+              onClick={() => setIsEnlarged(false)}
+              aria-label="Close enlarged logo"
+              title="Close (ESC)"
+            >
+              ✕
+            </button>
+            <img
+              src="/arohan-logo.png"
+              alt="Arohan Healthcare Solutions Logo (Enlarged)"
+              className="logo-modal-img"
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
