@@ -14,6 +14,7 @@ import { CardiacReadouts } from '../layout/RightPanelContent';
 import { CVDInfoPanel } from './CVDInfoPanel';
 import { RangeIndicator } from '../RangeIndicator';
 import { FaiCard, CacCard } from './CtBiomarkerCards';
+import { CadRiskTrendBar } from './CadRiskTrendBar';
 
 // ── Risk helpers ─────────────────────────────────────────────────────────────
 
@@ -235,6 +236,21 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
         </div>
       </div>
 
+      {/* ── CT Biomarker Readouts (FAI & CAC) ─────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 'var(--space-md)',
+        }}
+      >
+        <FaiCard />
+        <CacCard />
+      </div>
+
+      {/* ── 7-Day Cardiovascular Risk Trend ───────────────────────── */}
+      <CadRiskTrendBar />
+
       {/* ── EchoNext 1D ResNet-34 Diagnostic Card ─────────────────── */}
       <div
         className="panel-card"
@@ -328,18 +344,6 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
         </div>
       </div>
 
-      {/* ── CT Biomarker Readouts (FAI & CAC) ─────────────────────── */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 'var(--space-md)',
-        }}
-      >
-        <FaiCard />
-        <CacCard />
-      </div>
-
       {/* ── Lower-Middle Area: Cardiac Readouts & Lab Summary Grid ── */}
       <div
         style={{
@@ -357,7 +361,6 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
 
         <LabSummaryCard onOpenLabReport={onOpenLabReport} />
       </div>
-
 
       {/* ── CVD Disease Info Panel (only renders when CVD scenario is active) ── */}
       <CVDInfoPanel />

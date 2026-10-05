@@ -12,7 +12,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileTabBar } from './MobileTabBar';
-import { CadRiskTrendBar } from '../Dashboard/CadRiskTrendBar';
 import { ReportUploadZone } from '../ReportUpload/ReportUploadZone';
 import { ReportUploadPanel } from '../ReportUpload/ReportUploadPanel';
 
@@ -259,12 +258,11 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
 
         {/* ── CONTENT BODY: Center + Right split ──────────────────── */}
         <div className="app-content-body">
-          {/* CENTER: main content + persistent bottom CAD Risk Trend bar */}
+          {/* CENTER: main content area */}
           <div className="app-center">
             <div className="app-center-scroll">
               {children}
             </div>
-            <CadRiskTrendBar />
           </div>
 
           {/* RIGHT: fixed risk panel */}

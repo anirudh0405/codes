@@ -77,7 +77,7 @@ export function CadRiskTrendBar() {
   }, [dayData]);
 
   return (
-    <div className="cad-risk-trend-bar" style={{ flexDirection: 'column', gap: '6px', padding: '10px var(--space-md) 8px' }}>
+    <div className="panel-card cad-risk-trend-bar" style={{ flexDirection: 'column', gap: '6px', padding: '10px var(--space-md) 8px' }}>
       {/* ── Header Row ────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <div className="cad-risk-trend-left">
