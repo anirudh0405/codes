@@ -1,0 +1,21 @@
+{
+  "activeScenario": "CAD — Borderline Hypertensive",
+  "score": "",
+  "band": "",
+  "hr": "82 BPM",
+  "bp": "147/95 mmHg",
+  "hrv": "38 ms",
+  "fai": "",
+  "cac": "",
+  "trendScore": "54",
+  "trendBand": "Moderate",
+  "echoClasses": [
+    "NORM",
+    "HYP"
+  ],
+  "shdIndex": "16%",
+  "diseaseItems": [
+    "DISEASE-SPECIFIC RISK Atherosclerosis 59 Moderate Myocardial Ischemia 44 Watch Arrhythmia 52 Moderate Hypertensive Heart Disease 63 Moderate Heart Failure 35 Watch Sub-scores are weighted composites from existing sensor parameters. FAI and CAC, when entered, contribute to Atherosclerosis risk only. Not individually clinically validated — research simulator.",
+    "Atherosclerosis 59 Moderate Myocardial Ischemia 44 Watch Arrhythmia 52 Moderate Hypertensive Heart Disease 63 Moderate Heart Failure 35 Watch"
+  ]
+}

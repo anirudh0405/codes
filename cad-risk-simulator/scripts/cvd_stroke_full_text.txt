@@ -1,0 +1,367 @@
+MONITOR
+Dashboard
+Live Waveforms
+PATIENT
+Patient Profile
+Lab Report
+Patient Report
+Scenarios
+ANALYSIS
+EchoNext CNN
+Risk Engine
+Fusion Layers
+Healthy Tip
+Sim Logs
+History
+Info
+Docs
+v1.0.0
+Precision Cardiovascular Risk Intelligence Platform
+/
+Dashboard
+SCENARIO
+▼
+Active scenario:
+CVD — Ischemic Stroke
+Moderate Risk
+Upload Report
+Mon, Oct 05 · 20:06
+RISK SUMMARY
+Moderate Risk
+Some risk factors are elevated. Close monitoring and lifestyle adjustments are recommended.
+HEART RATE (HR)
+88 BPM
+Normal Sinus Rhythm (NSR)
+Normal: 60–100 bpm
+Asian Heart Institute
+BLOOD PRESSURE (BP)
+172/109 mmHg
+Stage 2 Hypertensive (Stage 2 Risk)
+Normal: < 120 mmHg
+·
+CAD: 138.4 ± 13 mmHg
+AHA 2017 / Gadhwal et al.
+Normal: < 80 mmHg
+·
+CAD: 86.5 ± 8 mmHg
+AHA 2017 / Gadhwal et al.
+HEART RATE VARIABILITY (RMSSD)
+30 ms
+Healthy
+Normal: 42 ± 15 ms
+·
+CAD: 18 ± 8 ms
+Task Force ESC 1996 · Shaffer & Ginsberg 2017 · ATRAMI 1998
+FAT ATTENUATION INDEX (FAI)
+Manual entry
+-68.0
+HU
+Elevated
+Elevated · Pericoronary inflammation
+Threshold cutoff
+-70.1 HU
+Provenance
+CT-derived · not sensor estimated
+CORONARY ARTERY CALCIUM SCORE (CAC)
+Manual entry
+120
+AU
+Moderate
+Moderate
+High-risk threshold
+> 400 AU
+Provenance
+CT-derived · not sensor estimated
+7-DAY CARDIOVASCULAR RISK TREND
+59
+Moderate
+20 → 59
+↑ Increasing
+D1
+20
+D2
+59
+CARDIAC READOUTS
+BLOOD PRESSURE (BP)
+172/109 mmHg
+STAGE 2 RISK
+HEART RATE (HR)
+88 BPM
+NORMAL SINUS RHYTHM (NSR)
+CORRECTED QT INTERVAL (QTC)
+509 ms
+PROLONGED
+ST SEGMENT
+0.04 mV
+ISOELECTRIC (NORMAL)
+PULSE TRANSIT TIME (PTT)
+106 ms
+BLOOD OXYGEN SATURATION (SPO₂)
+96%
+LAB SUMMARY
+View Details →
+TOTAL CHOLESTEROL
+300 mg/dL
+BORDERLINE
+LDL CHOLESTEROL
+87 mg/dL
+NORMAL
+HDL CHOLESTEROL
+38 mg/dL
+LOW
+TRIGLYCERIDES
+500 mg/dL
+BORDERLINE
+ECHONEXT 1D RESNET-34 DEEP LEARNING (IN-APP)
+Classified:
+NORM
+HYP
+Structural Heart Disease (SHD) Index: 29%
+⚡
+Re-Infer
+🧠
+Ischemic Stroke
+MODERATE
+
+Cerebral blood flow is reduced because a blood clot or embolus obstructs a cerebral artery, resulting in neurological impairment.
+
+DISEASE PARAMETERS
+CEREBRAL ARTERY OBSTRUCTION
+75%
+NEUROLOGICAL DEFICIT
+Moderate
+CONSCIOUSNESS
+Alert
+FACIAL WEAKNESS
+Present
+ARM/LEG WEAKNESS
+Present
+SPEECH DIFFICULTY
+Present
+SPO₂
+96%
+RESPIRATORY RATE
+20/min
+MECHANISM PATHWAY
+Cerebral artery obstruction
+→
+Reduced cerebral perfusion
+→
+Neurological dysfunction
+→
+Ischemic stroke
+CORONARY ARTERY DISEASE (CAD) RISK SCORE
+5
+9
+MODERATE
+Confidence: 100%
+WHAT THIS MEANS
+The calculated score indicates Moderate Risk. Some contributing factors are elevated and may warrant closer monitoring or lifestyle modifications.
+0–20
+Very Low
+21–40
+Low
+41–60
+Moderate
+61–80
+High
+81–100
+Critical
+DISEASE-SPECIFIC RISK
+Atherosclerosis
+66
+Moderate
+Myocardial Ischemia
+53
+Moderate
+Arrhythmia
+52
+Moderate
+Hypertensive Heart Disease
+74
+Moderate
+Heart Failure
+45
+Watch
+Sub-scores are weighted composites from existing sensor parameters. FAI and CAC, when entered, contribute to Atherosclerosis risk only. Not individually clinically validated — research simulator.
+CONTRIBUTIONS
+RISK59
+Blood Pressure (BP)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Heart Rate (HR)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Heart Rate Variability (HRV)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Physiological Stress
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Corrected QT Interval (QTc)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+∑
+Metabolic-Vascular (ApoB)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Smoking
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Total Cholesterol (TC) (est.)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+Triglycerides (TG) (est.)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+pts
+* Weighted contribution points toward 0–100 Coronary Artery Disease (CAD) Risk Score
+Report Data & Analysis
+BLOOD TEST VALUES
+Total Cholesterol
+mg/dL
+HDL Cholesterol
+mg/dL
+LDL Cholesterol
+mg/dL
+Triglycerides
+mg/dL
+Apolipoprotein B (ApoB)
+mg/dL
+ApoB / ApoA1 Ratio
+Lipoprotein(a) [Lp(a)]
+mg/dL
+High-Sensitivity C-Reactive Protein (hs-CRP)
+mg/L
+HbA1c
+%
+Fasting Blood Glucose
+mg/dL
+IMAGING VALUES
+Coronary Artery Calcium Score
+AU
+Fat Attenuation Index
+HU
+Coronary Plaque
+None
+Non-calcified
+Calcified
+Mixed
+Plaque Location
+LADLCXRCAMultiple
+Stenosis Severity
+None
+<50%
+50-70%
+>70%
+VITAL SIGNS (IF IN REPORT)
+Systolic Blood Pressure
+mmHg
+Diastolic Blood Pressure
+mmHg
+Heart Rate
+bpm
+Body Mass Index (BMI)
+kg/m²
+Re-apply / Update Values
+Moderate Risk

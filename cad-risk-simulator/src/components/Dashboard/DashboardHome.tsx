@@ -251,6 +251,24 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
       {/* ── 7-Day Cardiovascular Risk Trend ───────────────────────── */}
       <CadRiskTrendBar />
 
+      {/* ── Lower-Middle Area: Cardiac Readouts & Lab Summary Grid ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 'var(--space-md)',
+        }}
+      >
+        <div className="panel-card dash-cardiac-panel">
+          <div className="dash-panel-header">CARDIAC READOUTS</div>
+          <div className="dash-cardiac-body">
+            <CardiacReadouts />
+          </div>
+        </div>
+
+        <LabSummaryCard onOpenLabReport={onOpenLabReport} />
+      </div>
+
       {/* ── EchoNext 1D ResNet-34 Diagnostic Card ─────────────────── */}
       <div
         className="panel-card"
@@ -342,24 +360,6 @@ export function DashboardHome({ onOpenLabReport }: DashboardHomeProps) {
             )}
           </button>
         </div>
-      </div>
-
-      {/* ── Lower-Middle Area: Cardiac Readouts & Lab Summary Grid ── */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 'var(--space-md)',
-        }}
-      >
-        <div className="panel-card dash-cardiac-panel">
-          <div className="dash-panel-header">CARDIAC READOUTS</div>
-          <div className="dash-cardiac-body">
-            <CardiacReadouts />
-          </div>
-        </div>
-
-        <LabSummaryCard onOpenLabReport={onOpenLabReport} />
       </div>
 
       {/* ── CVD Disease Info Panel (only renders when CVD scenario is active) ── */}
