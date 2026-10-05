@@ -4,7 +4,7 @@
  * Defines coherent combination scenarios under three parent categories:
  *   1. "Healthy"
  *   2. "Coronary Artery Disease (CAD)"
- *   3. "Cardiovascular Disease (CVD)"
+ *   3. "Other CVD"
  *
  * Each preset sets BOTH sensor parameters (MockParams) AND Patient Profile fields
  * (PatientProfileData) simultaneously so that physiological and clinical risk factors
@@ -21,7 +21,7 @@ export type PresetCategory = 'healthy' | 'cad' | 'cvd';
 export interface ScenarioPreset {
   id: string;
   category: PresetCategory;
-  categoryName: string; // "Healthy" | "Coronary Artery Disease (CAD)" | "Cardiovascular Disease (CVD)"
+  categoryName: string; // "Healthy" | "Coronary Artery Disease (CAD)" | "Other CVD"
   name: string;
   shortName: string;
   emoji: string;
@@ -61,8 +61,8 @@ export const PRESET_CATEGORIES: { id: PresetCategory; label: string; shortLabel:
   },
   {
     id: 'cvd',
-    label: 'Cardiovascular Disease (CVD)',
-    shortLabel: 'CVD',
+    label: 'Other CVD',
+    shortLabel: 'Other CVD',
     description: 'Stroke, peripheral artery disease, heart failure, and arrhythmia scenarios beyond coronary artery disease',
   },
 ];
@@ -432,11 +432,11 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
     },
   },
 
-  // ── Category 3: Cardiovascular Disease (CVD) ──────────────────────────────
+  // ── Category 3: Other CVD ──────────────────────────────────────────────────
   {
     id: 'cvd-ischemic-stroke',
     category: 'cvd',
-    categoryName: 'Cardiovascular Disease (CVD)',
+    categoryName: 'Other CVD',
     name: 'CVD — Ischemic Stroke',
     shortName: 'Ischemic Stroke',
     emoji: '🧠',
@@ -499,7 +499,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
   {
     id: 'cvd-hemorrhagic-stroke',
     category: 'cvd',
-    categoryName: 'Cardiovascular Disease (CVD)',
+    categoryName: 'Other CVD',
     name: 'CVD — Hemorrhagic Stroke',
     shortName: 'Hemorrhagic Stroke',
     emoji: '🩸',
@@ -565,7 +565,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
   {
     id: 'cvd-pad',
     category: 'cvd',
-    categoryName: 'Cardiovascular Disease (CVD)',
+    categoryName: 'Other CVD',
     name: 'CVD — Peripheral Artery Disease',
     shortName: 'PAD',
     emoji: '🦵',
@@ -631,7 +631,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
   {
     id: 'cvd-heart-failure',
     category: 'cvd',
-    categoryName: 'Cardiovascular Disease (CVD)',
+    categoryName: 'Other CVD',
     name: 'CVD — Heart Failure (HFrEF)',
     shortName: 'Heart Failure',
     emoji: '💔',
@@ -700,7 +700,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
   {
     id: 'cvd-atrial-fibrillation',
     category: 'cvd',
-    categoryName: 'Cardiovascular Disease (CVD)',
+    categoryName: 'Other CVD',
     name: 'CVD — Atrial Fibrillation',
     shortName: 'Atrial Fib',
     emoji: '⚡',
