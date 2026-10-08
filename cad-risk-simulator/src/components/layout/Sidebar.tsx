@@ -138,6 +138,13 @@ const IconGithub = (
 );
 
 
+const IconLanding = (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z" />
+    <circle cx="8" cy="8" r="2.5" />
+  </svg>
+);
+
 // ── Navigation data ──────────────────────────────────────────────────────────
 
 const NAV_GROUPS: NavGroup[] = [
@@ -151,6 +158,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Patient',
     items: [
+      { id: 'landing', label: 'Patient Overview', icon: IconLanding },
       { id: 'profile', label: 'Patient Profile', icon: IconPerson },
       { id: 'labreport', label: 'Lab Report', icon: IconFlask },
       { id: 'report', label: 'Patient Report', icon: IconReport },

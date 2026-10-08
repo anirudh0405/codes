@@ -1,0 +1,816 @@
+/* PatientLanding.css - Premium Healthcare SaaS Aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.overview-page {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --surface-3: #E2E8F0;
+  --line: #E2E8F0;
+  --line-soft: #F1F5F9;
+
+  --brand: #0F172A;
+  --brand-accent: #1B6FEB;
+  --brand-accent-hover: #1559C2;
+
+  --risk-low: #12B76A;
+  --risk-low-bg: #ECFDF3;
+  --risk-low-border: #A6F4C5;
+  --risk-mod: #F59E0B;
+  --risk-mod-bg: #FFFBEB;
+  --risk-mod-border: #FDE68A;
+  --risk-high: #EF4444;
+  --risk-high-bg: #FEF2F2;
+  --risk-high-border: #FECDD3;
+
+  --t1: #0F172A;
+  --t2: #334155;
+  --t3: #64748B;
+  --t4: #94A3B8;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.03);
+
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--bg);
+  color: var(--t1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.overview-page * {
+  box-sizing: border-box;
+}
+
+.overview-page .font-tabular {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   1. TOP BAR (50px)
+   ───────────────────────────────────────────────────────────── */
+.overview-topbar {
+  height: 50px;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  flex-shrink: 0;
+}
+
+.overview-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.overview-topbar-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--line);
+}
+
+.overview-topbar-titles {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.overview-topbar-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--t1);
+  line-height: 1.2;
+}
+
+.overview-topbar-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--t3);
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.overview-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.overview-btn-ghost {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 7px;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--t2);
+  font-size: 12.5px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.overview-btn-ghost:hover {
+  background-color: var(--surface-2);
+  color: var(--t1);
+  border-color: #CBD5E1;
+}
+
+.overview-btn-filled {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 7px;
+  background-color: var(--brand);
+  border: none;
+  color: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.overview-btn-filled:hover {
+  background-color: #1E293B;
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. PATIENT META BAR (Horizontal Summary Strip, 42px)
+   ───────────────────────────────────────────────────────────── */
+.overview-patient-strip {
+  min-height: 42px;
+  height: 42px;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.overview-patient-strip-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.overview-patient-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overview-patient-field-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.overview-patient-field-value {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.overview-patient-divider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--line);
+}
+
+.overview-patient-strip-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overview-scenario-eyebrow-text {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.overview-scenario-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overview-scenario-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   3. MAIN CONTENT GRID (2 Columns)
+   ───────────────────────────────────────────────────────────── */
+.overview-main-container {
+  width: 100%;
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 16px 24px 20px 24px;
+  flex: 1;
+}
+
+.overview-grid-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.overview-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.overview-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Shared Card Foundation */
+.overview-card {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LEFT COLUMN 1: RISK SCORE HERO CARD
+   ───────────────────────────────────────────────────────────── */
+.overview-risk-score-card {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  padding: 16px 20px;
+  gap: 20px;
+  align-items: center;
+}
+
+.overview-risk-gauge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-right: 18px;
+  border-right: 1px solid var(--line-soft);
+}
+
+.overview-risk-ring-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overview-risk-svg {
+  overflow: visible;
+}
+
+.overview-risk-center-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.overview-risk-percentage {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-risk-center-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+.overview-risk-status-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.overview-risk-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.overview-risk-status-subnote {
+  font-size: 10.5px;
+  color: var(--t3);
+  margin-top: 4px;
+}
+
+.overview-risk-text-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 2px;
+}
+
+.overview-risk-meaning-heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+  margin: 0 0 8px 0;
+}
+
+.overview-risk-meaning-p {
+  font-size: 12.5px;
+  color: var(--t2);
+  line-height: 1.55;
+  margin: 0 0 8px 0;
+}
+
+.overview-risk-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--t3);
+  background-color: var(--surface-2);
+  border-radius: 7px;
+  padding: 6px 10px;
+  margin-top: 2px;
+}
+
+.overview-risk-info-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--t3);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LEFT COLUMN 2: VITALS CARDS ROW (6 CARDS)
+   ───────────────────────────────────────────────────────────── */
+.overview-vitals-section {
+  width: 100%;
+}
+
+.overview-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.overview-vital-card {
+  padding: 10px 14px;
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.overview-vital-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.overview-vital-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.overview-vital-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.overview-vital-icon-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  background-color: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overview-metric-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.overview-vital-name {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--t2);
+}
+
+.overview-vital-current-badge {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: var(--t3);
+  background-color: var(--surface-2);
+  border: 1px solid var(--line);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.overview-vital-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.overview-vital-value {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--t1);
+  line-height: 1.1;
+}
+
+.overview-vital-unit {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--t3);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LEFT COLUMN 3: PERSONALIZED WELLNESS INSIGHTS (GENERAL GUIDANCE)
+   ───────────────────────────────────────────────────────────── */
+.overview-insights-section {
+  width: 100%;
+}
+
+.overview-section-header-compact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  padding: 0 2px;
+}
+
+.overview-section-eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.overview-section-subtext {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.overview-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.overview-insight-card {
+  padding: 12px 14px;
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+}
+
+.overview-insight-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.overview-insight-icon-container {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.overview-insight-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--t1);
+  margin: 0;
+}
+
+.overview-insight-desc {
+  font-size: 11.5px;
+  color: var(--t2);
+  line-height: 1.48;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RIGHT COLUMN 1: 7-DAY RISK TREND CARD
+   ───────────────────────────────────────────────────────────── */
+.overview-trend-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.overview-trend-header {
+  margin-bottom: 12px;
+}
+
+.overview-trend-title-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.overview-trend-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--t1);
+  margin: 0;
+}
+
+.overview-trend-subheader {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.overview-trend-chart-container {
+  width: 100%;
+  height: 180px;
+}
+
+.overview-chart-tooltip {
+  background-color: #0F172A;
+  color: #FFFFFF;
+  font-size: 12px;
+  padding: 7px 11px;
+  border-radius: 7px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.overview-chart-tooltip-score {
+  font-weight: 700;
+  color: #60A5FA;
+  margin: 0;
+}
+
+.overview-chart-tooltip-time {
+  font-size: 11px;
+  color: #94A3B8;
+  margin: 2px 0 0 0;
+}
+
+.overview-trend-footer-explanation {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.overview-trend-footer-heading {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--t1);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.overview-trend-footer-desc {
+  font-size: 11.5px;
+  color: var(--t3);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RIGHT COLUMN 2: DISEASE-SPECIFIC RISK CARD
+   ───────────────────────────────────────────────────────────── */
+.overview-disease-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.overview-disease-header {
+  margin-bottom: 6px;
+}
+
+.overview-disease-title-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.overview-disease-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--t1);
+  margin: 0;
+}
+
+.overview-disease-subheader {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.overview-disease-note {
+  font-size: 11.5px;
+  color: var(--t3);
+  margin: 0 0 14px 0;
+  line-height: 1.35;
+}
+
+.overview-disease-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overview-disease-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.overview-disease-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.overview-disease-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--t2);
+}
+
+.overview-disease-name-highlighted {
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.overview-disease-percentage {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.overview-disease-track {
+  width: 100%;
+  height: 7px;
+  background-color: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.overview-disease-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. FOOTER DISCLAIMER
+   ───────────────────────────────────────────────────────────── */
+.overview-footer {
+  background-color: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 12px 24px;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.overview-footer-inner {
+  max-width: 1540px;
+  margin: 0 auto;
+}
+
+.overview-footer-notice-text {
+  font-size: 11px;
+  color: var(--t3);
+  line-height: 1.5;
+  margin: 0;
+  text-align: center;
+}
+
+.overview-footer-strong {
+  font-weight: 600;
+  color: var(--t2);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE BREAKPOINTS
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .overview-grid-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .overview-risk-score-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .overview-risk-gauge-container {
+    padding-right: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--line-soft);
+    padding-bottom: 16px;
+  }
+
+  .overview-vitals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .overview-topbar {
+    padding: 0 16px;
+  }
+
+  .overview-patient-strip {
+    padding: 10px 16px;
+    height: auto;
+  }
+
+  .overview-main-container {
+    padding: 14px 16px;
+  }
+
+  .overview-vitals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-insights-grid {
+    grid-template-columns: 1fr;
+  }
+}

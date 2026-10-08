@@ -33,6 +33,7 @@ import { InfoPage } from '@/components/pages/InfoPage';
 import { HistoryPage } from '@/components/pages/HistoryPage';
 import { EchoNextArchitecturePage } from '@/components/pages/EchoNextArchitecturePage';
 import { MagneticButton } from '@/components/ui/magnetic-button';
+import { PatientLandingPage } from '@/components/PatientLanding/PatientLandingPage';
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -216,7 +217,15 @@ export default function App() {
   usePipeline();
 
   const [labReportOpen, setLabReportOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState('dashboard');
+  const [activeNav, setActiveNav] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('view') === 'dashboard' || window.location.hash === '#dashboard') {
+        return 'dashboard';
+      }
+    }
+    return 'landing';
+  });
   const lastLoggedHistoryNav = useRef<string | null>(null);
   const handleNavChange = useCallback((id: string) => { setActiveNav(id); }, []);
 
@@ -247,6 +256,11 @@ export default function App() {
     }
   }, [activeNav]);
 
+  // If patient landing overview is active, render the clean patient-facing landing page
+  if (activeNav === 'landing') {
+    return <PatientLandingPage onOpenDashboard={() => handleNavChange('dashboard')} />;
+  }
+
   return (
     <>
       <AppShell
@@ -274,8 +288,6 @@ export default function App() {
         {activeNav === 'simlogs' && <SimLogsPage />}
         {activeNav === 'history' && <HistoryPage />}
         {activeNav === 'info' && <InfoPage />}
-
-
       </AppShell>
       <RightPanelMobileWrapper />
     </>
