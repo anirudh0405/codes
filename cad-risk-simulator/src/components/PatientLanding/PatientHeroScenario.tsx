@@ -73,12 +73,14 @@ export function PatientHeroScenario() {
           <span className="overview-patient-field-value">{genderDisplay}</span>
         </div>
 
+        {/* Location commented out for now
         <div className="overview-patient-divider" />
 
         <div className="overview-patient-field">
           <span className="overview-patient-field-label">LOCATION:</span>
           <span className="overview-patient-field-value">{locationDisplay}</span>
         </div>
+        */}
       </div>
 
       {/* Right: CURRENT SCENARIO: Healthy — Baseline (with green indicator dot) */}

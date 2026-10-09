@@ -6,7 +6,6 @@ import { CardiovascularMetricsHierarchy } from './CardiovascularMetricsHierarchy
 import { InsightsSection } from './InsightsSection';
 import { RiskTrendSection } from './RiskTrendSection';
 import { DiseaseRiskSection } from './DiseaseRiskSection';
-import { DisclaimerFooter } from './DisclaimerFooter';
 import { ReportUploadModal } from './ReportUploadModal';
 import './PatientLanding.css';
 
@@ -54,10 +53,7 @@ export function PatientLandingPage({ onOpenDashboard }: PatientLandingPageProps)
         </div>
       </main>
 
-      {/* 4. FOOTER DISCLAIMER */}
-      <DisclaimerFooter />
-
-      {/* 5. Report Upload Modal */}
+      {/* 4. Report Upload Modal */}
       <ReportUploadModal
         open={uploadModalOpen}
         onOpenChange={setUploadModalOpen}

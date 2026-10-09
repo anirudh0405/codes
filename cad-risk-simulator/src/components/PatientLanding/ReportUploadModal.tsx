@@ -193,24 +193,26 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-6 bg-white border border-slate-200 shadow-2xl rounded-2xl">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight">
+      <DialogContent className="report-modal-content">
+        {/* Header */}
+        <div className="report-modal-header">
+          <div>
+            <h3 className="report-modal-title">
               Upload Clinical Report
-            </DialogTitle>
-            <button
-              onClick={handleClose}
-              className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            </h3>
+            <p className="report-modal-desc">
+              Upload a laboratory report or cardiac imaging report to automatically update the cardiovascular simulation.
+            </p>
           </div>
-          <DialogDescription className="text-xs text-slate-500 mt-1 leading-relaxed">
-            Upload a laboratory report or cardiac imaging report to automatically update the cardiovascular simulation.
-          </DialogDescription>
-        </DialogHeader>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="report-modal-close"
+            aria-label="Close"
+          >
+            <X style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
 
         {/* Hidden File Input */}
         <input
@@ -218,11 +220,11 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
           type="file"
           accept=".pdf,.jpg,.jpeg,.png"
           onChange={handleFileChange}
-          className="hidden"
+          style={{ display: 'none' }}
         />
 
-        {/* Drop Zone / Interactive States */}
-        <div className="py-2">
+        {/* Interactive Drop Zone & States */}
+        <div>
           {/* State 1 & 2: Empty or Drag-over */}
           {(uploadState === 'empty' || uploadState === 'drag-over') && (
             <div
@@ -230,86 +232,101 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${uploadState === 'drag-over'
-                ? 'border-blue-500 bg-blue-50/60 scale-[1.01]'
-                : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
-                }`}
+              className={`report-modal-dropzone ${uploadState === 'drag-over' ? 'drag-over' : ''}`}
             >
-              <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
-                <UploadCloud className="w-6 h-6" />
+              <div className="report-modal-icon-box">
+                <UploadCloud style={{ width: 22, height: 22, strokeWidth: 1.9 }} />
               </div>
 
               <div>
-                <p className="text-sm font-bold text-slate-800">
+                <p className="report-modal-drop-title">
                   Drop your report here
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  or browse from your device
+                <p className="report-modal-drop-subtitle">
+                  or <span className="report-modal-browse-link">browse from your device</span>
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider bg-white border border-slate-200 rounded-md px-2 py-0.5">
-                  PDF • JPG • JPEG • PNG
-                </span>
+              <div className="report-modal-format-badge">
+                <span>PDF</span>
+                <span style={{ color: '#CBD5E1' }}>•</span>
+                <span>JPG</span>
+                <span style={{ color: '#CBD5E1' }}>•</span>
+                <span>JPEG</span>
+                <span style={{ color: '#CBD5E1' }}>•</span>
+                <span>PNG</span>
               </div>
             </div>
           )}
 
           {/* State 3: File Selected */}
           {uploadState === 'selected' && selectedFile && (
-            <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 space-y-4">
-              <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-2xs">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5" />
+            <div className="report-modal-file-card">
+              <div className="report-modal-file-row">
+                <div className="report-modal-file-icon">
+                  <FileText style={{ width: 20, height: 20, strokeWidth: 1.8 }} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">
+                <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                  <p className="report-modal-file-name">
                     {selectedFile.name}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="report-modal-file-meta">
                     {(selectedFile.size / 1024).toFixed(1)} KB · Ready to analyze
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={handleReset}
-                  className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  className="report-modal-close"
                   title="Remove file"
                 >
-                  <X className="w-4 h-4" />
+                  <X style={{ width: 15, height: 15 }} />
                 </button>
               </div>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed text-center">
-                Click "Upload & Analyze" below to extract parameters via clinical OCR.
+              <p className="report-modal-file-note">
+                Click <strong>"Upload & Analyze"</strong> below to extract parameters via clinical OCR.
               </p>
             </div>
           )}
 
           {/* State 4: Processing */}
           {uploadState === 'processing' && (
-            <div className="border border-slate-200 rounded-2xl p-6 bg-slate-50/50 text-center space-y-4">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto animate-spin">
-                <RefreshCw className="w-5 h-5" />
+            <div className="report-modal-processing-box">
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  backgroundColor: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  color: '#2563EB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  animation: 'spin 1s linear infinite',
+                }}
+              >
+                <RefreshCw style={{ width: 20, height: 20 }} />
               </div>
 
               <div>
-                <h4 className="text-sm font-bold text-slate-900">
+                <h4 style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0 }}>
                   Analyzing Clinical Document
                 </h4>
-                <p className="text-xs text-slate-500 mt-1">
+                <p style={{ fontSize: 12, color: '#64748B', margin: '4px 0 0 0' }}>
                   {statusText || 'Extracting physiological and lab parameters...'}
                 </p>
               </div>
 
-              <div className="space-y-1.5 max-w-xs mx-auto">
+              <div style={{ width: '100%', maxWidth: 280, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <Progress
                   value={progress}
                   max={100}
                   className="h-2 bg-slate-200"
                   indicatorClassName="bg-blue-600"
                 />
-                <span className="text-[11px] font-mono text-slate-400">
+                <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#94A3B8' }}>
                   {progress}% complete
                 </span>
               </div>
@@ -318,28 +335,39 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
 
           {/* State 5: Success */}
           {uploadState === 'success' && (
-            <div className="border border-emerald-200 bg-emerald-50/30 rounded-2xl p-5 space-y-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
-                <CheckCircle2 className="w-6 h-6" />
+            <div className="report-modal-success-box">
+              <div
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: '50%',
+                  backgroundColor: '#DCFCE7',
+                  color: '#16A34A',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CheckCircle2 style={{ width: 24, height: 24 }} />
               </div>
 
               <div>
-                <h4 className="text-sm font-bold text-slate-900">
+                <h4 style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0 }}>
                   Parameters Successfully Applied
                 </h4>
-                <p className="text-xs text-slate-600 mt-1">
+                <p style={{ fontSize: 12, color: '#475569', margin: '4px 0 0 0' }}>
                   Extracted {extractedSummary.count} clinical values from{' '}
-                  <span className="font-semibold">{selectedFile?.name}</span>.
+                  <span style={{ fontWeight: 600, color: '#0F172A' }}>{selectedFile?.name}</span>.
                 </p>
               </div>
 
               {extractedSummary.fields.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 justify-center">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', paddingTop: 4 }}>
                   {extractedSummary.fields.map((field) => (
                     <Badge
                       key={field}
                       variant="outline"
-                      className="text-[10px] bg-white text-emerald-800 border-emerald-200"
+                      className="text-[10px] bg-white text-emerald-800 border-emerald-200 px-2 py-0.5"
                     >
                       ✓ {field}
                     </Badge>
@@ -351,63 +379,79 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
 
           {/* State 6: Error */}
           {uploadState === 'error' && (
-            <div className="border border-rose-200 bg-rose-50/30 rounded-2xl p-5 space-y-4 text-center">
-              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-                <AlertCircle className="w-5 h-5" />
+            <div className="report-modal-error-box">
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  backgroundColor: '#FFE4E6',
+                  color: '#E11D48',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <AlertCircle style={{ width: 22, height: 22 }} />
               </div>
 
               <div>
-                <h4 className="text-sm font-bold text-slate-900">
+                <h4 style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', margin: 0 }}>
                   Upload Error
                 </h4>
-                <p className="text-xs text-rose-600 mt-1">
+                <p style={{ fontSize: 12, color: '#E11D48', margin: '4px 0 0 0' }}>
                   {errorMessage || 'Failed to extract values automatically.'}
                 </p>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={handleReset}
-                className="text-xs bg-white border-slate-200"
+                className="report-modal-btn-cancel"
               >
                 Try Again
-              </Button>
+              </button>
             </div>
           )}
         </div>
 
-        {/* Dialog Footer */}
-        <DialogFooter className="mt-4 flex flex-row items-center justify-end gap-2 sm:gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClose}
-            className="text-xs font-semibold text-slate-600 border-slate-200 hover:bg-slate-50"
-          >
-            {uploadState === 'success' ? 'Close' : 'Cancel'}
-          </Button>
+        {/* Footer */}
+        <div className="report-modal-footer">
+          <div className="report-modal-privacy">
+            <span style={{ fontSize: 12 }}>🔒</span>
+            <span>Private · Local client OCR</span>
+          </div>
 
-          {uploadState === 'selected' && (
-            <Button
-              size="sm"
-              onClick={handleStartUpload}
-              className="text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
-            >
-              Upload & Analyze Report
-            </Button>
-          )}
-
-          {uploadState === 'success' && (
-            <Button
-              size="sm"
+          <div className="report-modal-actions">
+            <button
+              type="button"
               onClick={handleClose}
-              className="text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs"
+              className="report-modal-btn-cancel"
             >
-              Done
-            </Button>
-          )}
-        </DialogFooter>
+              {uploadState === 'success' ? 'Close' : 'Cancel'}
+            </button>
+
+            {uploadState === 'selected' && (
+              <button
+                type="button"
+                onClick={handleStartUpload}
+                className="report-modal-btn-primary"
+              >
+                Upload & Analyze
+              </button>
+            )}
+
+            {uploadState === 'success' && (
+              <button
+                type="button"
+                onClick={handleClose}
+                className="report-modal-btn-done"
+              >
+                Done
+              </button>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

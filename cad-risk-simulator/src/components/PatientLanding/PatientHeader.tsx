@@ -32,9 +32,6 @@ export function PatientHeader({ onOpenUpload, onOpenDashboard }: PatientHeaderPr
           <div className="overview-topbar-title">
             Cardiovascular Health Overview
           </div>
-          <div className="overview-topbar-subtitle">
-            Research / Simulation Prototype
-          </div>
         </div>
       </div>
 
