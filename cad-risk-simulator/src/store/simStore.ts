@@ -433,10 +433,30 @@ export const useSimStore = create<SimState>((set, get) => ({
   setParams: (newParams) => {
     set((s) => {
       const isBPModified = newParams.systolic !== undefined || newParams.diastolic !== undefined;
+      const updatedParams = { ...s.params, ...newParams };
+      const currentProfile = s.activeProfile;
       return {
-        params: { ...s.params, ...newParams },
-        activeProfile: null, // manual edit clears profile selection
+        params: updatedParams,
+        activeProfile: {
+          id: currentProfile?.id || 'custom-modified',
+          name: currentProfile?.name || 'Custom Physiological State',
+          shortName: currentProfile?.shortName || 'Custom',
+          category: 'cad', // non-healthy category ensures landing page displays updated params
+          categoryName: 'Custom Parameters',
+          emoji: currentProfile?.emoji || '⚙️',
+          description: currentProfile?.description || 'User-modified physiological parameters',
+          params: updatedParams,
+          patientProfile: { ...s.patientProfile },
+        },
         bpMode: isBPModified ? 'manual' : s.bpMode,
+        snapshot: s.snapshot
+          ? {
+              ...s.snapshot,
+              ...(newParams.heartRate !== undefined ? { heartRate: newParams.heartRate } : {}),
+              ...(newParams.systolic !== undefined ? { systolic: newParams.systolic } : {}),
+              ...(newParams.diastolic !== undefined ? { diastolic: newParams.diastolic } : {}),
+            }
+          : null,
       };
     });
     get().runEchoNext();
@@ -554,7 +574,24 @@ export const useSimStore = create<SimState>((set, get) => ({
             apoBApoa1Ratio: s.labInputs.hdl > 0 ? s.apoBPanel.apoB / (s.labInputs.hdl * 2) : undefined,
           })
         : s.diseaseSubScores;
-      return { fai: clamped, diseaseSubScores: nextScores };
+      return {
+        fai: clamped,
+        diseaseSubScores: nextScores,
+        ...(s.activeProfile && s.activeProfile.category === 'healthy' && clamped !== -82
+          ? {
+              activeProfile: {
+                ...s.activeProfile,
+                id: 'custom-fai',
+                category: 'cad',
+                categoryName: 'Custom Parameters',
+                name: 'Custom Physiological State',
+                shortName: 'Custom',
+                emoji: '⚙️',
+                description: 'User-configured custom parameters',
+              },
+            }
+          : {}),
+      };
     });
   },
 
@@ -573,7 +610,24 @@ export const useSimStore = create<SimState>((set, get) => ({
             apoBApoa1Ratio: s.labInputs.hdl > 0 ? s.apoBPanel.apoB / (s.labInputs.hdl * 2) : undefined,
           })
         : s.diseaseSubScores;
-      return { cac: clamped, diseaseSubScores: nextScores };
+      return {
+        cac: clamped,
+        diseaseSubScores: nextScores,
+        ...(s.activeProfile && s.activeProfile.category === 'healthy' && clamped !== 0
+          ? {
+              activeProfile: {
+                ...s.activeProfile,
+                id: 'custom-cac',
+                category: 'cad',
+                categoryName: 'Custom Parameters',
+                name: 'Custom Physiological State',
+                shortName: 'Custom',
+                emoji: '⚙️',
+                description: 'User-configured custom parameters',
+              },
+            }
+          : {}),
+      };
     });
   },
 
@@ -614,6 +668,27 @@ export const useSimStore = create<SimState>((set, get) => ({
       return {
         labInputs: newLabInputs,
         apoBPanel: calculateApoBPanel(newLabInputs),
+        snapshot: s.snapshot
+          ? {
+              ...s.snapshot,
+              ...(clamped.totalCholesterol !== undefined ? { totalCholesterol: clamped.totalCholesterol } : {}),
+              ...(clamped.triglycerides !== undefined ? { triglycerides: clamped.triglycerides } : {}),
+            }
+          : null,
+        ...(s.activeProfile && s.activeProfile.category === 'healthy' && (manualTrig || inputs.totalCholesterol !== undefined || inputs.hdl !== undefined || inputs.lpa !== undefined)
+          ? {
+              activeProfile: {
+                ...s.activeProfile,
+                id: 'custom-lab',
+                category: 'cad',
+                categoryName: 'Custom Parameters',
+                name: 'Custom Physiological State',
+                shortName: 'Custom',
+                emoji: '⚙️',
+                description: 'User-configured custom parameters',
+              },
+            }
+          : {}),
       };
     });
   },
