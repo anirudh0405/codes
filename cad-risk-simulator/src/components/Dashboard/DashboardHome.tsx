@@ -35,12 +35,11 @@ function LabSummaryCard({ onOpenLabReport }: { onOpenLabReport?: () => void }) {
   const snapshot = useSimStore(s => s.snapshot);
   const labInputs = useSimStore(s => s.labInputs);
   const apoBPanel = useSimStore(s => s.apoBPanel);
-  const uploadedReport = useSimStore(s => s.uploadedReport);
 
-  const tcVal = uploadedReport?.extractedFields?.totalCholesterol ?? (labInputs.trigsManuallySet ? labInputs.totalCholesterol : (snapshot ? Math.round(snapshot.totalCholesterol) : labInputs.totalCholesterol));
-  const ldlVal = Math.round(uploadedReport?.extractedFields?.ldl ?? apoBPanel.ldl);
-  const hdlVal = uploadedReport?.extractedFields?.hdl ?? labInputs.hdl;
-  const tgVal = uploadedReport?.extractedFields?.triglycerides ?? (labInputs.trigsManuallySet ? labInputs.triglycerides : (snapshot ? Math.round(snapshot.triglycerides) : labInputs.triglycerides));
+  const tcVal = snapshot ? Math.round(snapshot.totalCholesterol) : labInputs.totalCholesterol;
+  const ldlVal = Math.round(apoBPanel.ldl);
+  const hdlVal = labInputs.hdl;
+  const tgVal = snapshot ? Math.round(snapshot.triglycerides) : labInputs.triglycerides;
 
   return (
     <div className="panel-card dash-cardiac-panel">

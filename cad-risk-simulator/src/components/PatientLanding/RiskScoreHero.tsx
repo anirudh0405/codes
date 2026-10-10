@@ -7,9 +7,8 @@ export function RiskScoreHero() {
   const activeProfile = useSimStore((s) => s.activeProfile);
   const selectedCategory = useSimStore((s) => s.selectedCategory);
 
-  const uploadedReport = useSimStore((s) => s.uploadedReport);
   // Score derivation: default to 19% as specified in baseline
-  const isCustomScenario = (activeProfile && activeProfile.category !== 'healthy') || Boolean(uploadedReport);
+  const isCustomScenario = activeProfile && activeProfile.category !== 'healthy';
   const score = isCustomScenario ? Math.max(0, Math.min(100, Math.round(riskResult?.score ?? 19))) : 19;
 
   // Risk band determination

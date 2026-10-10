@@ -10,13 +10,11 @@ export function PatientHeroScenario() {
 
   // Patient ID strictly from existing store or default PT-001
   const patientId =
-    uploadedReport?.patientId
-      ? uploadedReport.patientId
-      : uploadedReport?.patientName && uploadedReport.patientName.startsWith('P-')
-        ? uploadedReport.patientName
-        : typeof window !== 'undefined' && window.sessionStorage?.getItem('arohan_patient_id')
-          ? window.sessionStorage.getItem('arohan_patient_id')!
-          : 'PT-001';
+    uploadedReport?.patientName && uploadedReport.patientName.startsWith('P-')
+      ? uploadedReport.patientName
+      : typeof window !== 'undefined' && window.sessionStorage?.getItem('arohan_patient_id')
+        ? window.sessionStorage.getItem('arohan_patient_id')!
+        : 'PT-001';
 
   // Age formatting
   const ageDisplay = patientProfile.ageRange || '40-49';
