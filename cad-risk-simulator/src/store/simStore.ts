@@ -88,6 +88,7 @@ export interface UploadedReport {
   extractedCount?: number;
   status?: 'analyzing' | 'applied' | 'error';
   patientName?: string;
+  patientId?: string;
   summaryNote?: string;
   analysisProgress?: number;
   analysisStatusText?: string;
@@ -746,9 +747,22 @@ export const useSimStore = create<SimState>((set, get) => ({
     if (Object.keys(labPatch).length > 0) {
       s.setLabInputs(labPatch, fields.triglycerides !== undefined);
     }
+
+    // Direct ApoB / LDL override if present in report
+    if (fields.ldl !== undefined || fields.apoB !== undefined) {
+      set(state => ({
+        apoBPanel: {
+          ...state.apoBPanel,
+          ...(fields.ldl !== undefined ? { ldl: fields.ldl } : {}),
+          ...(fields.apoB !== undefined ? { apoB: fields.apoB } : {}),
+        },
+      }));
+    }
+
     // Update FAI/CAC
     if (fields.fai !== undefined) s.setFai(fields.fai);
     if (fields.cac !== undefined) s.setCac(fields.cac);
+
     // Update vitals via params
     const paramPatch: Partial<MockParams> = {};
     if (fields.systolic !== undefined) paramPatch.systolic = fields.systolic;
@@ -769,15 +783,48 @@ export const useSimStore = create<SimState>((set, get) => ({
       s.setPatientProfile(profilePatch);
     }
 
-    // Update report-specific fields
-    set({
+    // Store patient identifier if available
+    if (fields.patientName && typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        window.sessionStorage.setItem('arohan_patient_id', fields.patientName);
+      } catch {
+        // ignore
+      }
+    }
+
+    // Set scenario context to reflect uploaded clinical data so landing page displays actual values
+    set(state => ({
+      activeProfile: {
+        id: 'clinical-report',
+        name: 'Clinical Report Ingestion',
+        shortName: 'Report',
+        category: 'cad',
+        categoryName: 'Coronary Artery Disease (CAD)',
+        emoji: '📄',
+        description: 'Parameters extracted from uploaded clinical report',
+        params: { ...state.params },
+        patientProfile: { ...state.patientProfile },
+      },
+      selectedCategory: 'cad',
+      // Synchronize immediate snapshot values if snapshot is initialized
+      snapshot: state.snapshot
+        ? {
+            ...state.snapshot,
+            ...(fields.heartRate !== undefined ? { heartRate: fields.heartRate } : {}),
+            ...(fields.systolic !== undefined ? { systolic: fields.systolic } : {}),
+            ...(fields.diastolic !== undefined ? { diastolic: fields.diastolic } : {}),
+            ...(fields.totalCholesterol !== undefined ? { totalCholesterol: fields.totalCholesterol } : {}),
+            ...(fields.triglycerides !== undefined ? { triglycerides: fields.triglycerides } : {}),
+          }
+        : null,
+      // Update report-specific biomarkers
       ...(fields.hsCRP !== undefined ? { hsCRP: fields.hsCRP } : {}),
       ...(fields.hba1c !== undefined ? { hba1c: fields.hba1c } : {}),
       ...(fields.fastingGlucose !== undefined ? { fastingGlucose: fields.fastingGlucose } : {}),
       ...(fields.plaqueType !== undefined ? { plaqueType: fields.plaqueType } : {}),
       ...(fields.plaqueLocation !== undefined ? { plaqueLocation: fields.plaqueLocation } : {}),
       ...(fields.stenosisSeverity !== undefined ? { stenosisSeverity: fields.stenosisSeverity } : {}),
-    });
+    }));
   },
 
   setUploadedReport: (report) => {

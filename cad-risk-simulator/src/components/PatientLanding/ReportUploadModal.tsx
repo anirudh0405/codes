@@ -142,6 +142,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
         extractedFields: extracted.fields,
         extractedCount: extracted.extractedCount,
         patientName: extracted.patientName,
+        patientId: (extracted as any).patientId,
         summaryNote: extracted.summaryNote,
         analysisProgress: 100,
         analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,

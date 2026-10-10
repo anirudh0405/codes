@@ -1,0 +1,55 @@
+================================================================================
+                    METROPOLITAN CARDIOLOGY & LAB SERVICES
+                    COMPREHENSIVE CARDIOVASCULAR PROFILE
+================================================================================
+PATIENT DEMOGRAPHICS & METADATA
+Patient Name: Rajesh K. Sharma            Patient ID: CAD-2026-9482
+Age: 64 Years                             Gender: Male
+Date of Report: 10-Oct-2026               Referring Physician: Dr. V. Mehta, MD
+Clinical History: Exertional dyspnea, atypical chest pressure, known hypertension
+
+--------------------------------------------------------------------------------
+SECTION I: CLINICAL VITAL SIGNS TELEMETRY
+--------------------------------------------------------------------------------
+TEST PARAMETER                   PATIENT RESULT   UNITS      FLAG      REFERENCE INTERVAL
+Blood Pressure (BP)              152/96           mmHg       STAGE 2   < 120 / < 80 mmHg
+  - Systolic Blood Pressure      152              mmHg       HIGH      < 120 mmHg
+  - Diastolic Blood Pressure     96               mmHg       HIGH      < 80 mmHg
+Heart Rate (Resting HR)          82               bpm        NORMAL    60 - 100 bpm
+Body Mass Index (BMI)            28.6             kg/m²      OVERWT    18.5 - 24.9 kg/m²
+
+--------------------------------------------------------------------------------
+SECTION II: COMPREHENSIVE SERUM LIPID & METABOLIC PANEL
+--------------------------------------------------------------------------------
+TEST PARAMETER                   PATIENT RESULT   UNITS      FLAG      REFERENCE INTERVAL
+Total Cholesterol                268              mg/dL      HIGH      < 200 mg/dL
+HDL Cholesterol                  32               mg/dL      LOW       >= 40 mg/dL
+LDL Cholesterol (Direct)         188              mg/dL      HIGH      < 100 mg/dL (Optimal < 70)
+Triglycerides                    220              mg/dL      HIGH      < 150 mg/dL
+Apolipoprotein B (ApoB)          156              mg/dL      HIGH      < 90 mg/dL
+ApoB / ApoA1 Ratio               1.20             ratio      HIGH      < 0.60
+Lipoprotein(a) [Lp(a)]           112              mg/dL      HIGH      < 30 mg/dL
+High-Sensitivity CRP (hs-CRP)    5.6              mg/L       HIGH      < 1.0 mg/L (High > 3.0)
+HbA1c (Glycated Hemoglobin)      6.4              %          PRE-DIAB  4.0 - 5.6 %
+Fasting Blood Glucose            132              mg/dL      HIGH      70 - 99 mg/dL
+
+--------------------------------------------------------------------------------
+SECTION III: CORONARY COMPUTED TOMOGRAPHY ANGIOGRAPHY (CCTA)
+--------------------------------------------------------------------------------
+IMAGING PARAMETER                PATIENT RESULT   UNITS      FLAG      REFERENCE INTERVAL
+Coronary Artery Calcium (CAC)    620              Agatston   SEVERE    0 (None), >= 400 (Severe)
+Fat Attenuation Index (FAI)      -92              HU         NORMAL    < -70.1 HU (Normal)
+Coronary Plaque Morphology       Mixed                       HIGH      None / Non-calcified / Calcified / Mixed
+Plaque Location                  LAD, RCA, LCX               HIGH      Single vs Multi-vessel
+Maximal Stenosis Severity        >70%                        CRITICAL  < 50% (Mild), 50-70% (Mod), >70% (Severe)
+
+--------------------------------------------------------------------------------
+SECTION IV: SUMMARY IMPRESSION & CLINICAL NOTE
+--------------------------------------------------------------------------------
+Summary Impression:
+Significant multi-vessel calcified and non-calcified plaque burden (Agatston CAC: 620)
+with hemodynamically significant proximal LAD and RCA luminal stenosis (>70%).
+Severe atherogenic dyslipidemia with marked ApoB elevation (156 mg/dL) and elevated
+Lp(a) (112 mg/dL). High systemic vascular inflammation (hs-CRP: 5.6 mg/L).
+Stage 2 Hypertension (152/96 mmHg). Urgent cardiology evaluation recommended.
+================================================================================
