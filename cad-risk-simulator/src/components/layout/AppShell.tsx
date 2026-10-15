@@ -230,7 +230,12 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
         {/* ── TOP BAR (spans center + right columns) ──────────────── */}
         <header className="shell-topbar">
           {/* Left: Arohan Logo + Platform Title + Page Breadcrumb */}
-          <div className="shell-topbar-brand">
+          <div
+            className="shell-topbar-brand"
+            style={{ cursor: 'pointer' }}
+            onClick={() => onNavChange('landing')}
+            title="Return to Patient Overview"
+          >
             <ArohanLogo />
             <div className="shell-topbar-title-wrap">
               <span className="platform-title-full">Precision Cardiovascular Risk Intelligence Platform</span>
@@ -251,17 +256,18 @@ export function AppShell({ children, rightPanelContent, topBarCenter, activeNav,
           {/* Right: Risk status indicator + clock + settings */}
           <div className="shell-topbar-right">
             <button
+              id="btn-back-to-landing"
               type="button"
               onClick={() => onNavChange('landing')}
               className="shell-settings-btn text-xs font-medium px-2.5 flex items-center gap-1.5 text-blue-500 hover:text-blue-400"
-              title="Open Patient-Facing Cardiovascular Overview"
+              title="Return to Patient Overview"
               style={{ width: 'auto', height: '28px', borderRadius: '6px' }}
             >
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
                 <path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z" />
                 <circle cx="8" cy="8" r="2.5" />
               </svg>
-              <span className="hidden sm:inline">Patient View</span>
+              <span>Patient Overview</span>
             </button>
             <TopBarRiskStatus />
             <ReportUploadZone compact onFileSelected={() => setReportPanelOpen(true)} />

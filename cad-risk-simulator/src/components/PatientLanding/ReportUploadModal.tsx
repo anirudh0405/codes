@@ -72,7 +72,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
       setSelectedFile(file);
       setUploadState('selected');
     } else {
-      setErrorMessage('Please provide a valid PDF or image file (JPG, PNG).');
+      setErrorMessage('Please provide a valid PDF, image (JPG, PNG), or text report.');
       setUploadState('error');
     }
   };
@@ -87,9 +87,10 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
   };
 
   const isValidFile = (file: File) => {
-    const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     const isImage = file.type.startsWith('image/') || /\.(png|jpe?g)$/i.test(file.name);
-    return isPdf || isImage;
+    const isText = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+    return isPdf || isImage || isText;
   };
 
   // Perform parse using existing pipeline
@@ -100,7 +101,8 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
     setProgress(15);
     setStatusText('Reading clinical report and running OCR...');
 
-    const isPdf = selectedFile.type === 'application/pdf' || selectedFile.name.endsWith('.pdf');
+    const isPdf = selectedFile.type === 'application/pdf' || selectedFile.name.toLowerCase().endsWith('.pdf');
+    const isText = selectedFile.type === 'text/plain' || selectedFile.name.toLowerCase().endsWith('.txt');
     const fileUrl = URL.createObjectURL(selectedFile);
     const now = new Date();
     const timestamp =
@@ -112,7 +114,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
       fileName: selectedFile.name,
       timestamp,
       fileUrl,
-      fileType: isPdf ? 'pdf' : 'image',
+      fileType: isPdf || isText ? 'pdf' : 'image',
       status: 'analyzing',
       analysisProgress: 15,
       analysisStatusText: 'Reading and analyzing clinical report...',
@@ -134,35 +136,44 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
       // Apply fields to existing Zustand store
       if (extracted.extractedCount > 0 || Object.keys(extracted.fields).length > 0) {
         setReportFields(extracted.fields);
+
+        setUploadedReport({
+          ...initialReport,
+          status: 'applied',
+          extractedFields: extracted.fields,
+          extractedCount: extracted.extractedCount,
+          patientName: extracted.patientName,
+          summaryNote: extracted.summaryNote,
+          analysisProgress: 100,
+          analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,
+        });
+
+        // Extract field names for summary display
+        const fieldNames = Object.keys(extracted.fields).map((k) => {
+          if (k === 'totalCholesterol') return 'Total Cholesterol';
+          if (k === 'systolic' || k === 'diastolic') return 'Blood Pressure';
+          if (k === 'cac') return 'CAC Score';
+          if (k === 'fai') return 'FAI Index';
+          return k.toUpperCase();
+        });
+
+        setExtractedSummary({
+          count: extracted.extractedCount,
+          fields: Array.from(new Set(fieldNames)),
+        });
+
+        setProgress(100);
+        setUploadState('success');
+      } else {
+        setErrorMessage('No supported clinical parameters found in the uploaded file.');
+        setUploadState('error');
+        setUploadedReport({
+          ...initialReport,
+          status: 'error',
+          analysisProgress: 100,
+          analysisStatusText: 'No supported clinical parameters found in the uploaded file.',
+        });
       }
-
-      setUploadedReport({
-        ...initialReport,
-        status: 'applied',
-        extractedFields: extracted.fields,
-        extractedCount: extracted.extractedCount,
-        patientName: extracted.patientName,
-        summaryNote: extracted.summaryNote,
-        analysisProgress: 100,
-        analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,
-      });
-
-      // Extract field names for summary display
-      const fieldNames = Object.keys(extracted.fields).map((k) => {
-        if (k === 'totalCholesterol') return 'Total Cholesterol';
-        if (k === 'systolic' || k === 'diastolic') return 'Blood Pressure';
-        if (k === 'cac') return 'CAC Score';
-        if (k === 'fai') return 'FAI Index';
-        return k.toUpperCase();
-      });
-
-      setExtractedSummary({
-        count: extracted.extractedCount,
-        fields: Array.from(new Set(fieldNames)),
-      });
-
-      setProgress(100);
-      setUploadState('success');
     } catch (err: any) {
       console.error('Report parse error:', err);
       setErrorMessage('Could not extract clinical parameters automatically.');
@@ -218,7 +229,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.jpg,.jpeg,.png,.txt"
           onChange={handleFileChange}
           style={{ display: 'none' }}
         />

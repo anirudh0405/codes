@@ -10,7 +10,9 @@ export function CardiovascularMetricsHierarchy() {
   const cac = useSimStore((s) => s.cac);
 
   const activeProfile = useSimStore((s) => s.activeProfile);
-  const isCustomScenario = activeProfile && activeProfile.category !== 'healthy';
+  const uploadedReport = useSimStore((s) => s.uploadedReport);
+  const hasAppliedReport = uploadedReport?.status === 'applied';
+  const isCustomScenario = (activeProfile && activeProfile.category !== 'healthy') || hasAppliedReport;
 
   // Derive parameters with fallback to exact prompt baseline
   const hrVal = isCustomScenario

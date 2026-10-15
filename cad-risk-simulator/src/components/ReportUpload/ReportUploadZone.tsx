@@ -37,9 +37,10 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isPdf = file.type === 'application/pdf';
-    const isImage = file.type.startsWith('image/');
-    if (!isPdf && !isImage) return;
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png)$/i.test(file.name);
+    const isText = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
+    if (!isPdf && !isImage && !isText) return;
 
     const fileUrl = URL.createObjectURL(file);
     const now = new Date();
@@ -56,7 +57,7 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
       fileName: file.name,
       timestamp,
       fileUrl,
-      fileType: isPdf ? 'pdf' : 'image',
+      fileType: isPdf || isText ? 'pdf' : 'image',
       status: 'analyzing',
       analysisProgress: 15,
       analysisStatusText: 'Reading and analyzing clinical report...',
@@ -80,18 +81,26 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
       // Auto-apply all extracted fields directly to dashboard and state
       if (extracted.extractedCount > 0 || Object.keys(extracted.fields).length > 0) {
         setReportFields(extracted.fields);
+        setUploadedReport({
+          ...initialReport,
+          status: 'applied',
+          extractedFields: extracted.fields,
+          extractedCount: extracted.extractedCount,
+          patientName: extracted.patientName,
+          summaryNote: extracted.summaryNote,
+          analysisProgress: 100,
+          analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,
+        });
+      } else {
+        setUploadedReport({
+          ...initialReport,
+          status: 'error',
+          extractedFields: {},
+          extractedCount: 0,
+          analysisProgress: 100,
+          analysisStatusText: 'No supported clinical parameters found in the report.',
+        });
       }
-
-      setUploadedReport({
-        ...initialReport,
-        status: 'applied',
-        extractedFields: extracted.fields,
-        extractedCount: extracted.extractedCount,
-        patientName: extracted.patientName,
-        summaryNote: extracted.summaryNote,
-        analysisProgress: 100,
-        analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,
-      });
     } catch (err) {
       console.error('Report parsing error:', err);
       setUploadedReport({
@@ -108,7 +117,7 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.jpg,.jpeg,.png,.txt"
           onChange={handleFileChange}
           style={{ display: 'none' }}
         />
@@ -138,7 +147,7 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
+        accept=".pdf,.jpg,.jpeg,.png,.txt"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />

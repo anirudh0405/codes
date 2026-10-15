@@ -41,7 +41,9 @@ export function DiseaseRiskSection() {
 
   // Exact prompt conditions and values:
   // If baseline (default), use exact values: 30%, 0%, 0%, 6%, 4%
-  const isCustomScenario = activeProfile && activeProfile.category !== 'healthy';
+  const uploadedReport = useSimStore((s) => s.uploadedReport);
+  const hasAppliedReport = uploadedReport?.status === 'applied';
+  const isCustomScenario = (activeProfile && activeProfile.category !== 'healthy') || hasAppliedReport;
 
   const cadScore = isCustomScenario && subScores ? Math.round(subScores.atherosclerosis) : 30;
   const iscScore = isCustomScenario && subScores ? Math.round(subScores.myocardialIschemia) : 0;

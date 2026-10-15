@@ -41,19 +41,27 @@ export interface ExtractedReportResult {
  * to isolate the actual patient result.
  */
 function cleanLineForPatientResult(line: string): string {
-  // Strip common reference interval headers or indicators
+  let resultPart = line;
+
+  // 1. Strip bracketed or parenthesized ranges e.g. (< 200), [120 - 200 mg/dL], (4.0 - 5.6%)
+  resultPart = resultPart.replace(/\(\s*[<>]?\s*\d+(?:\.\d+)?\s*(?:-\s*\d+(?:\.\d+)?)?\s*[a-zA-Z%µ/²^3]*\s*\)/g, ' ');
+  resultPart = resultPart.replace(/\[\s*[<>]?\s*\d+(?:\.\d+)?\s*(?:-\s*\d+(?:\.\d+)?)?\s*[a-zA-Z%µ/²^3]*\s*\]/g, ' ');
+
+  // 2. Strip common reference interval headers or indicators
   const refKeywords = [
-    /\b(reference\s*(?:interval|range|values?)?|ref\.?\s*(?:range|interval)?|biological\s*ref|normal\s*range|desirable|optimal|interval)\b/i,
-    /\b(std\s*range|limits?)\b/i,
+    /\b(reference\s*(?:interval|range|values?)?|ref\.?\s*(?:range|interval|values?)?|biological\s*ref|normal\s*range|desirable|optimal|interval)\b/i,
+    /\b(std\s*range|standard\s*range|cut-?off|limits?)\b/i,
   ];
 
-  let resultPart = line;
   for (const kw of refKeywords) {
     const idx = resultPart.search(kw);
     if (idx !== -1) {
       resultPart = resultPart.slice(0, idx);
     }
   }
+
+  // 3. Strip reference thresholds preceded by comparison operators (e.g. < 200, <= 150)
+  resultPart = resultPart.replace(/[<>≤≥]\s*\d+(?:\.\d+)?\s*(?:-\s*\d+(?:\.\d+)?)?/g, ' ');
 
   return resultPart;
 }
@@ -71,10 +79,38 @@ export function cleanOcrText(raw: string): string {
     .replace(/(\d+)\s*,\s*(\d+)/g, '$1.$2'); // comma decimal e.g. 5,6 -> 5.6
 }
 
+function matchValueAfterEntity(
+  cleanedText: string,
+  entityRegex: RegExp,
+  min: number,
+  max: number,
+  unitConverter?: (val: number, unitStr?: string) => number
+): number | undefined {
+  const entityMatch = entityRegex.exec(cleanedText);
+  if (!entityMatch) return undefined;
+
+  const after = cleanedText.slice(entityMatch.index + entityMatch[0].length);
+  // Match the first number, ignoring non-numeric characters (up to 60 chars)
+  const numMatch = after.match(/^[^\d<>]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z%µ/²^3]+)?/i);
+  if (numMatch) {
+    let val = parseFloat(numMatch[1]);
+    const unitStr = numMatch[2];
+    if (!isNaN(val)) {
+      if (unitConverter) {
+        val = unitConverter(val, unitStr);
+      }
+      if (val >= min && val <= max) {
+        return Math.round(val * 100) / 100;
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
  * Extract single numeric value from candidate text that matches an entity pattern,
  * ensuring that numbers preceded by comparison symbols (<, >, <=, >=) or labeled
- * as reference ranges are excluded.
+ * as reference ranges are excluded. Supports multiline table rows.
  */
 function extractNumericMetric(
   text: string,
@@ -85,57 +121,43 @@ function extractNumericMetric(
 ): number | undefined {
   const lines = text.split('\n');
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (!entityRegex.test(line)) continue;
 
-    // Isolate patient result portion of line
+    // Check on current line
     const cleaned = cleanLineForPatientResult(line);
+    const match = matchValueAfterEntity(cleaned, entityRegex, min, max, unitConverter);
+    if (match !== undefined) return match;
 
-    // Look for numbers in the cleaned section
-    // Regex finds numbers with optional decimal, capturing potential unit string
-    const match = cleaned.match(
-      new RegExp(
-        entityRegex.source +
-          /[^\d\n]*?([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z%µ/²^3]+)?/i.source,
-        'i'
-      )
-    );
-
-    if (match) {
-      const numStr = match[1];
-      const unitStr = match[2];
-      let val = parseFloat(numStr);
-
-      if (isNaN(val)) continue;
-
-      if (unitConverter) {
-        val = unitConverter(val, unitStr);
+    // Check combining current line with subsequent 1-2 lines (handles multiline table cells)
+    for (let j = 1; j <= 2 && i + j < lines.length; j++) {
+      const nextLine = lines[i + j].trim();
+      // Don't cross into another test item header
+      if (/^(?:Total\s+Cholesterol|HDL|LDL|Triglycerides|Apolipoprotein|Blood\s+Pressure|Heart\s+Rate|HbA1c|Glucose|Fast|Calcium|CAC|FAI|IMAGING|VITAL|High-Sensitivity)/i.test(nextLine)) {
+        break;
       }
-
-      if (val >= min && val <= max) {
-        return Math.round(val * 100) / 100;
-      }
+      const combined = cleanLineForPatientResult(lines.slice(i, i + j + 1).join(' '));
+      const nextMatch = matchValueAfterEntity(combined, entityRegex, min, max, unitConverter);
+      if (nextMatch !== undefined) return nextMatch;
     }
   }
 
-  // Fallback to searching the entire text blob if line-by-line misses due to multiline wrap
-  const globalMatch = text.match(
-    new RegExp(
-      entityRegex.source +
-        /[^0-9\n<>=]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z%µ/²^3]+)?/i.source,
-      'i'
-    )
-  );
-
-  if (globalMatch) {
-    let val = parseFloat(globalMatch[1]);
-    const unitStr = globalMatch[2];
-    if (!isNaN(val)) {
-      if (unitConverter) {
-        val = unitConverter(val, unitStr);
-      }
-      if (val >= min && val <= max) {
-        return Math.round(val * 100) / 100;
+  // Fallback for wrapped text blobs without multiline cross-contamination
+  const match = entityRegex.exec(text);
+  if (match) {
+    const snippet = text.slice(match.index + match[0].length, match.index + match[0].length + 40);
+    const firstLine = snippet.split('\n')[0];
+    const cleaned = cleanLineForPatientResult(firstLine);
+    const numMatch = cleaned.match(/^[^\d<>]{0,25}?([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z%µ/²^3]+)?/i);
+    if (numMatch) {
+      let val = parseFloat(numMatch[1]);
+      const unitStr = numMatch[2];
+      if (!isNaN(val)) {
+        if (unitConverter) val = unitConverter(val, unitStr);
+        if (val >= min && val <= max) {
+          return Math.round(val * 100) / 100;
+        }
       }
     }
   }
@@ -167,7 +189,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
       .trim();
     if (
       rawName.length >= 2 &&
-      !/^(Result|Test|Sample|Hospital|Clinical|Normal|Demographic|Metadata)/i.test(rawName)
+      !/^(Result|Test|Sample|Hospital|Clinical|Normal|Demographic|Metadata|Patient\s+Profile|Patient\s+Report|Patient\s+Overview|Dashboard|Monitor)/i.test(rawName)
     ) {
       fields.patientName = rawName;
     }
@@ -181,7 +203,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   }
 
   // Age
-  const ageMatch = text.match(/(?:Age|Age\s*[/\\|]?\s*(?:Gender|Sex))[\s.:|+]+(\d{1,3})/i);
+  const ageMatch = text.match(/(?:^|\n|\s|\b)(?:Age|Age\s*[/\\|]?\s*(?:Gender|Sex))[\s.:|+]+(\d{1,3})\b/i);
   if (ageMatch) {
     const age = parseInt(ageMatch[1], 10);
     if (age >= 1 && age <= 120) {
@@ -190,7 +212,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   }
 
   // Gender / Sex
-  const sexMatch = text.match(/(?:Gender|Sex)[\s.:|-]+(Male|Female|M\b|F\b)/i);
+  const sexMatch = text.match(/(?:^|\n|\s|\b)(?:Gender|Sex)[\s.:|-]+(Male|Female|\bM\b|\bF\b)/i);
   if (sexMatch) {
     const s = sexMatch[1].toLowerCase();
     if (s.startsWith('m')) fields.sex = 'male';
@@ -202,8 +224,8 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   }
 
   // 2. Blood Pressure (Systolic & Diastolic)
-  // Check combined BP string e.g. "152/96" or "152 / 96 mmHg" (require word boundary for \bBP\b so bpm is not matched)
-  const bpMatch = text.match(/(?:Blood\s+Pressure|\bBP\b)(?:[^\d\n/]*?)(\d{2,3})\s*[/\\-]\s*(\d{2,3})/i);
+  // Check combined BP string e.g. "152/96" or "152 / 96 mmHg" or "BP: 152/96"
+  const bpMatch = text.match(/(?:Blood\s+Pressure|\bB\.?P\.?\b|\bNIBP\b)(?:[^0-9/]{0,40}?)(\d{2,3})\s*[/\\-]\s*(\d{2,3})/i);
   if (bpMatch) {
     const sys = parseFloat(bpMatch[1]);
     const dia = parseFloat(bpMatch[2]);
@@ -217,12 +239,12 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
     }
   } else {
     // Individual systolic / diastolic line matching
-    const sys = extractNumericMetric(text, /(?:Systolic(?:\s+Blood)?\s+Pressure|Systolic\s+BP|SBP)/i, 60, 260);
+    const sys = extractNumericMetric(text, /(?:Systolic(?:\s+Blood)?(?:\s+Pressure)?|Systolic\s+BP|\bSBP\b)/i, 60, 260);
     if (sys !== undefined) {
       fields.systolic = sys;
       count++;
     }
-    const dia = extractNumericMetric(text, /(?:Diastolic(?:\s+Blood)?\s+Pressure|Diastolic\s+BP|DBP)/i, 30, 160);
+    const dia = extractNumericMetric(text, /(?:Diastolic(?:\s+Blood)?(?:\s+Pressure)?|Diastolic\s+BP|\bDBP\b)/i, 30, 160);
     if (dia !== undefined) {
       fields.diastolic = dia;
       count++;
@@ -230,14 +252,14 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   }
 
   // 3. Heart Rate (bpm)
-  const hr = extractNumericMetric(text, /(?:Heart\s+Rate|Resting\s+(?:Heart\s+Rate|HR)|Pulse\s+Rate|Pulse|HR\b)/i, 30, 220);
+  const hr = extractNumericMetric(text, /(?:Heart\s+Rate|Resting\s+(?:Heart\s+Rate|HR)|Pulse\s+Rate|Pulse|\bHR\b|\bP\.?R\.?\b)/i, 30, 220);
   if (hr !== undefined) {
     fields.heartRate = Math.round(hr);
     count++;
   }
 
   // 4. Body Mass Index (BMI) (kg/m²)
-  const bmi = extractNumericMetric(text, /(?:Body\s+Mass\s+Index|BMI)/i, 10, 70);
+  const bmi = extractNumericMetric(text, /(?:Body\s+Mass\s+Index|\bBMI\b)/i, 10, 70);
   if (bmi !== undefined) {
     fields.bmi = bmi;
     count++;
@@ -247,7 +269,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // mmol/L to mg/dL conversion factor: 38.67
   const tc = extractNumericMetric(
     text,
-    /(?:Total\s+Cholesterol|Cholesterol[,\s]+Total|T-?Chol|Serum\s+Cholesterol)/i,
+    /(?:(?:Total|Serum|S\.?)\s*[-–]?\s*Cholesterol|Cholesterol[,\s\-–]+Total|Cholesterol\s*\(\s*Total\s*\)|T-?Chol\b|Cholesterol\b)/i,
     50,
     600,
     (val, unit) => (unit && /mmol/i.test(unit) ? val * 38.67 : val)
@@ -260,7 +282,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // 6. HDL Cholesterol (mg/dL or mmol/L)
   const hdl = extractNumericMetric(
     text,
-    /(?:HDL\s+Cholesterol|HDL-?C|HDL\b)/i,
+    /(?:High\s+Density\s+Lipoproteins?(?:\s*\(HDL\))?|HDL(?:\s*[-–]?\s*Cholesterol)?(?:\s*[-–]?\s*Direct)?|HDL-?C|HDL\b)/i,
     10,
     150,
     (val, unit) => (unit && /mmol/i.test(unit) ? val * 38.67 : val)
@@ -273,7 +295,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // 7. LDL Cholesterol (Direct / Calculated) (mg/dL or mmol/L)
   const ldl = extractNumericMetric(
     text,
-    /(?:LDL\s+Cholesterol(?:\s*\((?:Direct|Calculated)\))?|LDL-?C|LDL\b)/i,
+    /(?:Low\s+Density\s+Lipoproteins?(?:\s*\(LDL\))?|LDL(?:\s*[-–]?\s*Cholesterol)?(?:\s*[-–]?\s*(?:Direct|Calculated|\(Direct\)|\(Calculated\)))?|LDL-?C|LDL\b)/i,
     20,
     450,
     (val, unit) => (unit && /mmol/i.test(unit) ? val * 38.67 : val)
@@ -287,7 +309,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // mmol/L to mg/dL conversion factor: 88.57
   const tg = extractNumericMetric(
     text,
-    /(?:Triglycerides|Triglyceride|TRIG|TG\b)/i,
+    /(?:(?:Serum|S\.?)\s*[-–]?\s*Triglycerides?|Triglycerides?|TRIG\b|TGL\b|TG\b)/i,
     20,
     1500,
     (val, unit) => (unit && /mmol/i.test(unit) ? val * 88.57 : val)
@@ -301,7 +323,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // g/L to mg/dL conversion factor: 100
   const apob = extractNumericMetric(
     text,
-    /(?:Apolipoprotein\s*B(?:\s*\(ApoB\))?|Apo\s*B\b|Apo-B)/i,
+    /(?:Apolipoprotein\s*[-–]?\s*B(?:-?100)?(?:\s*\(ApoB\))?|Apo\s*[-–]?\s*B(?:-?100)?\b)/i,
     20,
     350,
     (val, unit) => (unit && /g\/[ld]/i.test(unit) && val < 5 ? val * 100 : val)
@@ -314,7 +336,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // 10. ApoB / ApoA1 Ratio
   const apobRatio = extractNumericMetric(
     text,
-    /(?:ApoB\s*[/\\-]\s*ApoA1(?:\s*Ratio)?|ApoB\/ApoA-?1)/i,
+    /(?:Apo\s*B\s*[/\\:–-]\s*Apo\s*A-?1(?:\s*Ratio)?)/i,
     0.1,
     4.0
   );
@@ -326,7 +348,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // 11. Lipoprotein(a) [Lp(a)] (mg/dL)
   const lpa = extractNumericMetric(
     text,
-    /(?:Lipoprotein\s*\(?\s*a\s*\)?(?:\s*\[Lp\(a\)\])?|Lp\s*\(?\s*a\s*\)?|Lp\(a\))/i,
+    /(?:Lipoprotein\s*[-–]?\s*\(?\s*a\s*\)?(?:\s*\[Lp\(a\)\])?|Lp\s*\(?\s*a\s*\)?)/i,
     0,
     400
   );
@@ -339,7 +361,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // mg/dL to mg/L conversion factor: 10
   const hscrp = extractNumericMetric(
     text,
-    /(?:High[- ]?Sensitivity\s+CRP(?:\s*\(hs-CRP\))?|hs[- ]?CRP|hsCRP)/i,
+    /(?:High[- ]?Sensitivity\s+(?:C[- ]?Reactive\s+Protein|CRP)(?:\s*\(hs[- ]?CRP\))?|hs[- ]?(?:C[- ]?Reactive\s+Protein|CRP)|hsCRP)/i,
     0.05,
     100,
     (val, unit) => (unit && /mg\/dl/i.test(unit) ? val * 10 : val)
@@ -353,7 +375,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // mmol/mol to % conversion formula: (val * 0.09148) + 2.152
   const hba1c = extractNumericMetric(
     text,
-    /(?:HbA1c(?:\s*\(Glycated\s+Hemoglobin\))?|Glycated\s+Hemoglobin|A1C\b)/i,
+    /(?:Hb\s*A1c|HbA1c(?:\s*\(Glycated\s+Hemoglobin\))?|Glycosylated\s+Hemoglobin|Glycated\s+Hemoglobin|Hemoglobin\s+A1c|A1C\b)/i,
     3.0,
     20.0,
     (val, unit) => (unit && /mmol\/mol/i.test(unit) ? (val * 0.09148) + 2.152 : val)
@@ -367,7 +389,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // mmol/L to mg/dL conversion factor: 18.0182
   const fbs = extractNumericMetric(
     text,
-    /(?:Fasting\s+(?:Blood\s+)?Glucose|Fasting\s+Sugar|FBS|FPG)/i,
+    /(?:Fasting\s+(?:Blood\s+|Plasma\s+)?(?:Glucose|Sugar)|(?:Blood\s+|Plasma\s+)?Glucose[,\s\-–]+\(?Fasting\)?|FBS\b|FPG\b)/i,
     30,
     600,
     (val, unit) => (unit && /mmol/i.test(unit) ? val * 18.0182 : val)
@@ -380,7 +402,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // 15. Coronary Artery Calcium (CAC) Score (Agatston)
   const cac = extractNumericMetric(
     text,
-    /(?:Coronary\s+Artery\s+Calcium(?:\s*\(CAC\))?|Agatston\s+(?:Calcium\s+)?Score|CAC\s+Score|CAC\b)/i,
+    /(?:Coronary\s+(?:Artery\s+)?Calcium(?:\s*\(CAC\))?(?:\s+Score)?|(?:Coronary\s+)?Calcium\s+Score|Agatston\s+(?:Calcium\s+)?Score|CAC\s+Score|\bCAC\b)/i,
     0,
     5000
   );
@@ -392,9 +414,9 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // 16. Fat Attenuation Index (FAI) (HU)
   // Look explicitly for negative HU values (e.g. -92)
   const faiMatch =
-    text.match(/(?:Fat\s+Attenuation\s+Index(?:\s*\(FAI\))?|FAI)[^\d\n-]*?(-?\d{2,3}(?:\.\d+)?)/i);
+    text.match(/(?:Fat\s+Attenuation\s+Index(?:\s*\(FAI\))?|\bFAI\b)[^\d\n-]{0,30}?(-?\s*\d{2,3}(?:\.\d+)?)/i);
   if (faiMatch) {
-    let v = parseFloat(faiMatch[1]);
+    let v = parseFloat(faiMatch[1].replace(/\s+/g, ''));
     if (!isNaN(v)) {
       if (v > 0) v = -v; // FAI is inherently negative in coronary CT
       if (v >= -190 && v <= -30) {
@@ -590,8 +612,10 @@ export async function extractFromPdf(
   if (fullText.trim().length > 60) {
     onProgress?.(85, 'Extracting and validating clinical parameters...');
     const result = parseClinicalText(fullText);
-    onProgress?.(100, `Extracted ${result.extractedCount} parameters from PDF.`);
-    return result;
+    if (result.extractedCount > 0) {
+      onProgress?.(100, `Extracted ${result.extractedCount} parameters from PDF.`);
+      return result;
+    }
   }
 
   // Scanned PDF fallback: render pages to canvas and run OCR

@@ -220,14 +220,47 @@ export default function App() {
   const [activeNav, setActiveNav] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('view') === 'dashboard' || window.location.hash === '#dashboard') {
+      const view = params.get('view');
+      if (view) {
+        return view;
+      }
+      if (window.location.hash === '#dashboard') {
         return 'dashboard';
       }
     }
     return 'landing';
   });
   const lastLoggedHistoryNav = useRef<string | null>(null);
-  const handleNavChange = useCallback((id: string) => { setActiveNav(id); }, []);
+
+  const handleNavChange = useCallback((id: string) => {
+    setActiveNav(id);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      if (id === 'landing') {
+        url.searchParams.delete('view');
+        url.hash = '';
+      } else {
+        url.searchParams.set('view', id);
+      }
+      window.history.pushState({ nav: id }, '', url.toString());
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view');
+      if (view) {
+        setActiveNav(view);
+      } else if (window.location.hash === '#dashboard') {
+        setActiveNav('dashboard');
+      } else {
+        setActiveNav('landing');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     if (activeNav !== 'history') {

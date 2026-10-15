@@ -14,7 +14,9 @@ import {
 export function RiskTrendSection() {
   const riskResult = useSimStore((s) => s.riskResult);
   const activeProfile = useSimStore((s) => s.activeProfile);
-  const isCustomScenario = activeProfile && activeProfile.category !== 'healthy';
+  const uploadedReport = useSimStore((s) => s.uploadedReport);
+  const hasAppliedReport = uploadedReport?.status === 'applied';
+  const isCustomScenario = (activeProfile && activeProfile.category !== 'healthy') || hasAppliedReport;
 
   const currentScore = isCustomScenario
     ? Math.max(0, Math.min(100, Math.round(riskResult?.score ?? 19)))

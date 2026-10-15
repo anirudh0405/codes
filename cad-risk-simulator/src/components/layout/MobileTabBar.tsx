@@ -78,7 +78,15 @@ const IconReport = (
   </svg>
 );
 
+const IconLanding = (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 10s3.5-6 8-6 8 6 8 6-3.5 6-8 6-8-6-8-6z" />
+    <circle cx="10" cy="10" r="3" />
+  </svg>
+);
+
 const TABS: TabItem[] = [
+  { id: 'landing',    label: 'Landing',    icon: IconLanding },
   { id: 'dashboard',  label: 'Dashboard',  icon: IconDashboard },
   { id: 'waveforms',  label: 'Waveforms',  icon: IconWaveform },
   { id: 'profile',    label: 'Patient',    icon: IconPatient },

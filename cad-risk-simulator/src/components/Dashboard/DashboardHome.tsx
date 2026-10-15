@@ -36,10 +36,10 @@ function LabSummaryCard({ onOpenLabReport }: { onOpenLabReport?: () => void }) {
   const labInputs = useSimStore(s => s.labInputs);
   const apoBPanel = useSimStore(s => s.apoBPanel);
 
-  const tcVal = snapshot ? Math.round(snapshot.totalCholesterol) : labInputs.totalCholesterol;
+  const tcVal = labInputs.totalCholesterol;
   const ldlVal = Math.round(apoBPanel.ldl);
   const hdlVal = labInputs.hdl;
-  const tgVal = snapshot ? Math.round(snapshot.triglycerides) : labInputs.triglycerides;
+  const tgVal = labInputs.triglycerides;
 
   return (
     <div className="panel-card dash-cardiac-panel">
