@@ -34,40 +34,92 @@ export interface ExtractedReportResult {
   patientName?: string;
   patientId?: string;
   summaryNote?: string;
+  unmappedFields?: string[];
 }
 
 /**
- * Remove reference range columns, flags, and trailing noise from a line
- * to isolate the actual patient result.
+ * Common clinical tests that may appear in clinical laboratory panels
+ * but are not part of the platform's cardiovascular risk model.
+ * These are identified and reported as unmapped rather than erroneously assigned.
  */
-function cleanLineForPatientResult(line: string): string {
+export const COMMON_UNSUPPORTED_TESTS: { name: string; pattern: RegExp }[] = [
+  { name: 'Serum Creatinine', pattern: /\b(?:Serum\s+)?Creatinine\b/i },
+  { name: 'Blood Urea Nitrogen (BUN)', pattern: /\b(?:Blood\s+Urea\s+Nitrogen|BUN)\b/i },
+  { name: 'Serum Urea', pattern: /\b(?:Serum\s+)?Urea\b/i },
+  { name: 'Serum Potassium', pattern: /\b(?:Serum\s+)?Potassium\b|\bK\+\b/i },
+  { name: 'Serum Sodium', pattern: /\b(?:Serum\s+)?Sodium\b|\bNa\+\b/i },
+  { name: 'Serum Chloride', pattern: /\b(?:Serum\s+)?Chloride\b|\bCl-\b/i },
+  { name: 'Serum Calcium', pattern: /\b(?:Serum\s+)?Calcium\b(?!\s+(?:Score|CAC|Agatston))/i },
+  { name: 'Hemoglobin (CBC)', pattern: /\b(?:Total\s+)?Hemoglobin\b(?!\s*A1c|\s*A1C)/i },
+  { name: 'Platelet Count', pattern: /\b(?:Platelet\s+Count|Platelets)\b/i },
+  { name: 'White Blood Cell Count (WBC)', pattern: /\b(?:White\s+Blood\s+Cell|WBC(?:\s+Count)?|Leukocyte\s+Count)\b/i },
+  { name: 'Red Blood Cell Count (RBC)', pattern: /\b(?:Red\s+Blood\s+Cell|RBC(?:\s+Count)?|Erythrocyte\s+Count)\b/i },
+  { name: 'Estimated GFR (eGFR)', pattern: /\b(?:Estimated\s+GFR|eGFR|GFR)\b/i },
+  { name: 'Total Bilirubin', pattern: /\b(?:Total\s+)?Bilirubin\b/i },
+  { name: 'ALT / SGPT', pattern: /\b(?:ALT|SGPT|Alanine\s+Aminotransferase)\b/i },
+  { name: 'AST / SGOT', pattern: /\b(?:AST|SGOT|Aspartate\s+Aminotransferase)\b/i },
+  { name: 'Alkaline Phosphatase (ALP)', pattern: /\b(?:Alkaline\s+Phosphatase|ALP)\b/i },
+  { name: 'Total Protein', pattern: /\bTotal\s+Protein\b/i },
+  { name: 'Serum Albumin', pattern: /\b(?:Serum\s+)?Albumin\b(?!\s*\/)/i },
+  { name: 'Troponin (cTnI / cTnT)', pattern: /\b(?:Cardiac\s+)?Troponin(?:\s*[-–]?\s*[IT])?\b/i },
+  { name: 'Thyroid Stimulating Hormone (TSH)', pattern: /\b(?:TSH|Thyroid\s+Stimulating\s+Hormone)\b/i },
+  { name: 'Serum Uric Acid', pattern: /\b(?:Serum\s+)?Uric\s+Acid\b/i },
+  { name: 'Vitamin D (25-OH)', pattern: /\b(?:Vitamin\s+D|25-OH\s+Vitamin\s+D)\b/i },
+  { name: 'Vitamin B12', pattern: /\b(?:Vitamin\s+B12|Cobalamin)\b/i },
+  { name: 'Prostate-Specific Antigen (PSA)', pattern: /\bPSA\b|\bProstate[- ]Specific\s+Antigen\b/i },
+  { name: 'Urine Albumin / Creatinine Ratio (UACR)', pattern: /\b(?:UACR|Microalbumin)\b/i },
+];
+
+/**
+ * Remove reference range columns, historical comparisons, flags, and trailing noise
+ * from a line to strictly isolate the current patient result.
+ */
+export function cleanLineForPatientResult(line: string): string {
   let resultPart = line;
 
-  // 1. Strip bracketed or parenthesized ranges e.g. (< 200), [120 - 200 mg/dL], (4.0 - 5.6%)
-  resultPart = resultPart.replace(/\(\s*[<>]?\s*\d+(?:\.\d+)?\s*(?:-\s*\d+(?:\.\d+)?)?\s*[a-zA-Z%µ/²^3]*\s*\)/g, ' ');
-  resultPart = resultPart.replace(/\[\s*[<>]?\s*\d+(?:\.\d+)?\s*(?:-\s*\d+(?:\.\d+)?)?\s*[a-zA-Z%µ/²^3]*\s*\]/g, ' ');
+  // 1. Strip bracketed or parenthesized ranges, reference intervals, or historical markers
+  // e.g. (< 200), [120 - 200 mg/dL], (4.0 - 5.6%), (Ref: < 200), [Normal: 120-200], (Prior: 210 mg/dL), (Historical: 210)
+  resultPart = resultPart.replace(/\([^)]*(?:ref|range|interval|norm|desir|optim|stand|limit|prior|prev|hist|base|<|>|≤|≥)[^)]*\)/gi, ' ');
+  resultPart = resultPart.replace(/\[[^\]]*(?:ref|range|interval|norm|desir|optim|stand|limit|prior|prev|hist|base|<|>|≤|≥)[^\]]*\]/gi, ' ');
+  // Also strip plain numeric ranges in parentheses/brackets e.g. (120 - 200) or (4.0 - 5.6%)
+  resultPart = resultPart.replace(/\(\s*\d+(?:\.\d+)?\s*(?:-|to)\s*\d+(?:\.\d+)?\s*[a-zA-Z%µ/²³^]*\s*\)/gi, ' ');
+  resultPart = resultPart.replace(/\[\s*\d+(?:\.\d+)?\s*(?:-|to)\s*\d+(?:\.\d+)?\s*[a-zA-Z%µ/²³^]*\s*\]/gi, ' ');
 
-  // 2. Strip common reference interval headers or indicators
+  // 2. Strip explicit historical / previous measurement phrases (inline or prefixed)
+  // e.g. "Previous: 210 mg/dL", "Prior Result: 210", "Historical Value: 210", "Baseline: 210"
+  resultPart = resultPart.replace(/\b(?:previous|prior|historical|prev|past|baseline)(?:\s*(?:value|result|reading))?[\s.:=]+[<>]?\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*[a-zA-Z%µ/²³^]*/gi, ' ');
+
+  // 3. Strip common reference interval headers or indicators
   const refKeywords = [
-    /\b(reference\s*(?:interval|range|values?)?|ref\.?\s*(?:range|interval|values?)?|biological\s*ref|normal\s*range|desirable|optimal|interval)\b/i,
-    /\b(std\s*range|standard\s*range|cut-?off|limits?)\b/i,
+    /\b(?:reference\s*(?:interval|range|values?|limits?)?|ref\.?\s*(?:range|interval|values?|limits?)?|biological\s*ref|normal\s*(?:range|values?|interval)?|norm\.?\s*(?:range)?|desirable|optimal|interval|std\s*range|standard\s*range|cut-?off|limits?|expected\s*(?:range|values?)?|target\s*(?:range|values?)?)\b/i,
   ];
 
   for (const kw of refKeywords) {
     const idx = resultPart.search(kw);
     if (idx !== -1) {
-      resultPart = resultPart.slice(0, idx);
+      const rest = resultPart.slice(idx);
+      // If patient result column appears AFTER reference range column in tabular data
+      const afterResultMatch = rest.match(/(?:patient\s*result|result|value|observed|reading)[\s.:=]+(\d+(?:\.\d+)?)/i);
+      if (afterResultMatch) {
+        resultPart = resultPart.slice(0, idx) + ' ' + rest.replace(kw, '').replace(/[<>]?\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*[a-zA-Z%µ/²³^]*/i, ' ');
+      } else {
+        resultPart = resultPart.slice(0, idx);
+      }
     }
   }
 
-  // 3. Strip reference thresholds preceded by comparison operators (e.g. < 200, <= 150)
-  resultPart = resultPart.replace(/[<>≤≥]\s*\d+(?:\.\d+)?\s*(?:-\s*\d+(?:\.\d+)?)?/g, ' ');
+  // 4. Strip reference thresholds preceded by comparison operators (e.g. < 200, <= 150)
+  resultPart = resultPart.replace(/[<>≤≥]\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?/g, ' ');
+
+  // 5. Strip unparenthesized reference ranges (e.g. "120 - 200 mg/dL", "60 - 100 bpm")
+  resultPart = resultPart.replace(/\b\d+(?:\.\d+)?\s*(?:-|to)\s*\d+(?:\.\d+)?\s*[a-zA-Z%µ/²³^]*\b/gi, ' ');
 
   return resultPart;
 }
 
 /**
- * Clean OCR text by fixing common typographical and character artifacts
+ * Clean OCR text by fixing common typographical and character artifacts.
+ * Properly handles thousands separators (e.g. 1,200 -> 1200) vs decimal commas (e.g. 5,6 -> 5.6).
  */
 export function cleanOcrText(raw: string): string {
   return raw
@@ -76,7 +128,10 @@ export function cleanOcrText(raw: string): string {
     .replace(/\t/g, ' ')
     .replace(/[–—]/g, '-')
     .replace(/[“”"']/g, '"')
-    .replace(/(\d+)\s*,\s*(\d+)/g, '$1.$2'); // comma decimal e.g. 5,6 -> 5.6
+    // Remove thousands separators e.g. 1,200 -> 1200 or 250,000 -> 250000
+    .replace(/(\d{1,3}),(\d{3})\b/g, '$1$2')
+    // Convert decimal comma e.g. 5,6 -> 5.6 or 28,6 -> 28.6
+    .replace(/(\d+)\s*,\s*(\d{1,2})\b/g, '$1.$2');
 }
 
 function matchValueAfterEntity(
@@ -91,10 +146,10 @@ function matchValueAfterEntity(
 
   const after = cleanedText.slice(entityMatch.index + entityMatch[0].length);
   // Match the first number, ignoring non-numeric characters (up to 60 chars)
-  const numMatch = after.match(/^[^\d<>]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z%µ/²^3]+)?/i);
+  const numMatch = after.match(/^[^\d<>]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z%µ²³^/]+(?:\s*[a-zA-Z%µ²³^/]+)*)?/i);
   if (numMatch) {
     let val = parseFloat(numMatch[1]);
-    const unitStr = numMatch[2];
+    const unitStr = numMatch[2] ? numMatch[2].trim() : undefined;
     if (!isNaN(val)) {
       if (unitConverter) {
         val = unitConverter(val, unitStr);
@@ -177,10 +232,10 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   // Patient Name
   const nameMatch =
     text.match(
-      /(?:Patient\s*Name|Patient\s*Full\s*Name|Full\s*Name)[\s.:|-]+(?:Mr\.|Mrs\.|Ms\.|Dr\.)?\s*([^\n\r]+)/i
+      /(?:Patient\s*Name|Patient\s*Full\s*Name|Full\s*Name|Pt\s*Name|Name\s*of\s*Patient)[\s.:|-]+(?:Mr\.|Mrs\.|Ms\.|Dr\.)?\s*([^\n\r]+)/i
     ) ||
     text.match(
-      /(?:^|\n)\s*(?:Patient|Name)[\s.:|-]+(?:Mr\.|Mrs\.|Ms\.|Dr\.)?\s*([^\n\r]+)/i
+      /(?:^|\n)\s*(?:Patient)[\s.:|-]+(?:Mr\.|Mrs\.|Ms\.|Dr\.)?\s*([^\n\r]+)/i
     );
   if (nameMatch) {
     let rawName = nameMatch[1].split(/\s{2,}|\t/)[0].trim();
@@ -189,7 +244,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
       .trim();
     if (
       rawName.length >= 2 &&
-      !/^(Result|Test|Sample|Hospital|Clinical|Normal|Demographic|Metadata|Patient\s+Profile|Patient\s+Report|Patient\s+Overview|Dashboard|Monitor)/i.test(rawName)
+      !/^(Result|Test|Sample|Hospital|Clinical|Normal|Demographic|Metadata|Patient\s+Profile|Patient\s+Report|Patient\s+Overview|Dashboard|Monitor|Laboratory|Investigation|Profile)/i.test(rawName)
     ) {
       fields.patientName = rawName;
     }
@@ -197,9 +252,10 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
 
   // Patient ID
   let patientId: string | undefined;
-  const idMatch = text.match(/(?:Patient\s*ID|PID|MRN|Patient\s*No\.?)[\s.:|-]+([A-Za-z0-9-_]{3,20})/i);
+  const idMatch = text.match(/(?:Patient\s*ID|PID|MRN|UHID|Patient\s*No\.?|Patient\s*#|Reg(?:\.|istration)?\s*No\.?|Case\s*No\.?)[\s.:|-]+([A-Za-z0-9-_]{3,25})/i);
   if (idMatch) {
     patientId = idMatch[1].trim();
+    fields.patientId = patientId;
   }
 
   // Age
@@ -211,42 +267,57 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
     }
   }
 
-  // Gender / Sex
+  // Gender / Sex (Explicit demographic markers only — no guessing from free text)
   const sexMatch = text.match(/(?:^|\n|\s|\b)(?:Gender|Sex)[\s.:|-]+(Male|Female|\bM\b|\bF\b)/i);
   if (sexMatch) {
     const s = sexMatch[1].toLowerCase();
     if (s.startsWith('m')) fields.sex = 'male';
     else if (s.startsWith('f')) fields.sex = 'female';
   } else {
-    const headText = text.slice(0, 1000);
-    if (/\b(?:Male|Gender:\s*Male)\b/i.test(headText)) fields.sex = 'male';
-    else if (/\b(?:Female|Gender:\s*Female)\b/i.test(headText)) fields.sex = 'female';
+    // Check combined Age / Sex format e.g. "64 / Male" or "64Y / M"
+    const combinedDemog = text.match(/(?:Age|Demographics)[\s.:|-]+\d{1,3}\s*(?:Y|Yrs|Years)?\s*[/\\|]\s*(Male|Female|\bM\b|\bF\b)/i);
+    if (combinedDemog) {
+      const s = combinedDemog[1].toLowerCase();
+      if (s.startsWith('m')) fields.sex = 'male';
+      else if (s.startsWith('f')) fields.sex = 'female';
+    }
   }
 
   // 2. Blood Pressure (Systolic & Diastolic)
   // Check combined BP string e.g. "152/96" or "152 / 96 mmHg" or "BP: 152/96"
-  const bpMatch = text.match(/(?:Blood\s+Pressure|\bB\.?P\.?\b|\bNIBP\b)(?:[^0-9/]{0,40}?)(\d{2,3})\s*[/\\-]\s*(\d{2,3})/i);
-  if (bpMatch) {
-    const sys = parseFloat(bpMatch[1]);
-    const dia = parseFloat(bpMatch[2]);
-    if (sys >= 60 && sys <= 260) {
-      fields.systolic = sys;
-      count++;
+  // Clean line first to prevent reference ranges like (Ref: < 120/80) from polluting result
+  let bpFound = false;
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (!/(?:Blood\s+Pressure|\bB\.?P\.?\b|\bNIBP\b)/i.test(line)) continue;
+    const cleanedLine = cleanLineForPatientResult(line);
+    const bpLineMatch = cleanedLine.match(/(?:Blood\s+Pressure|\bB\.?P\.?\b|\bNIBP\b)[^\d/]{0,40}?(\d{2,3})\s*[/\\-]\s*(\d{2,3})/i);
+    if (bpLineMatch) {
+      const sys = parseFloat(bpLineMatch[1]);
+      const dia = parseFloat(bpLineMatch[2]);
+      if (sys >= 60 && sys <= 260) {
+        fields.systolic = Math.round(sys);
+        count++;
+      }
+      if (dia >= 30 && dia <= 160) {
+        fields.diastolic = Math.round(dia);
+        count++;
+      }
+      bpFound = true;
+      break;
     }
-    if (dia >= 30 && dia <= 160) {
-      fields.diastolic = dia;
-      count++;
-    }
-  } else {
+  }
+
+  if (!bpFound) {
     // Individual systolic / diastolic line matching
     const sys = extractNumericMetric(text, /(?:Systolic(?:\s+Blood)?(?:\s+Pressure)?|Systolic\s+BP|\bSBP\b)/i, 60, 260);
     if (sys !== undefined) {
-      fields.systolic = sys;
+      fields.systolic = Math.round(sys);
       count++;
     }
     const dia = extractNumericMetric(text, /(?:Diastolic(?:\s+Blood)?(?:\s+Pressure)?|Diastolic\s+BP|\bDBP\b)/i, 30, 160);
     if (dia !== undefined) {
-      fields.diastolic = dia;
+      fields.diastolic = Math.round(dia);
       count++;
     }
   }
@@ -412,18 +483,26 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   }
 
   // 16. Fat Attenuation Index (FAI) (HU)
-  // Look explicitly for negative HU values (e.g. -92)
-  const faiMatch =
-    text.match(/(?:Fat\s+Attenuation\s+Index(?:\s*\(FAI\))?|\bFAI\b)[^\d\n-]{0,30}?(-?\s*\d{2,3}(?:\.\d+)?)/i);
-  if (faiMatch) {
-    let v = parseFloat(faiMatch[1].replace(/\s+/g, ''));
-    if (!isNaN(v)) {
-      if (v > 0) v = -v; // FAI is inherently negative in coronary CT
-      if (v >= -190 && v <= -30) {
-        fields.fai = Math.round(v * 10) / 10;
-        count++;
+  // Look explicitly for negative HU values (e.g. -92) using line-cleaned text
+  let faiVal: number | undefined;
+  for (const line of lines) {
+    if (!/(?:Fat\s+Attenuation\s+Index|\bFAI\b)/i.test(line)) continue;
+    const cleanedLine = cleanLineForPatientResult(line);
+    const m = cleanedLine.match(/(?:Fat\s+Attenuation\s+Index(?:\s*\(FAI\))?|\bFAI\b)[^\d\n-]{0,30}?(-?\s*\d{2,3}(?:\.\d+)?)/i);
+    if (m) {
+      let v = parseFloat(m[1].replace(/\s+/g, ''));
+      if (!isNaN(v)) {
+        if (v > 0) v = -v; // FAI is inherently negative in coronary CT
+        if (v >= -190 && v <= -30) {
+          faiVal = Math.round(v * 10) / 10;
+          break;
+        }
       }
     }
+  }
+  if (faiVal !== undefined) {
+    fields.fai = faiVal;
+    count++;
   }
 
   // 17. Coronary Plaque Type
@@ -434,7 +513,7 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
     const raw = plaqueMatch[1].toLowerCase();
     let pt: PlaqueType = 'none';
     if (raw.includes('mix')) pt = 'mixed';
-    else if (raw.includes('non')) pt = 'non-calcified';
+    else if (raw.includes('non') || raw.includes('soft') || raw.includes('fibrous')) pt = 'non-calcified';
     else if (raw.includes('calc')) pt = 'calcified';
     fields.plaqueType = pt;
     count++;
@@ -490,13 +569,22 @@ export function parseClinicalText(rawText: string): ExtractedReportResult {
   const summaryMatch = text.match(/Summary\s*(?:Impression|Note)?[\s.:|-]+([\s\S]*?)(?:===|Dr\.|Date:|$)/i);
   const summaryNote = summaryMatch ? summaryMatch[1].trim().slice(0, 300) : undefined;
 
+  // 21. Detect common unsupported clinical parameters and report as unmapped
+  const unmappedDetected: string[] = [];
+  for (const testItem of COMMON_UNSUPPORTED_TESTS) {
+    if (testItem.pattern.test(text)) {
+      unmappedDetected.push(testItem.name);
+    }
+  }
+
   return {
     fields,
     extractedCount: count,
     rawText,
     patientName: fields.patientName,
-    patientId,
+    patientId: fields.patientId,
     summaryNote,
+    unmappedFields: unmappedDetected,
   };
 }
 
@@ -556,9 +644,15 @@ export async function extractFromPdf(
 
   let uint8Data: Uint8Array;
   if (typeof File !== 'undefined' && fileOrBuffer instanceof File) {
+    if (fileOrBuffer.size === 0) {
+      throw new Error(`PDF file "${fileOrBuffer.name}" is empty (0 bytes).`);
+    }
     const ab = await fileOrBuffer.arrayBuffer();
     uint8Data = new Uint8Array(ab);
   } else if (fileOrBuffer instanceof Uint8Array) {
+    if (fileOrBuffer.byteLength === 0) {
+      throw new Error('PDF byte buffer is empty (0 bytes).');
+    }
     uint8Data = new Uint8Array(
       fileOrBuffer.buffer.slice(
         fileOrBuffer.byteOffset,
@@ -566,6 +660,9 @@ export async function extractFromPdf(
       )
     );
   } else if (fileOrBuffer instanceof ArrayBuffer) {
+    if (fileOrBuffer.byteLength === 0) {
+      throw new Error('PDF ArrayBuffer is empty (0 bytes).');
+    }
     uint8Data = new Uint8Array(fileOrBuffer);
   } else {
     const b = fileOrBuffer as any;
@@ -574,14 +671,23 @@ export async function extractFromPdf(
     );
   }
 
-  const loadingTask = pdfjsLib.getDocument({
-    data: uint8Data,
-  });
+  let pdfDoc: any;
+  try {
+    const loadingTask = pdfjsLib.getDocument({
+      data: uint8Data,
+    });
+    pdfDoc = await loadingTask.promise;
+  } catch (err: any) {
+    console.error('PDF document structure load failed:', err);
+    throw new Error(`Corrupted or invalid PDF file: ${err?.message || 'Unable to parse PDF structure'}`);
+  }
 
-  const pdfDoc = await loadingTask.promise;
   const numPages = pdfDoc.numPages;
-  let fullText = '';
+  if (!numPages || numPages === 0) {
+    throw new Error('PDF document contains 0 pages.');
+  }
 
+  let fullText = '';
   onProgress?.(30, `Reading text layer across ${numPages} page(s)...`);
 
   for (let i = 1; i <= numPages; i++) {
@@ -659,22 +765,38 @@ export async function extractFromImage(
   file: File,
   onProgress?: (progress: number, status: string) => void
 ): Promise<ExtractedReportResult> {
-  onProgress?.(20, 'Enhancing image for optical recognition...');
-  const preprocessed = await preprocessImageForOcr(file);
+  if (file.size === 0) {
+    throw new Error(`Image file "${file.name}" is empty (0 bytes).`);
+  }
 
-  onProgress?.(45, 'Scanning optical characters (OCR)...');
-  const ocrResult = await Tesseract.recognize(preprocessed, 'eng', {
-    logger: (m) => {
-      if (m.status === 'recognizing text' && m.progress) {
-        onProgress?.(45 + Math.round(m.progress * 45), `Recognizing text: ${Math.round(m.progress * 100)}%`);
-      }
-    },
-  });
+  try {
+    onProgress?.(20, 'Enhancing image for optical recognition...');
+    let preprocessed: any = await preprocessImageForOcr(file);
 
-  onProgress?.(95, 'Extracting clinical parameters...');
-  const result = parseClinicalText(ocrResult.data.text);
-  onProgress?.(100, `Extracted ${result.extractedCount} parameters successfully.`);
-  return result;
+    // In Node.js / SSR / testing environments without window, convert File to Buffer for Tesseract.js worker
+    if (typeof window === 'undefined' && typeof File !== 'undefined' && preprocessed instanceof File) {
+      const ab = await preprocessed.arrayBuffer();
+      const nodeBuf = (globalThis as any).Buffer;
+      preprocessed = nodeBuf ? nodeBuf.from(ab) : ab;
+    }
+
+    onProgress?.(45, 'Scanning optical characters (OCR)...');
+    const ocrResult = await Tesseract.recognize(preprocessed, 'eng', {
+      logger: (m) => {
+        if (m.status === 'recognizing text' && m.progress) {
+          onProgress?.(45 + Math.round(m.progress * 45), `Recognizing text: ${Math.round(m.progress * 100)}%`);
+        }
+      },
+    });
+
+    onProgress?.(95, 'Extracting clinical parameters...');
+    const result = parseClinicalText(ocrResult.data.text);
+    onProgress?.(100, `Extracted ${result.extractedCount} parameters successfully.`);
+    return result;
+  } catch (err: any) {
+    console.error('Image OCR failed:', err);
+    throw new Error(`Image processing failed: ${err?.message || 'Could not process image file'}`);
+  }
 }
 
 /**
@@ -684,8 +806,27 @@ export async function extractClinicalReport(
   file: File,
   onProgress?: (progress: number, status: string) => void
 ): Promise<ExtractedReportResult> {
-  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-  const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name);
+  if (!file) {
+    throw new Error('No file provided for report extraction.');
+  }
+
+  // 1. Validate file size (detect empty / 0-byte files)
+  if (file.size === 0) {
+    throw new Error(`The selected file "${file.name}" is empty (0 bytes). Please upload a valid clinical report.`);
+  }
+
+  // 2. Validate file type / format
+  const fileName = file.name.toLowerCase();
+  const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+  const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(fileName);
+  const isText = file.type === 'text/plain' || fileName.endsWith('.txt');
+
+  if (!isPdf && !isImage && !isText) {
+    const ext = fileName.includes('.') ? '.' + fileName.split('.').pop() : 'unknown';
+    throw new Error(
+      `Unsupported file format "${ext}". Supported formats are PDF, PNG, JPG, JPEG, and TXT.`
+    );
+  }
 
   if (isPdf) {
     return extractFromPdf(file, onProgress);
@@ -699,16 +840,16 @@ export async function extractClinicalReport(
   try {
     onProgress?.(40, 'Reading report text...');
     const text = await file.text();
+    if (!text || text.trim().length === 0) {
+      throw new Error(`Report file "${file.name}" contains no readable text.`);
+    }
     onProgress?.(85, 'Extracting clinical values...');
     const result = parseClinicalText(text);
     onProgress?.(100, `Extracted ${result.extractedCount} parameters.`);
     return result;
-  } catch (err) {
-    console.warn('Text file read failed:', err);
-    return {
-      fields: {},
-      extractedCount: 0,
-      rawText: '',
-    };
+  } catch (err: any) {
+    console.error('Text file read failed:', err);
+    if (err instanceof Error) throw err;
+    throw new Error(`Failed to read plain text report: ${String(err)}`);
   }
 }

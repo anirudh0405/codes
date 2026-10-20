@@ -86,6 +86,7 @@ export interface UploadedReport {
   fileType: 'pdf' | 'image';
   extractedFields?: ReportFields;
   extractedCount?: number;
+  unmappedFields?: string[];
   status?: 'analyzing' | 'applied' | 'error';
   patientName?: string;
   patientId?: string;
@@ -95,6 +96,7 @@ export interface UploadedReport {
 }
 
 export interface ReportFields {
+  patientId?: string;
   totalCholesterol?: number;
   hdl?: number;
   ldl?: number;
@@ -838,12 +840,17 @@ export const useSimStore = create<SimState>((set, get) => ({
     if (fields.fai !== undefined) s.setFai(fields.fai);
     if (fields.cac !== undefined) s.setCac(fields.cac);
 
-    // Update vitals via params
+    // Update vitals via params and enforce manual BP mode when report specifies BP
     const paramPatch: Partial<MockParams> = {};
     if (fields.systolic !== undefined) paramPatch.systolic = fields.systolic;
     if (fields.diastolic !== undefined) paramPatch.diastolic = fields.diastolic;
     if (fields.heartRate !== undefined) paramPatch.heartRate = fields.heartRate;
-    if (Object.keys(paramPatch).length > 0) s.setParams(paramPatch);
+    if (Object.keys(paramPatch).length > 0) {
+      s.setParams(paramPatch);
+      if (fields.systolic !== undefined || fields.diastolic !== undefined) {
+        s.setBPMode('manual');
+      }
+    }
 
     // Update patient profile demographics
     const profilePatch: Partial<PatientProfileData> = {};
@@ -859,9 +866,13 @@ export const useSimStore = create<SimState>((set, get) => ({
     }
 
     // Store patient identifier if available
-    if (fields.patientName && typeof window !== 'undefined' && window.sessionStorage) {
+    const ptId = fields.patientId || fields.patientName;
+    const sessionStore = typeof sessionStorage !== 'undefined'
+      ? sessionStorage
+      : (typeof window !== 'undefined' && window.sessionStorage ? window.sessionStorage : null);
+    if (ptId && sessionStore) {
       try {
-        window.sessionStorage.setItem('arohan_patient_id', fields.patientName);
+        sessionStore.setItem('arohan_patient_id', ptId);
       } catch {
         // ignore
       }
@@ -909,6 +920,17 @@ export const useSimStore = create<SimState>((set, get) => ({
   clearReport: () => {
     const s = get();
     const targetProfileId = s.lastActiveProfileId || SCENARIO_PRESETS[0].id;
+
+    const sessionStore = typeof sessionStorage !== 'undefined'
+      ? sessionStorage
+      : (typeof window !== 'undefined' && window.sessionStorage ? window.sessionStorage : null);
+    if (sessionStore) {
+      try {
+        sessionStore.removeItem('arohan_patient_id');
+      } catch {
+        // ignore
+      }
+    }
 
     // Reset report state
     set({

@@ -364,6 +364,11 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>
               Values from the clinical report were automatically extracted and applied to your dashboard. Review or adjust any value below.
             </div>
+            {uploadedReport.unmappedFields && uploadedReport.unmappedFields.length > 0 && (
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', opacity: 0.85 }}>
+                Unmapped in report: {uploadedReport.unmappedFields.join(', ')}
+              </div>
+            )}
           </div>
         )}
 

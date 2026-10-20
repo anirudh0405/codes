@@ -122,7 +122,9 @@ export function PatientReportPage() {
 
   // ── Groq Language Layer State (with reliable static fallback) ──────────────
   const [groqScoreMeaning, setGroqScoreMeaning] = useState<string | null>(null);
+  const [groqScoreSource, setGroqScoreSource] = useState<'provider' | 'mock' | 'fallback'>('fallback');
   const [groqParamExplanations, setGroqParamExplanations] = useState<Record<string, string>>({});
+  const [groqParamSource, setGroqParamSource] = useState<'provider' | 'mock' | 'fallback'>('fallback');
 
   useEffect(() => {
     let isCancelled = false;
@@ -138,7 +140,8 @@ export function PatientReportPage() {
       risk.meaning
     ).then((result) => {
       if (!isCancelled && result) {
-        setGroqScoreMeaning(result);
+        setGroqScoreMeaning(result.data);
+        setGroqScoreSource(result.source);
       }
     });
 
@@ -159,7 +162,8 @@ export function PatientReportPage() {
       fallbackMap
     ).then((resultMap) => {
       if (!isCancelled && resultMap) {
-        setGroqParamExplanations(resultMap);
+        setGroqParamExplanations(resultMap.data);
+        setGroqParamSource(resultMap.source);
       }
     });
 
@@ -667,7 +671,12 @@ Principal Driver: ${contributors.slice(0, 2).map(c => c.label).join(' + ')}`;
         <section className="pr-card pr-section">
           <div className="pr-section-header-title">5. WHAT DOES THIS SCORE MEAN?</div>
           <div className="pr-meaning-block">
-            <div className="pr-meaning-title font-semibold">Clinical Interpretation:</div>
+            <div className="pr-meaning-title font-semibold" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Clinical Interpretation:</span>
+              <span style={{ fontSize: '11px', fontWeight: 500, color: groqScoreSource === 'provider' ? 'var(--accent, #2563eb)' : 'var(--text-secondary, #64748b)' }}>
+                {groqScoreSource === 'provider' ? '✓ AI-Assisted (Groq Llama-3)' : groqScoreSource === 'mock' ? 'Simulation Demo' : 'Verified Clinical Baseline'}
+              </span>
+            </div>
             <div className="pr-meaning-text">{groqScoreMeaning || risk.meaning}</div>
           </div>
 
@@ -778,7 +787,12 @@ Principal Driver: ${contributors.slice(0, 2).map(c => c.label).join(' + ')}`;
         {/* 9. EXPLAINABLE AI */}
         <section className="pr-card pr-section">
           <div className="pr-section-header-title">9. EXPLAINABLE AI</div>
-          <div className="pr-xai-header">WHY DID THE AI PREDICT THIS?</div>
+          <div className="pr-xai-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>WHY DID THE AI PREDICT THIS?</span>
+            <span style={{ fontSize: '11px', fontWeight: 500, textTransform: 'none', color: groqParamSource === 'provider' ? 'var(--accent, #2563eb)' : 'var(--text-secondary, #64748b)' }}>
+              {groqParamSource === 'provider' ? '✓ AI-Generated Insights (Groq)' : groqParamSource === 'mock' ? 'Simulation Demo' : 'Verified Deterministic Rules'}
+            </span>
+          </div>
           <table className="pr-clean-table">
             <thead>
               <tr>

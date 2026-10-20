@@ -6,12 +6,23 @@
  * 1. "What does this score mean?" (2-3 concise sentences)
  * 2. "Why did the AI predict this?" (concise parameter explanations)
  *
- * CRITICAL SAFETY RULES:
- * - NEVER contains or exposes GROQ_API_KEY.
- * - Always falls back to static verified text on error, missing key, or timeout.
- * - Never shows raw API errors to the user.
+ * CRITICAL SAFETY & SECURITY CONTROLS:
+ * - NEVER contains or exposes GROQ_API_KEY. All provider interactions run server-side.
+ * - Explicitly distinguishes 'provider' (live AI) from 'mock' (simulation) and 'fallback' (verified clinical baseline).
+ * - Never disguises failed AI requests as successful AI interpretations.
+ * - Always falls back to static verified clinical text on error, missing credentials, rate limit, or timeout.
  * - Does not invent diagnoses, scores, or probabilities.
  */
+
+export type ExplanationSource = 'provider' | 'mock' | 'fallback';
+
+export interface ExplanationResponse<T> {
+  success: boolean;
+  source: ExplanationSource;
+  data: T;
+  model?: string;
+  error?: string;
+}
 
 export interface ScoreExplanationInput {
   riskScore: number;
@@ -31,7 +42,7 @@ export interface ParameterExplanationInput {
 export async function fetchScoreMeaningExplanation(
   input: ScoreExplanationInput,
   fallbackText: string
-): Promise<string> {
+): Promise<ExplanationResponse<string>> {
   try {
     const res = await fetch('/api/groq/explain', {
       method: 'POST',
@@ -42,22 +53,39 @@ export async function fetchScoreMeaningExplanation(
       }),
     });
 
-    if (!res.ok) return fallbackText;
-    const data = await res.json();
-    if (data.success && data.text && typeof data.text === 'string') {
-      return data.text.trim();
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data?.success && typeof data?.text === 'string') {
+      return {
+        success: true,
+        source: data.source === 'mock' ? 'mock' : 'provider',
+        data: data.text.trim(),
+        model: data.model,
+      };
     }
-    return fallbackText;
-  } catch (err) {
-    console.warn('Groq score explanation fetch failed, using clinical fallback:', err);
-    return fallbackText;
+
+    // Explicitly record that AI request was unavailable/failed and verified fallback is being used
+    return {
+      success: false,
+      source: 'fallback',
+      data: fallbackText,
+      error: data?.message || data?.error || `Server responded with HTTP ${res.status}`,
+    };
+  } catch (err: any) {
+    console.warn('Groq score explanation fetch failed, using clinical fallback:', err?.message || err);
+    return {
+      success: false,
+      source: 'fallback',
+      data: fallbackText,
+      error: err?.message || 'Network error communicating with AI gateway',
+    };
   }
 }
 
 export async function fetchParameterExplanations(
   input: ParameterExplanationInput,
   fallbackMap: Record<string, string>
-): Promise<Record<string, string>> {
+): Promise<ExplanationResponse<Record<string, string>>> {
   try {
     const res = await fetch('/api/groq/explain', {
       method: 'POST',
@@ -68,14 +96,31 @@ export async function fetchParameterExplanations(
       }),
     });
 
-    if (!res.ok) return fallbackMap;
-    const data = await res.json();
-    if (data.success && data.parameterExplanations && typeof data.parameterExplanations === 'object') {
-      return { ...fallbackMap, ...data.parameterExplanations };
+    const data = await res.json().catch(() => null);
+
+    if (res.ok && data?.success && data?.parameterExplanations && typeof data.parameterExplanations === 'object') {
+      return {
+        success: true,
+        source: data.source === 'mock' ? 'mock' : 'provider',
+        data: { ...fallbackMap, ...data.parameterExplanations },
+        model: data.model,
+      };
     }
-    return fallbackMap;
-  } catch (err) {
-    console.warn('Groq parameter explanations fetch failed, using clinical fallback:', err);
-    return fallbackMap;
+
+    // Explicitly record that AI request was unavailable/failed and verified fallback is being used
+    return {
+      success: false,
+      source: 'fallback',
+      data: fallbackMap,
+      error: data?.message || data?.error || `Server responded with HTTP ${res.status}`,
+    };
+  } catch (err: any) {
+    console.warn('Groq parameter explanations fetch failed, using clinical fallback:', err?.message || err);
+    return {
+      success: false,
+      source: 'fallback',
+      data: fallbackMap,
+      error: err?.message || 'Network error communicating with AI gateway',
+    };
   }
 }

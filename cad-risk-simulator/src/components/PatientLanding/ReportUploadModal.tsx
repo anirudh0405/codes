@@ -38,6 +38,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
   const [extractedSummary, setExtractedSummary] = useState<{
     count: number;
     fields: string[];
+    unmapped?: string[];
   }>({ count: 0, fields: [] });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,9 +69,18 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
     if (uploadState === 'processing') return;
 
     const file = e.dataTransfer.files?.[0];
-    if (file && isValidFile(file)) {
+    if (!file) return;
+
+    if (file.size === 0) {
+      setErrorMessage(`Selected file "${file.name}" is empty (0 bytes).`);
+      setUploadState('error');
+      return;
+    }
+
+    if (isValidFile(file)) {
       setSelectedFile(file);
       setUploadState('selected');
+      setErrorMessage('');
     } else {
       setErrorMessage('Please provide a valid PDF, image (JPG, PNG), or text report.');
       setUploadState('error');
@@ -79,16 +89,27 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && isValidFile(file)) {
+    if (!file) return;
+
+    if (file.size === 0) {
+      setErrorMessage(`Selected file "${file.name}" is empty (0 bytes).`);
+      setUploadState('error');
+      return;
+    }
+
+    if (isValidFile(file)) {
       setSelectedFile(file);
       setUploadState('selected');
       setErrorMessage('');
+    } else {
+      setErrorMessage('Please provide a valid PDF, image (JPG, PNG), or text report.');
+      setUploadState('error');
     }
   };
 
   const isValidFile = (file: File) => {
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g)$/i.test(file.name);
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name);
     const isText = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
     return isPdf || isImage || isText;
   };
@@ -137,15 +158,21 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
       if (extracted.extractedCount > 0 || Object.keys(extracted.fields).length > 0) {
         setReportFields(extracted.fields);
 
+        const unmappedMsg = extracted.unmappedFields && extracted.unmappedFields.length > 0
+          ? ` (${extracted.unmappedFields.length} unmapped)`
+          : '';
+
         setUploadedReport({
           ...initialReport,
           status: 'applied',
           extractedFields: extracted.fields,
           extractedCount: extracted.extractedCount,
+          unmappedFields: extracted.unmappedFields,
           patientName: extracted.patientName,
+          patientId: extracted.patientId,
           summaryNote: extracted.summaryNote,
           analysisProgress: 100,
-          analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,
+          analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard${unmappedMsg}`,
         });
 
         // Extract field names for summary display
@@ -160,6 +187,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
         setExtractedSummary({
           count: extracted.extractedCount,
           fields: Array.from(new Set(fieldNames)),
+          unmapped: extracted.unmappedFields ?? [],
         });
 
         setProgress(100);
@@ -176,12 +204,14 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
       }
     } catch (err: any) {
       console.error('Report parse error:', err);
-      setErrorMessage('Could not extract clinical parameters automatically.');
+      const msg = err?.message || 'Could not extract clinical parameters automatically.';
+      setErrorMessage(msg);
       setUploadState('error');
       setUploadedReport({
         ...initialReport,
         status: 'error',
-        analysisStatusText: 'Failed to extract values automatically.',
+        analysisProgress: 0,
+        analysisStatusText: msg,
       });
     }
   };
@@ -384,6 +414,12 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
                     </Badge>
                   ))}
                 </div>
+              )}
+
+              {extractedSummary.unmapped && extractedSummary.unmapped.length > 0 && (
+                <p style={{ fontSize: 11, color: '#64748B', margin: '4px 0 0 0' }}>
+                  Unmapped parameters: {extractedSummary.unmapped.join(', ')}
+                </p>
               )}
             </div>
           )}

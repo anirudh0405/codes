@@ -37,10 +37,12 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset so same file can be re-uploaded
+    e.target.value = '';
+
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png)$/i.test(file.name);
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(file.name);
     const isText = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt');
-    if (!isPdf && !isImage && !isText) return;
 
     const fileUrl = URL.createObjectURL(file);
     const now = new Date();
@@ -66,8 +68,25 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
     setUploadedReport(initialReport);
     onFileSelected?.();
 
-    // Reset so same file can be re-uploaded
-    e.target.value = '';
+    if (!isPdf && !isImage && !isText) {
+      setUploadedReport({
+        ...initialReport,
+        status: 'error',
+        analysisProgress: 0,
+        analysisStatusText: 'Unsupported file format. Please upload a PDF, PNG, JPG, or TXT report.',
+      });
+      return;
+    }
+
+    if (file.size === 0) {
+      setUploadedReport({
+        ...initialReport,
+        status: 'error',
+        analysisProgress: 0,
+        analysisStatusText: `File "${file.name}" is empty (0 bytes).`,
+      });
+      return;
+    }
 
     try {
       const extracted = await parseReportFile(file, (progress, statusText) => {
@@ -81,15 +100,20 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
       // Auto-apply all extracted fields directly to dashboard and state
       if (extracted.extractedCount > 0 || Object.keys(extracted.fields).length > 0) {
         setReportFields(extracted.fields);
+        const unmappedMsg = extracted.unmappedFields && extracted.unmappedFields.length > 0
+          ? ` (${extracted.unmappedFields.length} unmapped)`
+          : '';
         setUploadedReport({
           ...initialReport,
           status: 'applied',
           extractedFields: extracted.fields,
           extractedCount: extracted.extractedCount,
+          unmappedFields: extracted.unmappedFields,
           patientName: extracted.patientName,
+          patientId: extracted.patientId,
           summaryNote: extracted.summaryNote,
           analysisProgress: 100,
-          analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard`,
+          analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard${unmappedMsg}`,
         });
       } else {
         setUploadedReport({
@@ -97,16 +121,18 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
           status: 'error',
           extractedFields: {},
           extractedCount: 0,
+          unmappedFields: extracted.unmappedFields,
           analysisProgress: 100,
           analysisStatusText: 'No supported clinical parameters found in the report.',
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Report parsing error:', err);
       setUploadedReport({
         ...initialReport,
         status: 'error',
-        analysisStatusText: 'Failed to extract values automatically. You can enter them manually.',
+        analysisProgress: 0,
+        analysisStatusText: err?.message || 'Failed to extract values automatically. You can enter them manually.',
       });
     }
   };
