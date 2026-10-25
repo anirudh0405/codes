@@ -1,0 +1,43 @@
+CLINICAL LABORATORY REPORT
+===========================
+Arohan Cardiovascular Intelligence Platform — Sample Demo Report
+
+PATIENT INFORMATION
+Patient ID: PT-DEMO-2026
+Patient Name: Demo Patient
+Age: 58
+Sex: Male
+Report Date: 2026-10-25
+
+LIPID PANEL
+Total Cholesterol: 248 mg/dL
+HDL Cholesterol: 36 mg/dL
+LDL Cholesterol: 165 mg/dL
+Triglycerides: 220 mg/dL
+Apolipoprotein B (ApoB): 142 mg/dL
+
+INFLAMMATORY MARKERS
+hs-CRP: 4.8 mg/L
+HbA1c: 7.2%
+Fasting Blood Glucose: 126 mg/dL
+
+VITAL SIGNS
+Blood Pressure: 158/98 mmHg
+Systolic Blood Pressure: 158 mmHg
+Diastolic Blood Pressure: 98 mmHg
+Heart Rate: 92 bpm
+BMI: 30.1 kg/m²
+
+CARDIAC IMAGING
+Coronary Artery Calcium Score: 310 AU
+Fat Attenuation Index: -65.2 HU
+Coronary Plaque: Mixed
+Plaque Location: LAD
+Stenosis Severity: 50-70%
+
+CLINICAL ASSESSMENT
+Multiple cardiovascular risk factors are elevated.
+Close monitoring and specialist cardiovascular evaluation recommended.
+
+NOTE: This is demonstration data for platform testing only.
+Not a real patient report.
