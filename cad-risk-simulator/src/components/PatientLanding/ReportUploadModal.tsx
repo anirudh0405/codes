@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useSimStore, UploadedReport } from '@/store/simStore';
+import { useSimStore, UploadedReport, ExtractedParameterDetail } from '@/store/simStore';
 import { parseReportFile } from '@/services/reportParser';
 import {
   UploadCloud,
@@ -38,6 +38,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
   const [extractedSummary, setExtractedSummary] = useState<{
     count: number;
     fields: string[];
+    parameterDetails?: ExtractedParameterDetail[];
     unmapped?: string[];
   }>({ count: 0, fields: [] });
 
@@ -167,6 +168,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
           status: 'applied',
           extractedFields: extracted.fields,
           extractedCount: extracted.extractedCount,
+          parameterDetails: extracted.parameterDetails,
           unmappedFields: extracted.unmappedFields,
           patientName: extracted.patientName,
           patientId: extracted.patientId,
@@ -175,18 +177,27 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
           analysisStatusText: `✓ Auto-read ${extracted.extractedCount} values and applied to dashboard${unmappedMsg}`,
         });
 
-        // Extract field names for summary display
-        const fieldNames = Object.keys(extracted.fields).map((k) => {
-          if (k === 'totalCholesterol') return 'Total Cholesterol';
-          if (k === 'systolic' || k === 'diastolic') return 'Blood Pressure';
-          if (k === 'cac') return 'CAC Score';
-          if (k === 'fai') return 'FAI Index';
-          return k.toUpperCase();
-        });
+        // Extract field names and values for summary display
+        const displayItems = (extracted.parameterDetails && extracted.parameterDetails.length > 0)
+          ? extracted.parameterDetails.map((pd) => {
+              const pageStr = pd.sourcePage ? ` (p. ${pd.sourcePage})` : '';
+              const unitStr = pd.unit ? ` ${pd.unit}` : '';
+              return `${pd.parameter}: ${pd.value}${unitStr}${pageStr}`;
+            })
+          : Object.keys(extracted.fields).map((k) => {
+              if (k === 'totalCholesterol') return 'Total Cholesterol';
+              if (k === 'systolic' || k === 'diastolic') return 'Blood Pressure';
+              if (k === 'cac') return 'CAC Score';
+              if (k === 'fai') return 'FAI Index';
+              if (k === 'vldl') return 'VLDL Cholesterol';
+              if (k === 'postprandialGlucose') return 'Postprandial Glucose';
+              return k.toUpperCase();
+            });
 
         setExtractedSummary({
           count: extracted.extractedCount,
-          fields: Array.from(new Set(fieldNames)),
+          fields: Array.from(new Set(displayItems)),
+          parameterDetails: extracted.parameterDetails,
           unmapped: extracted.unmappedFields ?? [],
         });
 
@@ -403,7 +414,7 @@ export function ReportUploadModal({ open, onOpenChange }: ReportUploadModalProps
               </div>
 
               {extractedSummary.fields.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', paddingTop: 4 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', paddingTop: 4, maxHeight: 160, overflowY: 'auto' }}>
                   {extractedSummary.fields.map((field) => (
                     <Badge
                       key={field}

@@ -11,9 +11,10 @@ import {
   parseClinicalText as extractText,
   cleanOcrText,
   type ExtractedReportResult,
+  type ExtractedParameterDetail,
 } from './clinicalExtractor';
 
-export type { ExtractedReportResult };
+export type { ExtractedReportResult, ExtractedParameterDetail };
 export { cleanOcrText };
 
 /**

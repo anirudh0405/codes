@@ -79,6 +79,16 @@ export const CAC_CLAMP = { min: 0, default: 0 };
 export type PlaqueType = 'none' | 'non-calcified' | 'calcified' | 'mixed';
 export type StenosisSeverity = 'none' | '<50%' | '50-70%' | '>70%';
 
+export interface ExtractedParameterDetail {
+  parameter: string;
+  fieldKey: keyof ReportFields;
+  value: number | string | string[];
+  unit?: string;
+  sourcePage?: number;
+  status: 'accepted' | 'review' | 'unconfident';
+  rawSnippet?: string;
+}
+
 export interface UploadedReport {
   fileName: string;
   timestamp: string;
@@ -86,6 +96,7 @@ export interface UploadedReport {
   fileType: 'pdf' | 'image';
   extractedFields?: ReportFields;
   extractedCount?: number;
+  parameterDetails?: ExtractedParameterDetail[];
   unmappedFields?: string[];
   status?: 'analyzing' | 'applied' | 'error';
   patientName?: string;
@@ -100,6 +111,7 @@ export interface ReportFields {
   totalCholesterol?: number;
   hdl?: number;
   ldl?: number;
+  vldl?: number;
   triglycerides?: number;
   apoB?: number;
   apoBApoa1Ratio?: number;
@@ -107,6 +119,7 @@ export interface ReportFields {
   hsCRP?: number;
   hba1c?: number;
   fastingGlucose?: number;
+  postprandialGlucose?: number;
   cac?: number;
   fai?: number;
   plaqueType?: PlaqueType;
@@ -186,6 +199,8 @@ export interface SimState {
   hsCRP: number;
   hba1c: number;
   fastingGlucose: number;
+  postprandialGlucose: number;
+  vldl: number;
   plaqueType: PlaqueType;
   plaqueLocation: string[];
   stenosisSeverity: StenosisSeverity;
@@ -392,6 +407,8 @@ export const useSimStore = create<SimState>((set, get) => ({
   hsCRP: 0,
   hba1c: 0,
   fastingGlucose: 0,
+  postprandialGlucose: 0,
+  vldl: 0,
   plaqueType: 'none',
   plaqueLocation: [],
   stenosisSeverity: 'none',
@@ -907,6 +924,8 @@ export const useSimStore = create<SimState>((set, get) => ({
       ...(fields.hsCRP !== undefined ? { hsCRP: fields.hsCRP } : {}),
       ...(fields.hba1c !== undefined ? { hba1c: fields.hba1c } : {}),
       ...(fields.fastingGlucose !== undefined ? { fastingGlucose: fields.fastingGlucose } : {}),
+      ...(fields.postprandialGlucose !== undefined ? { postprandialGlucose: fields.postprandialGlucose } : {}),
+      ...(fields.vldl !== undefined ? { vldl: fields.vldl } : {}),
       ...(fields.plaqueType !== undefined ? { plaqueType: fields.plaqueType } : {}),
       ...(fields.plaqueLocation !== undefined ? { plaqueLocation: fields.plaqueLocation } : {}),
       ...(fields.stenosisSeverity !== undefined ? { stenosisSeverity: fields.stenosisSeverity } : {}),
@@ -937,6 +956,8 @@ export const useSimStore = create<SimState>((set, get) => ({
       hsCRP: 0,
       hba1c: 0,
       fastingGlucose: 0,
+      postprandialGlucose: 0,
+      vldl: 0,
       plaqueType: 'none',
       plaqueLocation: [],
       stenosisSeverity: 'none',

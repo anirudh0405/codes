@@ -173,6 +173,8 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
     hsCRP,
     hba1c,
     fastingGlucose,
+    postprandialGlucose,
+    vldl,
     plaqueType,
     plaqueLocation,
     stenosisSeverity,
@@ -190,6 +192,8 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
       hsCRP: s.hsCRP,
       hba1c: s.hba1c,
       fastingGlucose: s.fastingGlucose,
+      postprandialGlucose: s.postprandialGlucose,
+      vldl: s.vldl,
       plaqueType: s.plaqueType,
       plaqueLocation: s.plaqueLocation,
       stenosisSeverity: s.stenosisSeverity,
@@ -211,6 +215,7 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
       if (ef.totalCholesterol !== undefined) initial.totalCholesterol = String(ef.totalCholesterol);
       if (ef.hdl !== undefined) initial.hdl = String(ef.hdl);
       if (ef.ldl !== undefined) initial.ldl = String(ef.ldl);
+      if (ef.vldl !== undefined) initial.vldl = String(ef.vldl);
       if (ef.triglycerides !== undefined) initial.triglycerides = String(ef.triglycerides);
       if (ef.apoB !== undefined) initial.apoB = String(ef.apoB);
       if (ef.apoBApoa1Ratio !== undefined) initial.apoBApoa1Ratio = String(ef.apoBApoa1Ratio);
@@ -218,6 +223,7 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
       if (ef.hsCRP !== undefined) initial.hsCRP = String(ef.hsCRP);
       if (ef.hba1c !== undefined) initial.hba1c = String(ef.hba1c);
       if (ef.fastingGlucose !== undefined) initial.fastingGlucose = String(ef.fastingGlucose);
+      if (ef.postprandialGlucose !== undefined) initial.postprandialGlucose = String(ef.postprandialGlucose);
       if (ef.cac !== undefined) initial.cac = String(ef.cac);
       if (ef.fai !== undefined) initial.fai = String(ef.fai);
       if (ef.plaqueType) initial.plaqueType = ef.plaqueType;
@@ -243,6 +249,7 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
       ['totalCholesterol', 'totalCholesterol'],
       ['hdl', 'hdl'],
       ['ldl', 'ldl'],
+      ['vldl', 'vldl'],
       ['triglycerides', 'triglycerides'],
       ['apoB', 'apoB'],
       ['apoBApoa1Ratio', 'apoBApoa1Ratio'],
@@ -250,6 +257,7 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
       ['hsCRP', 'hsCRP'],
       ['hba1c', 'hba1c'],
       ['fastingGlucose', 'fastingGlucose'],
+      ['postprandialGlucose', 'postprandialGlucose'],
       ['cac', 'cac'],
       ['fai', 'fai'],
       ['systolic', 'systolic'],
@@ -402,6 +410,14 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
             onChange={handleChange}
           />
           <NumField
+            label="VLDL Cholesterol"
+            field="vldl"
+            placeholder={vldl || 0}
+            min={2} max={150} step={1} unit="mg/dL"
+            value={fields.vldl ?? ''}
+            onChange={handleChange}
+          />
+          <NumField
             label="Triglycerides"
             field="triglycerides"
             placeholder={labInputs.triglycerides}
@@ -455,6 +471,14 @@ export function ReportUploadPanel({ isOpen, onClose }: ReportUploadPanelProps) {
             placeholder={fastingGlucose || 0}
             min={40} max={500} step={1} unit="mg/dL"
             value={fields.fastingGlucose ?? ''}
+            onChange={handleChange}
+          />
+          <NumField
+            label="Postprandial Glucose (PPBS)"
+            field="postprandialGlucose"
+            placeholder={postprandialGlucose || 0}
+            min={40} max={600} step={1} unit="mg/dL"
+            value={fields.postprandialGlucose ?? ''}
             onChange={handleChange}
           />
 

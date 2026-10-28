@@ -108,6 +108,7 @@ export function ReportUploadZone({ onFileSelected, compact }: ReportUploadZonePr
           status: 'applied',
           extractedFields: extracted.fields,
           extractedCount: extracted.extractedCount,
+          parameterDetails: extracted.parameterDetails,
           unmappedFields: extracted.unmappedFields,
           patientName: extracted.patientName,
           patientId: extracted.patientId,
