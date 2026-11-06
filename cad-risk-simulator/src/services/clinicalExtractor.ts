@@ -36,6 +36,8 @@ export interface ExtractedReportResult {
   rawText: string;
   patientName?: string;
   patientId?: string;
+  reportDate?: string;
+  facilityName?: string;
   summaryNote?: string;
   parameterDetails?: ExtractedParameterDetail[];
   unmappedFields?: string[];
@@ -321,6 +323,39 @@ export function parseClinicalText(rawText: string, pageNumber?: number): Extract
       const s = combinedDemog[1].toLowerCase();
       if (s.startsWith('m')) fields.sex = 'male';
       else if (s.startsWith('f')) fields.sex = 'female';
+    }
+  }
+
+  // Report Date extraction
+  let reportDate: string | undefined;
+  const dateMatch =
+    text.match(/(?:Report\s*Date|Collection\s*Date|Sample\s*Date|Test\s*Date|Date\s*of\s*Collection|Date\s*of\s*Report|Date)[\s.:|-]+(\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}|\d{1,2}[-\s/]+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[-\s/]+\d{2,4}|\d{4}[-/.]\d{1,2}[-/.]\d{1,2})/i);
+  if (dateMatch) {
+    reportDate = dateMatch[1].trim();
+  }
+
+  // Facility / Laboratory extraction
+  let facilityName: string | undefined;
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.length < 3) continue;
+
+    const prefixMatch = trimmed.match(/^(?:Laboratory|Lab|Hospital|Diagnostic\s*Centre?|Diagnostics|Clinic|Medical\s*Center)[\s.:|-]+([A-Za-z0-9\s&,.-]{3,40})/i);
+    if (prefixMatch) {
+      const candidate = prefixMatch[1].trim();
+      if (!/^(?:Report|Result|Test|Sample|Patient|Investigation|Department)/i.test(candidate)) {
+        facilityName = candidate;
+        break;
+      }
+    }
+
+    if (/(?:Hospitals?|Diagnostics?|Laborator(?:y|ies)|PathLabs?|Healthcare|Clinic|Medical\s*Center)/i.test(trimmed)) {
+      if (!/^(?:Report|Patient|Doctor|Normal|Result|Test|Sample|Clinical|Biological|Reference)/i.test(trimmed)) {
+        if (!/^(?:Laboratory|Lab|Hospital|Diagnostic)\s*(?:Report|Summary|Investigation|Results?)$/i.test(trimmed)) {
+          facilityName = trimmed.replace(/[\s.:|-]+$/, '');
+          break;
+        }
+      }
     }
   }
 
@@ -880,6 +915,8 @@ export function parseClinicalText(rawText: string, pageNumber?: number): Extract
     rawText,
     patientName: fields.patientName,
     patientId: fields.patientId,
+    reportDate,
+    facilityName,
     summaryNote,
     parameterDetails,
     unmappedFields: unmappedDetected,
@@ -1150,6 +1187,8 @@ export async function extractFromPdf(
   let patientName: string | undefined;
   let patientId: string | undefined;
   let summaryNote: string | undefined;
+  let reportDate: string | undefined;
+  let facilityName: string | undefined;
 
   for (const entry of pageEntries) {
     fullAccumulatedText += `\n--- Page ${entry.pageNumber} ---\n` + entry.text;
@@ -1163,6 +1202,12 @@ export async function extractFromPdf(
     }
     if (pageResult.summaryNote && !summaryNote) {
       summaryNote = pageResult.summaryNote;
+    }
+    if (pageResult.reportDate && !reportDate) {
+      reportDate = pageResult.reportDate;
+    }
+    if (pageResult.facilityName && !facilityName) {
+      facilityName = pageResult.facilityName;
     }
 
     if (pageResult.unmappedFields) {
@@ -1203,6 +1248,8 @@ export async function extractFromPdf(
     rawText: fullAccumulatedText,
     patientName: aggregatedFields.patientName,
     patientId: aggregatedFields.patientId,
+    reportDate,
+    facilityName,
     summaryNote,
     parameterDetails: allParameterDetails,
     unmappedFields: Array.from(unmappedSet),
@@ -1279,28 +1326,38 @@ export async function extractClinicalReport(
     );
   }
 
+  let result: ExtractedReportResult;
+
   if (isPdf) {
-    return extractFromPdf(file, onProgress);
-  }
-
-  if (isImage) {
-    return extractFromImage(file, onProgress);
-  }
-
-  // Plain text fallback
-  try {
-    onProgress?.(40, 'Reading report text...');
-    const text = await file.text();
-    if (!text || text.trim().length === 0) {
-      throw new Error(`Report file "${file.name}" contains no readable text.`);
+    result = await extractFromPdf(file, onProgress);
+  } else if (isImage) {
+    result = await extractFromImage(file, onProgress);
+  } else {
+    // Plain text fallback
+    try {
+      onProgress?.(40, 'Reading report text...');
+      const text = await file.text();
+      if (!text || text.trim().length === 0) {
+        throw new Error(`Report file "${file.name}" contains no readable text.`);
+      }
+      onProgress?.(85, 'Extracting clinical values...');
+      result = parseClinicalText(text, 1);
+      onProgress?.(100, `Extracted ${result.extractedCount} parameters.`);
+    } catch (err: any) {
+      console.error('Text file read failed:', err);
+      if (err instanceof Error) throw err;
+      throw new Error(`Failed to read plain text report: ${String(err)}`);
     }
-    onProgress?.(85, 'Extracting clinical values...');
-    const result = parseClinicalText(text, 1);
-    onProgress?.(100, `Extracted ${result.extractedCount} parameters.`);
-    return result;
-  } catch (err: any) {
-    console.error('Text file read failed:', err);
-    if (err instanceof Error) throw err;
-    throw new Error(`Failed to read plain text report: ${String(err)}`);
   }
+
+  // Preserve sourceFile, reportDate, and facilityName across all parameterDetails
+  if (result && result.parameterDetails) {
+    for (const pd of result.parameterDetails) {
+      if (!pd.sourceFile) pd.sourceFile = file.name;
+      if (!pd.sourceDate && result.reportDate) pd.sourceDate = result.reportDate;
+      if (!pd.sourceFacility && result.facilityName) pd.sourceFacility = result.facilityName;
+    }
+  }
+
+  return result;
 }

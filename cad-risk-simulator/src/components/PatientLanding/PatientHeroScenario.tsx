@@ -6,6 +6,7 @@ export function PatientHeroScenario() {
   const activeProfile = useSimStore((s) => s.activeProfile);
   const selectedCategory = useSimStore((s) => s.selectedCategory);
   const uploadedReport = useSimStore((s) => s.uploadedReport);
+  const uploadedReports = useSimStore((s) => s.uploadedReports);
   const riskResult = useSimStore((s) => s.riskResult);
 
   // Patient ID strictly from existing store or default PT-001
@@ -37,7 +38,11 @@ export function PatientHeroScenario() {
   let isHealthy = true;
 
   if (uploadedReport?.status === 'applied') {
-    scenarioName = `Report Applied: ${uploadedReport.fileName}`;
+    if (uploadedReports && uploadedReports.length > 1) {
+      scenarioName = `${uploadedReports.length} Reports Applied (${uploadedReports.map(r => r.fileName).join(', ')})`;
+    } else {
+      scenarioName = `Report Applied: ${uploadedReport.fileName}`;
+    }
     isHealthy = (riskResult?.band ?? 'Low') === 'Low';
   } else if (activeProfile) {
     scenarioName = activeProfile.name;

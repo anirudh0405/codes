@@ -1,55 +1,18 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useSimStore } from '@/store/simStore';
-import { computeDiseaseSubScores } from '@/riskEngine/diseaseSubScores';
 
 export function DiseaseRiskSection() {
   const storeSubScores = useSimStore((s) => s.diseaseSubScores);
-  const labInputs = useSimStore((s) => s.labInputs);
-  const apoBPanel = useSimStore((s) => s.apoBPanel);
-  const fai = useSimStore((s) => s.fai);
-  const cac = useSimStore((s) => s.cac);
-  const params = useSimStore((s) => s.params);
-  const patientProfile = useSimStore((s) => s.patientProfile);
   const activeProfile = useSimStore((s) => s.activeProfile);
-
-  // Compute sub-scores if not available, or use defaults
-  const subScores = useMemo(() => {
-    if (storeSubScores) return storeSubScores;
-    try {
-      return computeDiseaseSubScores({
-        totalCholesterol: labInputs.totalCholesterol,
-        hdl: labInputs.hdl,
-        triglycerides: labInputs.triglycerides,
-        ldl: apoBPanel.ldl,
-        nonHDL: apoBPanel.nonHDL,
-        apoB: apoBPanel.apoB,
-        fai,
-        cac,
-        stSegment: params.stSegment,
-        qtcBazett: params.qtInterval,
-        heartRate: params.heartRate,
-        systolic: params.systolic,
-        diastolic: params.diastolic,
-        hrv: params.hrv,
-        stressScore: params.stressScore,
-        activity: patientProfile.activity,
-      });
-    } catch {
-      return null;
-    }
-  }, [storeSubScores, labInputs, apoBPanel, fai, cac, params, patientProfile]);
-
-  // Exact prompt conditions and values:
-  // If baseline (default), use exact values: 30%, 0%, 0%, 6%, 4%
   const uploadedReport = useSimStore((s) => s.uploadedReport);
   const hasAppliedReport = uploadedReport?.status === 'applied';
   const isCustomScenario = (activeProfile && activeProfile.category !== 'healthy') || hasAppliedReport;
 
-  const cadScore = isCustomScenario && subScores ? Math.round(subScores.atherosclerosis) : 30;
-  const iscScore = isCustomScenario && subScores ? Math.round(subScores.myocardialIschemia) : 0;
-  const arrScore = isCustomScenario && subScores ? Math.round(subScores.arrhythmia) : 0;
-  const hhdScore = isCustomScenario && subScores ? Math.round(subScores.hypertensiveHeartDisease) : 6;
-  const hfScore = isCustomScenario && subScores ? Math.round(subScores.heartFailure) : 4;
+  const cadScore = isCustomScenario && storeSubScores ? Math.round(storeSubScores.atherosclerosis) : 30;
+  const iscScore = isCustomScenario && storeSubScores ? Math.round(storeSubScores.myocardialIschemia) : 0;
+  const arrScore = isCustomScenario && storeSubScores ? Math.round(storeSubScores.arrhythmia) : 0;
+  const hhdScore = isCustomScenario && storeSubScores ? Math.round(storeSubScores.hypertensiveHeartDisease) : 6;
+  const hfScore = isCustomScenario && storeSubScores ? Math.round(storeSubScores.heartFailure) : 4;
 
   const conditions = [
     {

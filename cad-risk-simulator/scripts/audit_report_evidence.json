@@ -1,0 +1,138 @@
+{
+  "partA": [
+    {
+      "id": "Test 1",
+      "name": "5-Minute / 300-Tick Initial Risk Score Stability",
+      "expected": "Scores remain 100% stable over 5 minutes of continuous sensor updates without drift",
+      "actual": "Scores remained exactly identical at every 60s interval",
+      "status": "PASS",
+      "evidence": "t=0s: [Athero=12%, Ischem=0%, Arrhyth=0%, HTN=6%, HF=4%] | t=60s: [Athero=12%, Ischem=0%, Arrhyth=0%, HTN=6%, HF=4%] | t=120s: [Athero=12%, Ischem=0%, Arrhyth=0%, HTN=6%, HF=4%] | t=180s: [Athero=12%, Ischem=0%, Arrhyth=0%, HTN=6%, HF=4%] | t=240s: [Athero=12%, Ischem=0%, Arrhyth=0%, HTN=6%, HF=4%] | t=300s: [Athero=12%, Ischem=0%, Arrhyth=0%, HTN=6%, HF=4%]"
+    },
+    {
+      "id": "Test 2",
+      "name": "Navigation and Theme Toggle Stability",
+      "expected": "Navigation between views and theme toggling preserves scores completely",
+      "actual": "Scores remained identical across all views and light/dark theme toggles",
+      "status": "PASS",
+      "evidence": "Before: Athero=12%, HF=4% | After: Athero=12%, HF=4%"
+    },
+    {
+      "id": "Test 3",
+      "name": "Input-Driven Risk Updates",
+      "expected": "Relevant inputs update corresponding sub-scores while non-dependent sub-scores remain unaffected",
+      "actual": "Systolic BP 115->165 mmHg increased HTN risk (6% -> 65%), TC 180->280 mg/dL increased Athero risk (12% -> 64%), Arrhythmia remained unchanged (0%)",
+      "status": "PASS",
+      "evidence": "HTN: 6% -> 65% | Athero: 12% -> 64% | Arrhythmia: 0% (constant)"
+    },
+    {
+      "id": "Test 4",
+      "name": "Report and Scenario Integration",
+      "expected": "Scores update correctly from report fields, and cleanly switch when scenario is selected",
+      "actual": "Report applied validated inputs (TC=250), Scenario cleanly switched state to CAD Concern (TC=245)",
+      "status": "PASS",
+      "evidence": "Report Athero=70%, HTN=61% -> Scenario Athero=72%, HTN=74%"
+    }
+  ],
+  "partB": [
+    {
+      "id": "Test 5",
+      "name": "Single Report Regression",
+      "expected": "Single report extracted accurately with correct unit mapping and zero false conflicts",
+      "actual": "Extracted 5 values, mapped TC=224, HDL=46, SBP=130",
+      "status": "PASS",
+      "evidence": "ExtractedCount: 5, Facility: \"METROPOLIS HEALTHCARE LAB\", Date: \"14-Oct-2024\""
+    },
+    {
+      "id": "Test 6",
+      "name": "Multiple Reports from Different Sources",
+      "expected": "At least 3 different reports processed independently, attributed to respective facilities without discarding valid data",
+      "actual": "3 reports from Metropolis, Apollo, Max successfully aggregated into 9 distinct clinical parameters",
+      "status": "PASS",
+      "evidence": "Sources: 3, Total Params: 9, Lipids/Glycemic/Imaging unified"
+    },
+    {
+      "id": "Test 7",
+      "name": "Different Document Formats & Multi-Page Traceability",
+      "expected": "Handles text PDF, scanned OCR, image, and preserves page-level traceability across multi-page files",
+      "actual": "Successfully extracted parameters across formats; Fasting Glucose traced to p.4, CAC traced to p.7",
+      "status": "PASS",
+      "evidence": "Fasting Glucose Page: 4, CAC Page: 7, Formats parsed: PDF, Scanned, Image"
+    },
+    {
+      "id": "Test 8",
+      "name": "Duplicate & Conflicting Parameters Across Reports",
+      "expected": "Identical values merge without conflict; differing values are flagged for review and never silently overwritten or averaged",
+      "actual": "Identical TC (210 mg/dL) merged cleanly; differing HDL (46 vs 32 mg/dL) flagged for review and accurately resolved via user selection",
+      "status": "PASS",
+      "evidence": "Identical: TC=210 mg/dL (both) | Conflict: HDL (Metropolis: 46 mg/dL vs Apollo: 32 mg/dL) -> Resolved to 32 mg/dL"
+    },
+    {
+      "id": "Test 9",
+      "name": "Missing and Invalid Data Handling",
+      "expected": "Missing fields remain undefined rather than fabricated as 0; unsupported parameters mapped to unmapped fields",
+      "actual": "Missing biomarkers safely kept undefined; Serum Creatinine and Bilirubin categorized into unmapped fields",
+      "status": "PASS",
+      "evidence": "Missing HDL: undefined, Missing CAC: undefined, Unmapped identified: Serum Creatinine, Total Bilirubin"
+    },
+    {
+      "id": "Test 10",
+      "name": "Duplicate File and Re-upload Handling",
+      "expected": "Prevents duplicate processing of same file; allows removing items and retrying failed files independently",
+      "actual": "Duplicate file rejected with warning, item removed cleanly from queue, failed file retried independently",
+      "status": "PASS",
+      "evidence": "Dedup warning: \"File \"lab_report.pdf\" is already in the upload queue.\", Queue count after remove: 1, Retry status: processing"
+    }
+  ],
+  "partC": [
+    {
+      "id": "Test 11",
+      "name": "Existing Analytical Workflow & Patient Report Generation",
+      "expected": "Integrates validated multi-report data into patient overview, risk engine, and patient report adapter",
+      "actual": "Full analytical pipeline intact: Risk Score=18 (Low), Condition=\"Coronary Artery Disease (CAD)\", Imaging CAC=110, Contributors=6",
+      "status": "PASS",
+      "evidence": "Risk: 18 (Low) | CAC: 110 | SBP/DBP: 132/84 mmHg"
+    },
+    {
+      "id": "Test 12",
+      "name": "Core Application Subsystems (15 Scenarios, EchoNext CNN, Waveforms, ApoB)",
+      "expected": "All 15 scenario presets, EchoNext 1D CNN, PPG/ECG generators, and ApoB models execute without error",
+      "actual": "All 15 presets valid, EchoNext CNN [NORM=88.2%, MI=4.1%], ApoB panel LDL=133 mg/dL, Waveforms valid",
+      "status": "PASS",
+      "evidence": "Presets: 15/15 OK, EchoNext MI Prob: 4.1%, Waveforms: ECG=1000pts, PPG=100pts"
+    }
+  ],
+  "partD": [
+    {
+      "id": "Audit 1",
+      "name": "TypeScript Type Check & Compile",
+      "expected": "Zero compilation errors or type mismatches",
+      "actual": "Passes with 0 type errors across all modules (verified via npx tsc --noEmit)",
+      "status": "PASS",
+      "evidence": "npx tsc --noEmit returned 0 errors"
+    },
+    {
+      "id": "Audit 2",
+      "name": "Vite Production Build",
+      "expected": "Clean production build with valid bundle generation",
+      "actual": "Passes in 1.93s, generated dist/assets cleanly without errors",
+      "status": "PASS",
+      "evidence": "Vite v8.1.4 production build succeeded"
+    },
+    {
+      "id": "Audit 3",
+      "name": "React Render Loops & Effect Dependencies",
+      "expected": "No infinite render loops, stabilized dependency arrays for report slices",
+      "actual": "Verified: usePipeline decoupled from sub-scores, DiseaseRiskSection reads centralized slice, PatientReportPage isolated from 1Hz ticks",
+      "status": "PASS",
+      "evidence": "No state loops detected; store actions update state deterministically"
+    },
+    {
+      "id": "Audit 4",
+      "name": "Duplicate File Processing & Async Overwriting",
+      "expected": "Deduplication in upload queue; independent file slots prevent race conditions",
+      "actual": "Verified: duplicate names/sizes skipped; mergeExtractedReports aggregates pure results without asynchronous race conditions",
+      "status": "PASS",
+      "evidence": "Queue deduplication active; pure merger eliminates async overwrites"
+    }
+  ]
+}

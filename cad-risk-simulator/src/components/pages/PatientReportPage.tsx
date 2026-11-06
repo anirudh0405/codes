@@ -64,13 +64,59 @@ function ArohanLogoHeader() {
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export function PatientReportPage() {
-  // Subscribe to simStore to react to live changes
-  const simState = useSimStore();
+  // Subscribe specifically to report-relevant slices rather than whole store,
+  // preventing re-render thrashing on every 1-second waveform buffer tick
+  const patientProfile = useSimStore((s) => s.patientProfile);
+  const params = useSimStore((s) => s.params);
+  const labInputs = useSimStore((s) => s.labInputs);
+  const apoBPanel = useSimStore((s) => s.apoBPanel);
+  const fai = useSimStore((s) => s.fai);
+  const cac = useSimStore((s) => s.cac);
+  const riskResult = useSimStore((s) => s.riskResult);
+  const diseaseSubScores = useSimStore((s) => s.diseaseSubScores);
+  const riskTrend = useSimStore((s) => s.riskTrend);
+  const uploadedReport = useSimStore((s) => s.uploadedReport);
+  const activeProfile = useSimStore((s) => s.activeProfile);
+  const activeDiseaseParams = useSimStore((s) => s.activeDiseaseParams);
+  const activeMechanismSteps = useSimStore((s) => s.activeMechanismSteps);
+  const activeSeverity = useSimStore((s) => s.activeSeverity);
+  const hsCRP = useSimStore((s) => s.hsCRP);
+  const hba1c = useSimStore((s) => s.hba1c);
+  const fastingGlucose = useSimStore((s) => s.fastingGlucose);
+  const postprandialGlucose = useSimStore((s) => s.postprandialGlucose);
+  const vldl = useSimStore((s) => s.vldl);
+  const plaqueType = useSimStore((s) => s.plaqueType);
+  const plaqueLocation = useSimStore((s) => s.plaqueLocation);
+  const stenosisSeverity = useSimStore((s) => s.stenosisSeverity);
 
-  // Read data through the single report data adapter
+  // Read data through the single report data adapter only when relevant data changes
   const reportData = useMemo(() => {
-    return buildPatientReportData(simState);
-  }, [simState]);
+    return buildPatientReportData();
+  }, [
+    patientProfile,
+    params,
+    labInputs,
+    apoBPanel,
+    fai,
+    cac,
+    riskResult?.score,
+    riskResult?.band,
+    diseaseSubScores,
+    riskTrend,
+    uploadedReport,
+    activeProfile?.id,
+    activeDiseaseParams,
+    activeMechanismSteps,
+    activeSeverity,
+    hsCRP,
+    hba1c,
+    fastingGlucose,
+    postprandialGlucose,
+    vldl,
+    plaqueType,
+    plaqueLocation,
+    stenosisSeverity,
+  ]);
 
   const {
     patient,
@@ -126,6 +172,9 @@ export function PatientReportPage() {
   const [groqParamExplanations, setGroqParamExplanations] = useState<Record<string, string>>({});
   const [groqParamSource, setGroqParamSource] = useState<'provider' | 'mock' | 'fallback'>('fallback');
 
+  const contributorsKey = contributors.map(c => `${c.key}:${c.value}`).join(',');
+  const impactsKey = explainability.parameterImpacts.map(p => `${p.parameter}:${p.value}:${p.impact}`).join(',');
+
   useEffect(() => {
     let isCancelled = false;
     const topContributorLabels = contributors.slice(0, 4).map(c => c.label);
@@ -170,7 +219,7 @@ export function PatientReportPage() {
     return () => {
       isCancelled = true;
     };
-  }, [risk.score, risk.category, contributors, explainability.parameterImpacts, risk.meaning]);
+  }, [risk.score, risk.category, contributorsKey, impactsKey, risk.meaning]);
 
   const reportContainerRef = useRef<HTMLDivElement>(null);
 

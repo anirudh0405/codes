@@ -76,6 +76,50 @@ export type BPMode = 'ptt' | 'manual';
 export const FAI_CLAMP = { min: -190, max: -30, default: -80 };
 export const CAC_CLAMP = { min: 0, default: 0 };
 
+/**
+ * Computes deterministic disease-specific sub-scores from the validated patient input state.
+ * This guarantees scores only change when relevant clinical/simulation inputs change,
+ * completely decoupled from live sensor waveform noise and generator polling intervals.
+ */
+export function computeValidatedDiseaseSubScores(
+  params: MockParams,
+  patientProfile: PatientProfileData,
+  labInputs: LabInputs,
+  apoBPanel: ApoBPanel,
+  fai: number,
+  cac: number
+): DiseaseSubScores {
+  const heightM = (patientProfile.height || 170) / 100;
+  const bmi = Number((patientProfile.weight / (heightM * heightM)).toFixed(1));
+  const bmiSafe = isFinite(bmi) && bmi > 0 ? bmi : 24.5;
+
+  // Pulse Transit Time derived deterministically from systolic blood pressure
+  // using Moens-Korteweg relationship (100–300 ms range)
+  const pulseTransitTime = Math.max(100, Math.min(300, Math.round((220 - params.systolic) / 0.45)));
+
+  return computeDiseaseSubScores({
+    totalCholesterol: labInputs.totalCholesterol,
+    hdl: labInputs.hdl,
+    triglycerides: labInputs.triglycerides,
+    ldl: apoBPanel.ldl,
+    nonHDL: apoBPanel.nonHDL,
+    apoB: apoBPanel.apoB,
+    apoBApoa1Ratio: labInputs.hdl > 0 ? apoBPanel.apoB / (labInputs.hdl * 2) : undefined,
+    fai,
+    cac,
+    stSegment: params.stSegment,
+    qtcBazett: params.qtInterval,
+    heartRate: params.heartRate,
+    systolic: params.systolic,
+    diastolic: params.diastolic,
+    pulseTransitTime,
+    hrv: params.hrv,
+    stressScore: params.stressScore,
+    bmi: bmiSafe,
+    activity: patientProfile.activity,
+  });
+}
+
 export type PlaqueType = 'none' | 'non-calcified' | 'calcified' | 'mixed';
 export type StenosisSeverity = 'none' | '<50%' | '50-70%' | '>70%';
 
@@ -87,23 +131,47 @@ export interface ExtractedParameterDetail {
   sourcePage?: number;
   status: 'accepted' | 'review' | 'unconfident';
   rawSnippet?: string;
+  sourceFile?: string;
+  sourceDate?: string;
+  sourceFacility?: string;
+}
+
+export interface ParameterConflictSource {
+  sourceFile: string;
+  sourceDate?: string;
+  sourceFacility?: string;
+  value: number | string | string[];
+  unit?: string;
+  sourcePage?: number;
+}
+
+export interface ParameterConflict {
+  parameter: string;
+  fieldKey: keyof ReportFields;
+  sources: ParameterConflictSource[];
+  resolvedValue?: number | string | string[];
+  selectedSourceIndex?: number;
 }
 
 export interface UploadedReport {
+  id?: string;
   fileName: string;
   timestamp: string;
   fileUrl: string;
-  fileType: 'pdf' | 'image';
+  fileType: 'pdf' | 'image' | 'text';
+  reportDate?: string;
+  facilityName?: string;
   extractedFields?: ReportFields;
   extractedCount?: number;
   parameterDetails?: ExtractedParameterDetail[];
   unmappedFields?: string[];
-  status?: 'analyzing' | 'applied' | 'error';
+  status?: 'analyzing' | 'applied' | 'error' | 'pending' | 'success';
   patientName?: string;
   patientId?: string;
   summaryNote?: string;
   analysisProgress?: number;
   analysisStatusText?: string;
+  errorMessage?: string;
 }
 
 export interface ReportFields {
@@ -205,6 +273,8 @@ export interface SimState {
   plaqueLocation: string[];
   stenosisSeverity: StenosisSeverity;
   uploadedReport: UploadedReport | null;
+  uploadedReports: UploadedReport[];
+  reportConflicts: ParameterConflict[];
 
   // ── Actions ───────────────────────────────────────────────────────────────
   runEchoNext: () => void;
@@ -229,6 +299,9 @@ export interface SimState {
   ) => void;
   setReportFields: (fields: ReportFields) => void;
   setUploadedReport: (report: UploadedReport | null) => void;
+  setUploadedReports: (reports: UploadedReport[]) => void;
+  setReportConflicts: (conflicts: ParameterConflict[]) => void;
+  resolveReportConflict: (fieldKey: keyof ReportFields, selectedIndex: number) => void;
   clearReport: () => void;
 }
 
@@ -391,11 +464,18 @@ export const useSimStore = create<SimState>((set, get) => ({
   ppgBuffer: [],
   riskTrend: loadStoredRiskTrend(),
 
-  labInputs: { ...DEFAULT_LAB_INPUTS },
+  labInputs: { ...DEFAULT_LAB_INPUTS, trigsManuallySet: true },
   apoBPanel: calculateApoBPanel(DEFAULT_LAB_INPUTS),
   fai: DEFAULT_PRESET.labInputs?.fai ?? -82,
   cac: DEFAULT_PRESET.labInputs?.cac ?? 0,
-  diseaseSubScores: null,
+  diseaseSubScores: computeValidatedDiseaseSubScores(
+    DEFAULT_PRESET.params,
+    DEFAULT_PRESET.patientProfile,
+    { ...DEFAULT_LAB_INPUTS, trigsManuallySet: true },
+    calculateApoBPanel(DEFAULT_LAB_INPUTS),
+    DEFAULT_PRESET.labInputs?.fai ?? -82,
+    DEFAULT_PRESET.labInputs?.cac ?? 0
+  ),
 
   // CVD-specific state
   activeDiseaseParams: null,
@@ -413,6 +493,8 @@ export const useSimStore = create<SimState>((set, get) => ({
   plaqueLocation: [],
   stenosisSeverity: 'none',
   uploadedReport: null,
+  uploadedReports: [],
+  reportConflicts: [],
 
   // EchoNext 1D ResNet-34 Deep Learning Slice
   echonextResult: runEchoNextInference(
@@ -454,8 +536,17 @@ export const useSimStore = create<SimState>((set, get) => ({
       const isBPModified = newParams.systolic !== undefined || newParams.diastolic !== undefined;
       const updatedParams = { ...s.params, ...newParams };
       const currentProfile = s.activeProfile;
+      const nextScores = computeValidatedDiseaseSubScores(
+        updatedParams,
+        s.patientProfile,
+        s.labInputs,
+        s.apoBPanel,
+        s.fai,
+        s.cac
+      );
       return {
         params: updatedParams,
+        diseaseSubScores: nextScores,
         activeProfile: {
           id: currentProfile?.id || 'custom-modified',
           name: currentProfile?.name || 'Custom Physiological State',
@@ -497,7 +588,7 @@ export const useSimStore = create<SimState>((set, get) => ({
         hdl: presetLab.hdl ?? (profile.category === 'healthy' ? 55 : 38),
         triglycerides: presetLab.triglycerides ?? (profile.category === 'healthy' ? 105 : 180),
         lpa: presetLab.lpa ?? defaultLpa,
-        trigsManuallySet: false, // reset manual flag on preset change
+        trigsManuallySet: true, // Preset defines the validated baseline lab profile
       };
 
       // Build params with ecgRhythm for CVD scenarios
@@ -508,6 +599,16 @@ export const useSimStore = create<SimState>((set, get) => ({
 
       const faiVal = presetLab.fai ?? (profile.category === 'healthy' ? -82 : -65);
       const cacVal = presetLab.cac ?? (profile.category === 'healthy' ? 0 : 150);
+      const newApoBPanel = calculateApoBPanel(newLabInputs);
+
+      const nextScores = computeValidatedDiseaseSubScores(
+        newParams,
+        profile.patientProfile,
+        newLabInputs,
+        newApoBPanel,
+        faiVal,
+        cacVal
+      );
 
       return {
         params: newParams,
@@ -516,9 +617,10 @@ export const useSimStore = create<SimState>((set, get) => ({
         lastActiveProfileId: profile.id,
         selectedCategory: profile.category,
         labInputs: newLabInputs,
-        apoBPanel: calculateApoBPanel(newLabInputs),
+        apoBPanel: newApoBPanel,
         fai: faiVal,
         cac: cacVal,
+        diseaseSubScores: nextScores,
         // CVD-specific state
         activeDiseaseParams: profile.diseaseParameters ?? null,
         activeEcgRhythm: profile.ecgRhythm ?? 'sinus',
@@ -530,9 +632,21 @@ export const useSimStore = create<SimState>((set, get) => ({
   },
 
   setPatientProfile: (data) => {
-    set((s) => ({
-      patientProfile: { ...s.patientProfile, ...data },
-    }));
+    set((s) => {
+      const updatedProfile = { ...s.patientProfile, ...data };
+      const nextScores = computeValidatedDiseaseSubScores(
+        s.params,
+        updatedProfile,
+        s.labInputs,
+        s.apoBPanel,
+        s.fai,
+        s.cac
+      );
+      return {
+        patientProfile: updatedProfile,
+        diseaseSubScores: nextScores,
+      };
+    });
   },
 
   setSelectedCategory: (category) => {
@@ -553,46 +667,56 @@ export const useSimStore = create<SimState>((set, get) => ({
   },
 
   randomize: () => {
-    const { selectedCategory, patientProfile, labInputs } = get();
+    const { selectedCategory, patientProfile, labInputs, fai: currentFai, cac: currentCac } = get();
     const { params, profilePatch, labPatch, fai: randFai, cac: randCac } = randomizeParamsForCategory(selectedCategory);
 
     const newLabInputs: LabInputs = {
       ...labInputs,
       ...labPatch,
-      trigsManuallySet: false,
+      trigsManuallySet: true,
     };
+    const newApoB = calculateApoBPanel(newLabInputs);
+    const updatedProfile = { ...patientProfile, ...profilePatch };
+    const finalFai = randFai ?? currentFai;
+    const finalCac = randCac ?? currentCac;
 
-    set((s) => ({
+    const nextScores = computeValidatedDiseaseSubScores(
       params,
-      patientProfile: { ...patientProfile, ...profilePatch },
+      updatedProfile,
+      newLabInputs,
+      newApoB,
+      finalFai,
+      finalCac
+    );
+
+    set({
+      params,
+      patientProfile: updatedProfile,
       labInputs: newLabInputs,
-      apoBPanel: calculateApoBPanel(newLabInputs),
-      fai: randFai ?? s.fai,
-      cac: randCac ?? s.cac,
+      apoBPanel: newApoB,
+      fai: finalFai,
+      cac: finalCac,
+      diseaseSubScores: nextScores,
       activeProfile: null,
       // Clear CVD-specific state on randomize
       activeDiseaseParams: null,
       activeEcgRhythm: 'sinus',
       activeMechanismSteps: null,
       activeSeverity: null,
-    }));
+    });
   },
 
   setFai: (val: number) => {
     const clamped = Math.max(FAI_CLAMP.min, Math.min(FAI_CLAMP.max, val));
     set((s) => {
-      const nextScores = s.snapshot
-        ? computeDiseaseSubScores({
-            ...s.snapshot,
-            ...s.patientProfile,
-            fai: clamped,
-            cac: s.cac,
-            ldl: s.apoBPanel.ldl,
-            nonHDL: s.apoBPanel.nonHDL,
-            apoB: s.apoBPanel.apoB,
-            apoBApoa1Ratio: s.labInputs.hdl > 0 ? s.apoBPanel.apoB / (s.labInputs.hdl * 2) : undefined,
-          })
-        : s.diseaseSubScores;
+      const nextScores = computeValidatedDiseaseSubScores(
+        s.params,
+        s.patientProfile,
+        s.labInputs,
+        s.apoBPanel,
+        clamped,
+        s.cac
+      );
       return {
         fai: clamped,
         diseaseSubScores: nextScores,
@@ -617,18 +741,14 @@ export const useSimStore = create<SimState>((set, get) => ({
   setCac: (val: number) => {
     const clamped = Math.max(CAC_CLAMP.min, val);
     set((s) => {
-      const nextScores = s.snapshot
-        ? computeDiseaseSubScores({
-            ...s.snapshot,
-            ...s.patientProfile,
-            fai: s.fai,
-            cac: clamped,
-            ldl: s.apoBPanel.ldl,
-            nonHDL: s.apoBPanel.nonHDL,
-            apoB: s.apoBPanel.apoB,
-            apoBApoa1Ratio: s.labInputs.hdl > 0 ? s.apoBPanel.apoB / (s.labInputs.hdl * 2) : undefined,
-          })
-        : s.diseaseSubScores;
+      const nextScores = computeValidatedDiseaseSubScores(
+        s.params,
+        s.patientProfile,
+        s.labInputs,
+        s.apoBPanel,
+        s.fai,
+        clamped
+      );
       return {
         cac: clamped,
         diseaseSubScores: nextScores,
@@ -683,10 +803,21 @@ export const useSimStore = create<SimState>((set, get) => ({
         ...clamped,
         trigsManuallySet: manualTrig ? true : s.labInputs.trigsManuallySet,
       };
+      const newApoBPanel = calculateApoBPanel(newLabInputs);
+
+      const nextScores = computeValidatedDiseaseSubScores(
+        s.params,
+        s.patientProfile,
+        newLabInputs,
+        newApoBPanel,
+        s.fai,
+        s.cac
+      );
 
       return {
         labInputs: newLabInputs,
-        apoBPanel: calculateApoBPanel(newLabInputs),
+        apoBPanel: newApoBPanel,
+        diseaseSubScores: nextScores,
         snapshot: s.snapshot
           ? {
               ...s.snapshot,
@@ -712,7 +843,7 @@ export const useSimStore = create<SimState>((set, get) => ({
     });
   },
 
-  updatePipelineData: (snapshot, risk, status, ecgWaveform, ppgWaveform, ppgTriglycerides, diseaseSubScores) => {
+  updatePipelineData: (snapshot, risk, status, ecgWaveform, ppgWaveform, ppgTriglycerides, _unusedDiseaseSubScores) => {
     const now = Date.now();
     const newECG: WaveformPoint[] = ecgWaveform.slice(0, 100).map((v, i) => ({
       t: waveformTicker * 100 + i,
@@ -725,17 +856,6 @@ export const useSimStore = create<SimState>((set, get) => ({
     waveformTicker++;
 
     set((s) => {
-      let labInputs = s.labInputs;
-      let apoBPanel = s.apoBPanel;
-      if (!s.labInputs.trigsManuallySet && ppgTriglycerides !== undefined) {
-        const clamped = Math.max(
-          LAB_CLAMPS.triglycerides.min,
-          Math.min(LAB_CLAMPS.triglycerides.max, Math.round(ppgTriglycerides))
-        );
-        labInputs = { ...s.labInputs, triglycerides: clamped };
-        apoBPanel = calculateApoBPanel(labInputs);
-      }
-
       // Update risk history responsibly (no duplicate spamming, real scenario changes, waiting intervals)
       const currentScore = Math.round(risk.score);
       const currentScenarioId = s.activeProfile?.id ?? (s.activeProfile ? 'preset' : 'custom');
@@ -823,9 +943,7 @@ export const useSimStore = create<SimState>((set, get) => ({
         ecgBuffer: [...s.ecgBuffer, ...newECG].slice(-300),
         ppgBuffer: [...s.ppgBuffer, ...newPPG].slice(-150),
         riskTrend: nextTrend,
-        labInputs,
-        apoBPanel,
-        diseaseSubScores: diseaseSubScores ?? s.diseaseSubScores,
+        diseaseSubScores: s.diseaseSubScores,
       };
     });
   },
@@ -839,7 +957,7 @@ export const useSimStore = create<SimState>((set, get) => ({
     if (fields.triglycerides !== undefined) labPatch.triglycerides = fields.triglycerides;
     if (fields.lpa !== undefined) labPatch.lpa = fields.lpa;
     if (Object.keys(labPatch).length > 0) {
-      s.setLabInputs(labPatch, fields.triglycerides !== undefined);
+      s.setLabInputs(labPatch, true);
     }
 
     // Direct ApoB / LDL override if present in report
@@ -895,8 +1013,20 @@ export const useSimStore = create<SimState>((set, get) => ({
       }
     }
 
+    // Synchronize validated diseaseSubScores from final updated store state
+    const latestState = get();
+    const finalScores = computeValidatedDiseaseSubScores(
+      latestState.params,
+      latestState.patientProfile,
+      latestState.labInputs,
+      latestState.apoBPanel,
+      latestState.fai,
+      latestState.cac
+    );
+
     // Set scenario context to reflect uploaded clinical data so landing page displays actual values
     set(state => ({
+      diseaseSubScores: finalScores,
       activeProfile: {
         id: 'clinical-report',
         name: 'Clinical Report Ingestion',
@@ -936,6 +1066,34 @@ export const useSimStore = create<SimState>((set, get) => ({
     set({ uploadedReport: report });
   },
 
+  setUploadedReports: (reports) => {
+    set({ uploadedReports: reports });
+  },
+
+  setReportConflicts: (conflicts) => {
+    set({ reportConflicts: conflicts });
+  },
+
+  resolveReportConflict: (fieldKey, selectedIndex) => {
+    const s = get();
+    const updatedConflicts = s.reportConflicts.map(c => {
+      if (c.fieldKey === fieldKey && c.sources[selectedIndex]) {
+        return {
+          ...c,
+          resolvedValue: c.sources[selectedIndex].value,
+          selectedSourceIndex: selectedIndex,
+        };
+      }
+      return c;
+    });
+
+    const targetConflict = updatedConflicts.find(c => c.fieldKey === fieldKey);
+    if (targetConflict && targetConflict.resolvedValue !== undefined) {
+      s.setReportFields({ [fieldKey]: targetConflict.resolvedValue as any });
+    }
+    set({ reportConflicts: updatedConflicts });
+  },
+
   clearReport: () => {
     const s = get();
     const targetProfileId = s.lastActiveProfileId || SCENARIO_PRESETS[0].id;
@@ -962,6 +1120,8 @@ export const useSimStore = create<SimState>((set, get) => ({
       plaqueLocation: [],
       stenosisSeverity: 'none',
       uploadedReport: null,
+  uploadedReports: [],
+  reportConflicts: [],
     });
 
     // Restore the scenario preset it was on
